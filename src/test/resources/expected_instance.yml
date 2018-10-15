@@ -1,0 +1,36 @@
+---
+serviceInstanceId: "e4bd6a78-7e05-4d5a-97b8-f8c5d1c710ab"
+serviceDefinitionId: "d40133dd-8373-4c25-8014-fde98f38a728"
+planId: "a13edcdf-eb54-44d3-8902-8f24d5acb07e"
+serviceDefinition:
+  id: "d40133dd-8373-4c25-8014-fde98f38a728"
+  name: "example-osb"
+  description: "This service spins up a host with OpenStack and Cloud Foundry CLI\
+    \ installed."
+  plans:
+  - id: "a13edcdf-eb54-44d3-8902-8f24d5acb07e"
+    name: "S"
+    description: "A small host with OpenStack and CloudFoundry CLI installed"
+    metadata: {}
+    schemas: null
+    free: true
+  - id: "b387b010-c002-4eab-8902-3851694ef7ba"
+    name: "M"
+    description: "A medium host with OpenStack and CloudFoundry CLI installed"
+    metadata: {}
+    schemas: null
+    free: true
+  bindable: true
+  planUpdateable: false
+  tags:
+  - "example"
+  metadata: {}
+  requires: []
+  dashboardClient: null
+originatingIdentity: !<PlatformContext>
+  platform: null
+  user: "unittester"
+asyncAccepted: true
+parameters: {}
+context: null
+deleted: false

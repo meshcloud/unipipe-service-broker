@@ -1,0 +1,3 @@
+app:
+  basic-auth-username: user
+  basic-auth-password: random-secret

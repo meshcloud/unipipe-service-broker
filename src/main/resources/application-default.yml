@@ -1,0 +1,10 @@
+# Example Spring Boot YAML configuration
+server:
+  port: 8075
+
+git:
+  remote: git@bitbucket.org:meshcloud/example-osb-repo.git
+
+app:
+  basic-auth-username: user
+  basic-auth-password: random-secret
