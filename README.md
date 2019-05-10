@@ -4,7 +4,7 @@ This project implements the OSB API and just stores and reads information about 
 The actual service instances will then be deployed by a CI/CD pipeline.
 
 This decoupling allows reusing this Generic OSB API for any kind of service that you can automatically provision from git using CI/CD.
-For example you can take a look at our our [Example OSB CI Concourse Pipeline](https://github.com/Meshcloud/example-osb-ci], 
+For example you can take a look at our our [Example OSB CI Concourse Pipeline](https://github.com/Meshcloud/example-osb-ci), 
 which uses Terraform + Ansible to bring up new service instances.
 
 ## How to use it
