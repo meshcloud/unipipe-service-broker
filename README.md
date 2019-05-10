@@ -1,9 +1,11 @@
 # Generic OSB API
 
-This project implements the OSB API and just stores and reads information about instances and bindings via a Git Repo. 
-The services will be created in a later step via a CI/CD pipeline. This decoupling allows reusing this Generic OSB API
-for all service brokers that naturally spin up their services in a CI/CD pipeline. The actual provisioning, etc. will 
-be done via the CI/CD pipeline, using tools that are made for service provisioning/deployment.
+This project implements the OSB API and just stores and reads information about instances and bindings via a git repository. 
+The actual service instances will then be deployed by a CI/CD pipeline.
+
+This decoupling allows reusing this Generic OSB API for any kind of service that you can automatically provision from git using CI/CD.
+For example you can take a look at our our [Example OSB CI Concourse Pipeline](https://github.com/Meshcloud/example-osb-ci], 
+which uses Terraform + Ansible to bring up new service instances.
 
 ## How to use it
 You can download the [jar](https://swift.os.eu-de-darz.msh.host/swift/v1/publish/generic-osb-api-0.9.0.jar) and run the 
