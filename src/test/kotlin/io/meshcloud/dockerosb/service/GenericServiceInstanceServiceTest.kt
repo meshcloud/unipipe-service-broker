@@ -45,7 +45,8 @@ class GenericServiceInstanceServiceTest {
     val sut = GenericServiceInstanceService(YamlHandler(), GitHandler(config))
     val request = createServiceInstanceRequest()
 
-    sut.createServiceInstance(request)
+    sut.createServiceInstance(request).block()
+
     val yamlPath = "$localGitPath/instances/${request.serviceInstanceId}/instance.yml"
     val instanceYml = File(yamlPath)
 
@@ -63,7 +64,7 @@ class GenericServiceInstanceServiceTest {
     val sut = GenericServiceInstanceService(YamlHandler(), GitHandler(config))
     val request = createServiceInstanceRequest()
 
-    sut.createServiceInstance(request)
+    sut.createServiceInstance(request).block()
 
     val gitHandler = GitHandler(config)
 
@@ -98,7 +99,7 @@ class GenericServiceInstanceServiceTest {
         .serviceInstanceId(serviceInstanceId)
         .build()
 
-    val response = sut.getLastOperation(request)
+    val response = sut.getLastOperation(request).block()!!
 
     assertEquals(OperationState.SUCCEEDED, response.state)
     assertEquals("deployment successful", response.description)
@@ -112,7 +113,7 @@ class GenericServiceInstanceServiceTest {
         .serviceInstanceId("test-567")
         .build()
 
-    val response = sut.getLastOperation(request)
+    val response = sut.getLastOperation(request).block()!!
 
     assertEquals(OperationState.IN_PROGRESS, response.state)
     assertEquals("preparing deployment", response.description)
@@ -129,7 +130,7 @@ class GenericServiceInstanceServiceTest {
 
     copyInstanceYmlToRepo(request.serviceInstanceId)
 
-    val response = sut.deleteServiceInstance(request)
+    val response = sut.deleteServiceInstance(request).block()!!
 
     assertEquals(true, response.isAsync)
     assertNotNull(response.operation)
@@ -151,7 +152,7 @@ class GenericServiceInstanceServiceTest {
 
     copyInstanceYmlToRepo(request.serviceInstanceId)
 
-    sut.deleteServiceInstance(request)
+    sut.deleteServiceInstance(request).block()
 
     val updatedStatusYml = File("$localGitPath/instances/${request.serviceInstanceId}/status.yml")
     val updatedStatus = yamlHandler.readObject(updatedStatusYml, Status::class.java)

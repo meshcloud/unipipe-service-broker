@@ -7,6 +7,8 @@ import io.meshcloud.dockerosb.persistence.YamlHandler
 import org.springframework.cloud.servicebroker.model.instance.*
 import org.springframework.cloud.servicebroker.service.ServiceInstanceService
 import org.springframework.stereotype.Service
+import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.toMono
 
 @Service
 class GenericServiceInstanceService(
@@ -14,7 +16,7 @@ class GenericServiceInstanceService(
     private val gitHandler: GitHandler
 ) : ServiceInstanceService {
 
-  override fun createServiceInstance(request: CreateServiceInstanceRequest): CreateServiceInstanceResponse {
+  override fun createServiceInstance(request: CreateServiceInstanceRequest): Mono<CreateServiceInstanceResponse> {
     gitHandler.pull()
     val instanceYmlPath = "instances/${request.serviceInstanceId}/instance.yml"
     val instanceYml = gitHandler.fileInRepo(instanceYmlPath)
@@ -31,9 +33,10 @@ class GenericServiceInstanceService(
         .async(true)
         .operation("creating service")
         .build()
+        .toMono()
   }
 
-  override fun getLastOperation(request: GetLastServiceOperationRequest): GetLastServiceOperationResponse {
+  override fun getLastOperation(request: GetLastServiceOperationRequest): Mono<GetLastServiceOperationResponse> {
     gitHandler.pull()
     val statusPath = "instances/${request.serviceInstanceId}/status.yml"
     val statusYml = gitHandler.fileInRepo(statusPath)
@@ -52,9 +55,10 @@ class GenericServiceInstanceService(
         .operationState(status)
         .description(description)
         .build()
+        .toMono()
   }
 
-  override fun deleteServiceInstance(request: DeleteServiceInstanceRequest): DeleteServiceInstanceResponse {
+  override fun deleteServiceInstance(request: DeleteServiceInstanceRequest): Mono<DeleteServiceInstanceResponse> {
     gitHandler.pull()
     val instanceYmlPath = "instances/${request.serviceInstanceId}/instance.yml"
     val instanceYml = gitHandler.fileInRepo(instanceYmlPath)
@@ -82,6 +86,6 @@ class GenericServiceInstanceService(
         .async(true)
         .operation("deleting service")
         .build()
+        .toMono()
   }
-
 }

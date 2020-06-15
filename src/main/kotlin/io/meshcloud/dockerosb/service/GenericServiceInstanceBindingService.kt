@@ -9,6 +9,8 @@ import org.springframework.cloud.servicebroker.model.binding.*
 import org.springframework.cloud.servicebroker.model.instance.OperationState
 import org.springframework.cloud.servicebroker.service.ServiceInstanceBindingService
 import org.springframework.stereotype.Service
+import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.toMono
 import java.util.HashMap
 
 @Service
@@ -17,7 +19,7 @@ class GenericServiceInstanceBindingService(
     private val gitHandler: GitHandler
 ) : ServiceInstanceBindingService {
 
-  override fun createServiceInstanceBinding(request: CreateServiceInstanceBindingRequest): CreateServiceInstanceBindingResponse {
+  override fun createServiceInstanceBinding(request: CreateServiceInstanceBindingRequest): Mono<CreateServiceInstanceBindingResponse> {
     gitHandler.pull()
     val bindingYmlPath = "instances/${request.serviceInstanceId}/bindings/${request.bindingId}/binding.yml"
     val bindingYml = gitHandler.fileInRepo(bindingYmlPath)
@@ -30,14 +32,15 @@ class GenericServiceInstanceBindingService(
         commitMessage = "Created Service binding ${request.bindingId}"
     )
 
-    return CreateServiceInstanceAsyncBindingResponse.builder()
+    return CreateServiceInstanceAppBindingResponse.builder()
         .async(true)
         .operation("creating binding")
         .bindingExisted(false)
         .build()
+        .toMono()
   }
 
-  override fun deleteServiceInstanceBinding(request: DeleteServiceInstanceBindingRequest): DeleteServiceInstanceBindingResponse {
+  override fun deleteServiceInstanceBinding(request: DeleteServiceInstanceBindingRequest): Mono<DeleteServiceInstanceBindingResponse> {
     gitHandler.pull()
     val bindingYmlPath = "instances/${request.serviceInstanceId}/bindings/${request.bindingId}/binding.yml"
     val bindingYml = gitHandler.fileInRepo(bindingYmlPath)
@@ -64,11 +67,12 @@ class GenericServiceInstanceBindingService(
         .async(true)
         .operation("deleting")
         .build()
+        .toMono()
   }
 
-  override fun getLastOperation(request: GetLastBindingOperationRequest): GetLastBindingOperationResponse {
+  override fun getLastOperation(request: GetLastServiceBindingOperationRequest): Mono<GetLastServiceBindingOperationResponse> {
     gitHandler.pull()
-    val statusPath = "instances/${request.serviceInstanceId}/bindings/${request.serviceBindingId}/status.yml"
+    val statusPath = "instances/${request.serviceInstanceId}/bindings/${request.bindingId}/status.yml"
     val statusYml = gitHandler.fileInRepo(statusPath)
     var status = OperationState.IN_PROGRESS
     var description = "preparing binding"
@@ -82,13 +86,14 @@ class GenericServiceInstanceBindingService(
       description = retrievedStatus.description
     }
 
-    return GetLastBindingOperationResponse.builder()
+    return GetLastServiceBindingOperationResponse.builder()
         .operationState(status)
         .description(description)
         .build()
+        .toMono()
   }
 
-  override fun getServiceInstanceBinding(request: GetServiceInstanceBindingRequest): GetServiceInstanceBindingResponse {
+  override fun getServiceInstanceBinding(request: GetServiceInstanceBindingRequest): Mono<GetServiceInstanceBindingResponse> {
     gitHandler.pull()
     val credentialsPath = "instances/${request.serviceInstanceId}/bindings/${request.bindingId}/credentials.yml"
     val credentialsYml = gitHandler.fileInRepo(credentialsPath)
@@ -101,5 +106,6 @@ class GenericServiceInstanceBindingService(
     return GetServiceInstanceAppBindingResponse.builder()
         .credentials(credentials)
         .build()
+        .toMono()
   }
 }
