@@ -1,7 +1,7 @@
 package io.meshcloud.dockerosb.service
 
+import io.meshcloud.dockerosb.GitRepoFixture
 import io.meshcloud.dockerosb.config.CatalogConfiguration
-import io.meshcloud.dockerosb.config.GitConfig
 import io.meshcloud.dockerosb.model.ServiceInstance
 import io.meshcloud.dockerosb.model.Status
 import io.meshcloud.dockerosb.persistence.GitHandler
@@ -18,36 +18,28 @@ import org.springframework.cloud.servicebroker.model.instance.GetLastServiceOper
 import org.springframework.cloud.servicebroker.model.instance.OperationState
 import java.io.File
 
-const val localGitPath = "tmp/test/git"
-
 class GenericServiceInstanceServiceTest {
 
-  private val config = GitConfig(
-      localPath = localGitPath,
-      remote = null,
-      sshKey = null,
-      username = null,
-      password = null
-  )
+  lateinit var fixture: GitRepoFixture
 
   @Before
-  fun setUp() {
-    FileUtils.copyFile(File("src/test/resources/catalog.yml"), File("$localGitPath/catalog.yml"))
+  fun before() {
+    fixture = GitRepoFixture()
   }
 
   @After
   fun cleanUp() {
-    FileUtils.deleteDirectory(File(localGitPath))
+    fixture.close()
   }
 
   @Test
   fun `createServiceInstance creates expected yaml`() {
-    val sut = GenericServiceInstanceService(YamlHandler(), GitHandler(config))
+    val sut = GenericServiceInstanceService(YamlHandler(), GitHandler(fixture.config))
     val request = createServiceInstanceRequest()
 
     sut.createServiceInstance(request).block()
 
-    val yamlPath = "$localGitPath/instances/${request.serviceInstanceId}/instance.yml"
+    val yamlPath = "${fixture.localGitPath}/instances/${request.serviceInstanceId}/instance.yml"
     val instanceYml = File(yamlPath)
 
     val expectedYamlPath = "src/test/resources/expected_instance.yml"
@@ -61,18 +53,18 @@ class GenericServiceInstanceServiceTest {
 
   @Test
   fun `createServiceInstance creates git commit`() {
-    val sut = GenericServiceInstanceService(YamlHandler(), GitHandler(config))
+    val sut = GenericServiceInstanceService(YamlHandler(), GitHandler(fixture.config))
     val request = createServiceInstanceRequest()
 
     sut.createServiceInstance(request).block()
 
-    val gitHandler = GitHandler(config)
+    val gitHandler = GitHandler(fixture.config)
 
     assertTrue(gitHandler.getLastCommitMessage().contains(request.serviceInstanceId))
   }
 
   private fun createServiceInstanceRequest(): CreateServiceInstanceRequest {
-    val catalog = CatalogConfiguration(YamlHandler(), GitHandler(config)).catalog()
+    val catalog = CatalogConfiguration(YamlHandler(), GitHandler(fixture.config)).catalog()
     return CreateServiceInstanceRequest
         .builder()
         .serviceDefinitionId("d40133dd-8373-4c25-8014-fde98f38a728")
@@ -89,11 +81,11 @@ class GenericServiceInstanceServiceTest {
     val serviceInstanceId = "test-123"
     val statusYamlPath = "src/test/resources/status.yml"
     val statusYmlFile = File(statusYamlPath)
-    val statusYmlDestinationDir = File("${config.localPath}/instances/$serviceInstanceId/")
+    val statusYmlDestinationDir = File("${fixture.config.localPath}/instances/$serviceInstanceId/")
     FileUtils.forceMkdir(statusYmlDestinationDir)
     FileUtils.copyFileToDirectory(statusYmlFile, statusYmlDestinationDir)
 
-    val sut = GenericServiceInstanceService(YamlHandler(), GitHandler(config))
+    val sut = GenericServiceInstanceService(YamlHandler(), GitHandler(fixture.config))
     val request = GetLastServiceOperationRequest
         .builder()
         .serviceInstanceId(serviceInstanceId)
@@ -107,7 +99,7 @@ class GenericServiceInstanceServiceTest {
 
   @Test
   fun `getLastOperation returns IN_PROGRESS status when no status yaml exists`() {
-    val sut = GenericServiceInstanceService(YamlHandler(), GitHandler(config))
+    val sut = GenericServiceInstanceService(YamlHandler(), GitHandler(fixture.config))
     val request = GetLastServiceOperationRequest
         .builder()
         .serviceInstanceId("test-567")
@@ -122,7 +114,7 @@ class GenericServiceInstanceServiceTest {
   @Test
   fun `instance yaml is correctly updated after delete Service Instance`() {
     val yamlHandler = YamlHandler()
-    val sut = GenericServiceInstanceService(yamlHandler, GitHandler(config))
+    val sut = GenericServiceInstanceService(yamlHandler, GitHandler(fixture.config))
     val request = DeleteServiceInstanceRequest
         .builder()
         .serviceInstanceId("test-567")
@@ -135,7 +127,7 @@ class GenericServiceInstanceServiceTest {
     assertEquals(true, response.isAsync)
     assertNotNull(response.operation)
 
-    val updatedInstanceYml = File("$localGitPath/instances/${request.serviceInstanceId}/instance.yml")
+    val updatedInstanceYml = File("${fixture.localGitPath}/instances/${request.serviceInstanceId}/instance.yml")
     val updatedInstance = yamlHandler.readObject(updatedInstanceYml, ServiceInstance::class.java)
 
     assertEquals(true, updatedInstance.deleted)
@@ -144,7 +136,7 @@ class GenericServiceInstanceServiceTest {
   @Test
   fun `status is correctly updated after delete Service Instance`() {
     val yamlHandler = YamlHandler()
-    val sut = GenericServiceInstanceService(yamlHandler, GitHandler(config))
+    val sut = GenericServiceInstanceService(yamlHandler, GitHandler(fixture.config))
     val request = DeleteServiceInstanceRequest
         .builder()
         .serviceInstanceId("test-567")
@@ -154,7 +146,7 @@ class GenericServiceInstanceServiceTest {
 
     sut.deleteServiceInstance(request).block()
 
-    val updatedStatusYml = File("$localGitPath/instances/${request.serviceInstanceId}/status.yml")
+    val updatedStatusYml = File("${fixture.localGitPath}/instances/${request.serviceInstanceId}/status.yml")
     val updatedStatus = yamlHandler.readObject(updatedStatusYml, Status::class.java)
 
     assertEquals("in progress", updatedStatus.status)
@@ -162,7 +154,7 @@ class GenericServiceInstanceServiceTest {
   }
 
   private fun copyInstanceYmlToRepo(serviceInstanceId: String) {
-    val instanceYmlPath = "$localGitPath/instances/$serviceInstanceId/instance.yml"
+    val instanceYmlPath = "${fixture.localGitPath}/instances/$serviceInstanceId/instance.yml"
 
     val existingInstanceYml = File("src/test/resources/expected_instance.yml")
     val instanceYmlInRepo = File(instanceYmlPath)
