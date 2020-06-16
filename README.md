@@ -1,72 +1,49 @@
 # Generic OSB API
 
-This project implements the OSB API and just stores and reads information about instances and bindings via a git repository. 
-The actual service instances will then be deployed by a CI/CD pipeline.
+This project implements the OSB API and just stores information about instances and bindings in a Git Repo. 
+The services will be created in a later step via a CI/CD pipeline. This decoupling allows reusing this Generic OSB API
+for all service brokers. The actual provisioning, etc. will be done via the CI/CD pipeline, using tools that are made
+for service provisioning/deployment.
 
-This decoupling allows reusing this Generic OSB API for any kind of service that you can automatically provision from git using CI/CD.
-For example you can take a look at our our [Example OSB CI Concourse Pipeline](https://github.com/meshcloud/example-osb-ci), 
-which uses Terraform + Ansible to bring up new service instances.
-
-## How to use it
-
-You can download the [jar](https://swift.os.eu-de-darz.msh.host/swift/v1/publish/generic-osb-api-0.9.0.jar) and run the 
-Generic OSB API everywhere, where Java is installed. Our recommendation is to deploy it to Cloud Foundry, which is also 
-explained in one of the next sections. But you can also run it anywhere else. Only some environment variables have to 
-be defined.
-
-### Configuration
+## Configuration
 
 The custom configuration can be done via environment variables and the following properties can be configured:
 
 - GIT_REMOTE: The remote Git repository to push the repo to
-- GIT_LOCAL-PATH: The path where the local Git Repo shall be created/used. Defaults to tmp/git, which should be fine in
-most cases.
-- GIT_SSH-KEY: If you want to use SSH, please put your SSH key here. The linebreaks in the key must be replaced with 
-spaces if you define it directly as an environment variable.
+- GIT_LOCAL-PATH: The path where the local Git Repo shall be created/used. Defaults to tmp/git
+- GIT_SSH-KEY-PATH: If you want to use SSH, this is the path of the SSH key to be used for accessing the remote repo. 
+It can be an absolute path, or the key can be located in the classpath (i.e. in src/main/resources).
 - GIT_USERNAME: If you use HTTPS to access the git repo, define the HTTPS username here
 - GIT_PASSWORD: If you use HTTPS to access the git repo, define the HTTPS password here
 - APP_BASIC-AUTH-USERNAME: The service broker API itself is secured via HTTP Basic Auth. Define the username for this here.
 - APP_BASIC-AUTH-PASSWORD: Define the basic auth password for requests against the API
 
-Additionally the catalog provided by the Service Broker has to be defined in the instances git repo. This is explained 
-in the next chapter.
+## instance.yml
 
-### Deployment to Cloud Foundry
+In the Git Repo, an instances folder will be created. It contains subfolders per service instance, named by the
+service instance id. The YAML structure is based on the OSB Spec (see [expected_instance.yml](src/test/resources/expected_instance.yml)). 
 
-In order to deploy the Generic OSB API to Cloud Foundry, you should use a configured Manifest file like this:
+## Deployment to Cloud Foundry
+
+In order to deploy the Generic OSB API to Cloud Foundry, you just have to use a configured Manifest file like this:
 
 ```yaml
 applications:
 - name: generic-osb-api
   memory: 1024M
-  path: generic-osb-api-0.9.0.jar
+  path: build/libs/generic-osb-api-0.9.0.jar
   env:
     GIT_REMOTE: <https or ssh url for remote git repo>
     GIT_USERNAME: <if you use https, enter username here>
     GIT_PASSWORD: <if you use https, enter password here>
-    GIT_SSH: <if you use ssh, enter the private SSH key here, like the example shows>
-      -----BEGIN RSA PRIVATE KEY-----
-      Hgiud8z89ijiojdobdikdosaa+hnjk789hdsanlklmladlsagasHOHAo7869+bcG
-      x9tD2aI3ih+NJKnbikbdsaio97z9uijasnkjKJAmaölmö+eISBT8NykZuQJjcjpd
-      6lTMAGod+5pIv0hWk9Us24IjTthx8K5blAACy/HsXNOH1EKSXCoqoKTehRwdXUaD
-      bOclJ/U3FqswV/hjnks789za98sANoojoijoisaj/EHysKQfmAnDBdG4=
-      -----END RSA PRIVATE KEY-----
     APP_BASIC-AUTH-USERNAME: <the username for securing the OSB API itself>
     APP_BASIC-AUTH-PASSWORD: <the password for securing the OSB API itself>
 ```
 
-And then you can deploy it to CF:
+```sh
+./gradlew build # build the jar of the Generic OSB API
+cf push -f cf-manifest.yml # deploy it to CF
 ```
-cf push -f manifest.yml # deploy it to CF
-```
-
-### Run it locally
-
-If you want to run the Generic OSB API locally, you have to add the environment variable, too. Linebreaks must be replaced
-with spaces, because ENV variables are only one-liners.
-
-```GIT_SSH-KEY=-----BEGIN RSA PRIVATE KEY----- Hgiud8z89ijiojdobdikdosaa+hnjk789hdsanlklmladlsagasHOHAo7869+bcG x9tD2aI3...ysKQfmAnDBdG4= -----END RSA PRIVATE KEY-----```
-
 ## Communication with the CI/CD pipeline
 
 As the OSB API is completely provided by the "Generic OSB API", what you as a developer of a service broker have to focus

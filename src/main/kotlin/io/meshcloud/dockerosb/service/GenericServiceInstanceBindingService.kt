@@ -1,25 +1,36 @@
 package io.meshcloud.dockerosb.service
 
 import com.fasterxml.jackson.core.type.TypeReference
+import io.meshcloud.dockerosb.isSynchronousService
 import io.meshcloud.dockerosb.model.ServiceBinding
 import io.meshcloud.dockerosb.model.Status
 import io.meshcloud.dockerosb.persistence.GitHandler
 import io.meshcloud.dockerosb.persistence.YamlHandler
 import org.springframework.cloud.servicebroker.model.binding.*
+import org.springframework.cloud.servicebroker.model.catalog.Catalog
 import org.springframework.cloud.servicebroker.model.instance.OperationState
 import org.springframework.cloud.servicebroker.service.ServiceInstanceBindingService
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
-import reactor.kotlin.core.publisher.toMono
-import java.util.HashMap
+import java.util.*
 
 @Service
 class GenericServiceInstanceBindingService(
     private val yamlHandler: YamlHandler,
-    private val gitHandler: GitHandler
+    private val gitHandler: GitHandler,
+    private val catalog: Catalog
 ) : ServiceInstanceBindingService {
 
   override fun createServiceInstanceBinding(request: CreateServiceInstanceBindingRequest): Mono<CreateServiceInstanceBindingResponse> {
+
+    if (catalog.isSynchronousService(request.serviceDefinitionId)) {
+      return Mono.just(
+          CreateServiceInstanceAppBindingResponse.builder()
+              .credentials(mapOf("accessKey" to "no-access-available"))
+              .build()
+      )
+    }
+
     gitHandler.pull()
     val bindingYmlPath = "instances/${request.serviceInstanceId}/bindings/${request.bindingId}/binding.yml"
     val bindingYml = gitHandler.fileInRepo(bindingYmlPath)
@@ -32,15 +43,25 @@ class GenericServiceInstanceBindingService(
         commitMessage = "Created Service binding ${request.bindingId}"
     )
 
-    return CreateServiceInstanceAppBindingResponse.builder()
-        .async(true)
-        .operation("creating binding")
-        .bindingExisted(false)
-        .build()
-        .toMono()
+    return Mono.just(
+        CreateServiceInstanceAppBindingResponse.builder()
+            .async(true)
+            .operation("creating binding")
+            .bindingExisted(false)
+            .build()
+    )
   }
 
   override fun deleteServiceInstanceBinding(request: DeleteServiceInstanceBindingRequest): Mono<DeleteServiceInstanceBindingResponse> {
+
+    if (catalog.isSynchronousService(request.serviceDefinitionId)) {
+      return Mono.just(
+          DeleteServiceInstanceBindingResponse.builder()
+              .async(false)
+              .build()
+      )
+    }
+
     gitHandler.pull()
     val bindingYmlPath = "instances/${request.serviceInstanceId}/bindings/${request.bindingId}/binding.yml"
     val bindingYml = gitHandler.fileInRepo(bindingYmlPath)
@@ -63,11 +84,13 @@ class GenericServiceInstanceBindingService(
         filePaths = listOf(bindingYmlPath, statusPath),
         commitMessage = "Marked Service binding ${request.serviceInstanceId} as deleted."
     )
-    return DeleteServiceInstanceBindingResponse.builder()
-        .async(true)
-        .operation("deleting")
-        .build()
-        .toMono()
+
+    return Mono.just(
+        DeleteServiceInstanceBindingResponse.builder()
+            .async(true)
+            .operation("deleting")
+            .build()
+    )
   }
 
   override fun getLastOperation(request: GetLastServiceBindingOperationRequest): Mono<GetLastServiceBindingOperationResponse> {
@@ -86,11 +109,12 @@ class GenericServiceInstanceBindingService(
       description = retrievedStatus.description
     }
 
-    return GetLastServiceBindingOperationResponse.builder()
-        .operationState(status)
-        .description(description)
-        .build()
-        .toMono()
+    return Mono.just(
+        GetLastServiceBindingOperationResponse.builder()
+            .operationState(status)
+            .description(description)
+            .build()
+    )
   }
 
   override fun getServiceInstanceBinding(request: GetServiceInstanceBindingRequest): Mono<GetServiceInstanceBindingResponse> {
@@ -103,9 +127,10 @@ class GenericServiceInstanceBindingService(
       credentials = yamlHandler.readObject(credentialsYml, typeRef)
     }
 
-    return GetServiceInstanceAppBindingResponse.builder()
-        .credentials(credentials)
-        .build()
-        .toMono()
+    return Mono.just(
+        GetServiceInstanceAppBindingResponse.builder()
+            .credentials(credentials)
+            .build()
+    )
   }
 }
