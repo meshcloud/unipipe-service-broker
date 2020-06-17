@@ -7,21 +7,21 @@ for service provisioning/deployment.
 
 ## Configuration
 
-The custom configuration can be done via environment variables and the following properties can be configured:
+The custom configuration can be done via environment variables. The following properties can be configured:
 
-- GIT_REMOTE: The remote Git repository to push the repo to
-- GIT_LOCAL-PATH: The path where the local Git Repo shall be created/used. Defaults to tmp/git
-- GIT_SSH-KEY-PATH: If you want to use SSH, this is the path of the SSH key to be used for accessing the remote repo. 
-It can be an absolute path, or the key can be located in the classpath (i.e. in src/main/resources).
-- GIT_USERNAME: If you use HTTPS to access the git repo, define the HTTPS username here
-- GIT_PASSWORD: If you use HTTPS to access the git repo, define the HTTPS password here
-- APP_BASIC-AUTH-USERNAME: The service broker API itself is secured via HTTP Basic Auth. Define the username for this here.
-- APP_BASIC-AUTH-PASSWORD: Define the basic auth password for requests against the API
+- `GIT_REMOTE`: The remote Git repository to push the repo to
+- `GIT_LOCAL-PATH`: The path where the local Git Repo shall be created/used. Defaults to tmp/git
+- `GIT_SSH-KEY`: If you want to use SSH, this is the SSH key to be used for accessing the remote repo. Linebreaks must be replaced with spaces
+- `GIT_USERNAME`: If you use HTTPS to access the git repo, define the HTTPS username here
+- `GIT_PASSWORD`: If you use HTTPS to access the git repo, define the HTTPS password here
+- `APP_BASIC-AUTH-USERNAME`: The service broker API itself is secured via HTTP Basic Auth. Define the username for this here.
+- `APP_BASIC-AUTH-PASSWORD`: Define the basic auth password for requests against the API
 
-## instance.yml
 
-In the Git Repo, an instances folder will be created. It contains subfolders per service instance, named by the
-service instance id. The YAML structure is based on the OSB Spec (see [expected_instance.yml](src/test/resources/expected_instance.yml)). 
+The expected format for the `GIT_SSH-KEY` variable looks like this:
+```text
+GIT_SSH-KEY=-----BEGIN RSA PRIVATE KEY----- Hgiud8z89ijiojdobdikdosaa+hnjk789hdsanlklmladlsagasHOHAo7869+bcG x9tD2aI3...ysKQfmAnDBdG4= -----END RSA PRIVATE KEY-----
+```
 
 ## Deployment to Cloud Foundry
 
@@ -44,6 +44,7 @@ applications:
 ./gradlew build # build the jar of the Generic OSB API
 cf push -f cf-manifest.yml # deploy it to CF
 ```
+
 ## Communication with the CI/CD pipeline
 
 As the OSB API is completely provided by the "Generic OSB API", what you as a developer of a service broker have to focus
