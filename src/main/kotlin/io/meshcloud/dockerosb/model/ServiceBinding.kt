@@ -18,6 +18,7 @@ data class ServiceBinding(
 
     val originatingIdentity: Context,
     val parameters: MutableMap<String, Any>,
+    val bindResource: MutableMap<String, Any>,
     val context: Context?,
     var deleted: Boolean = false
 ) {
@@ -27,6 +28,7 @@ data class ServiceBinding(
       context = request.context,
       originatingIdentity = request.originatingIdentity,
       parameters = request.parameters ?: mutableMapOf(),
+      bindResource = request.bindResource?.properties ?: mutableMapOf(),
       planId = request.planId,
       serviceDefinitionId = request.serviceDefinitionId
   )

@@ -7,5 +7,8 @@ originatingIdentity: !<PlatformContext>
   platform: null
   user: "unittester"
 parameters: {}
+bindResource:
+  tenant_id: "subscriptionid-123"
+  platform: "meshLocation.meshPlatform"
 context: null
 deleted: false
