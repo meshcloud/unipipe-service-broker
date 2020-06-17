@@ -1,23 +1,16 @@
 package io.meshcloud.dockerosb.service
 
 import io.meshcloud.dockerosb.ServiceBrokerFixture
-import io.meshcloud.dockerosb.config.CatalogConfiguration
-import io.meshcloud.dockerosb.model.ServiceInstance
-import io.meshcloud.dockerosb.model.Status
-import io.meshcloud.dockerosb.persistence.GitHandler
-import io.meshcloud.dockerosb.persistence.YamlHandler
 import org.apache.commons.io.FileUtils
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import org.springframework.cloud.servicebroker.model.PlatformContext
+import org.springframework.cloud.servicebroker.model.binding.BindResource
+import org.springframework.cloud.servicebroker.model.binding.CreateServiceInstanceBindingRequest
 import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceRequest
-import org.springframework.cloud.servicebroker.model.instance.DeleteServiceInstanceRequest
-import org.springframework.cloud.servicebroker.model.instance.GetLastServiceOperationRequest
-import org.springframework.cloud.servicebroker.model.instance.OperationState
 import java.io.File
-import java.nio.file.Path
 import java.nio.file.Paths
 
 /**
@@ -42,27 +35,58 @@ class MeshcloudTenantAwareServiceExampleTest {
     fixture.close()
   }
 
-  private fun makeSut(): GenericServiceInstanceService {
-    return GenericServiceInstanceService(fixture.yamlHandler, fixture.gitHandler, fixture.catalog)
-  }
-
   @Test
   fun `createServiceInstance creates expected yaml`() {
-    val sut = makeSut()
+    val sut = GenericServiceInstanceService(fixture.yamlHandler, fixture.gitHandler, fixture.catalog)
 
-    val request = createServiceInstanceRequest()
+    val request = CreateServiceInstanceRequest
+        .builder()
+        .serviceDefinitionId("d40133dd-8373-4c25-8014-fde98f38a728")
+        .planId("a13edcdf-eb54-44d3-8902-8f24d5acb07e")
+        .serviceInstanceId("e4bd6a78-7e05-4d5a-97b8-f8c5d1c710ab")
+        .originatingIdentity(PlatformContext.builder().property("user", "unittester").build())
+        .asyncAccepted(true)
+        .serviceDefinition(fixture.catalog.serviceDefinitions.first())
+        .build()
 
     sut.createServiceInstance(request).block()
 
-    val yamlPath = "${fixture.localGitPath}/instances/${request.serviceInstanceId}/instance.yml"
-    val instanceYml = File(yamlPath)
-
+    val instanceYml = File("${fixture.localGitPath}/instances/${request.serviceInstanceId}/instance.yml")
     val expectedInstanceYml = testFile("expected_instance.yml")
 
-    assertTrue("instance.yml does not exist in $yamlPath", instanceYml.exists())
-    assertTrue("expected_instance.yml does not exist in ${expectedInstanceYml.path}", expectedInstanceYml.exists())
-
     verifyFilesEqual(expectedInstanceYml, instanceYml)
+  }
+
+  @Test
+  fun `createServiceInstanceBinding creates expected yaml`() {
+    val sut = GenericServiceInstanceBindingService(fixture.yamlHandler, fixture.gitHandler, fixture.catalog)
+
+    val properties = mapOf(
+        "tenant_id" to "subscriptionid-123",
+        "platform" to "meshLocation.meshPlatform"
+    )
+
+    val bindResource = BindResource.builder()
+        .properties(properties)
+        .build()
+
+    val request = CreateServiceInstanceBindingRequest.builder()
+        .serviceDefinitionId("d40133dd-8373-4c25-8014-fde98f38a728")
+        .planId("a13edcdf-eb54-44d3-8902-8f24d5acb07e")
+        .serviceInstanceId("e4bd6a78-7e05-4d5a-97b8-f8c5d1c710ab")
+        .originatingIdentity(PlatformContext.builder().property("user", "unittester").build())
+        .asyncAccepted(true)
+        .serviceDefinition(fixture.catalog.serviceDefinitions.first())
+        .bindingId("77643a12-a1d1-4717-abcd-9d66448a2148")
+        .bindResource(bindResource)
+        .build()
+
+    sut.createServiceInstanceBinding(request)
+
+    val bindingYml = File("${fixture.localGitPath}/instances/${request.serviceInstanceId}/bindings/${request.bindingId}/binding.yml")
+    val expectedYml = testFile("expected_binding.yml")
+
+    verifyFilesEqual(expectedYml, bindingYml)
   }
 
   private fun testFile(filename: String): File {
@@ -72,23 +96,13 @@ class MeshcloudTenantAwareServiceExampleTest {
     return path.toFile()
   }
 
-  private fun createServiceInstanceRequest(): CreateServiceInstanceRequest {
-    val catalog = CatalogConfiguration(YamlHandler(), GitHandler(fixture.gitConfig)).catalog()
+  private fun verifyFilesEqual(expected: File, actual: File) {
+    assertTrue("expected file does not exist in ${expected.path}", expected.exists())
+    assertTrue("actual file does not exist in ${actual.path}", actual.exists())
 
-    return CreateServiceInstanceRequest
-        .builder()
-        .serviceDefinitionId("d40133dd-8373-4c25-8014-fde98f38a728")
-        .planId("a13edcdf-eb54-44d3-8902-8f24d5acb07e")
-        .serviceInstanceId("e4bd6a78-7e05-4d5a-97b8-f8c5d1c710ab")
-        .originatingIdentity(PlatformContext.builder().property("user", "unittester").build())
-        .asyncAccepted(true)
-        .serviceDefinition(catalog.serviceDefinitions.first())
-        .build()
-  }
+    val expectedContent = FileUtils.readFileToString(expected)
+    val actualContent = FileUtils.readFileToString(actual)
 
-  private fun verifyFilesEqual(expectedInstanceYml: File, instanceYml: File) {
-    val expected = FileUtils.readFileToString(expectedInstanceYml)
-    val actual = FileUtils.readFileToString(instanceYml)
-    assertEquals(expected, actual)
+    assertEquals(expectedContent, actualContent)
   }
 }

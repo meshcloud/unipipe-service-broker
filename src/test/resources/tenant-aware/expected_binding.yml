@@ -1,0 +1,11 @@
+---
+bindingId: "77643a12-a1d1-4717-abcd-9d66448a2148"
+serviceInstanceId: "e4bd6a78-7e05-4d5a-97b8-f8c5d1c710ab"
+serviceDefinitionId: "d40133dd-8373-4c25-8014-fde98f38a728"
+planId: "a13edcdf-eb54-44d3-8902-8f24d5acb07e"
+originatingIdentity: !<PlatformContext>
+  platform: null
+  user: "unittester"
+parameters: {}
+context: null
+deleted: false

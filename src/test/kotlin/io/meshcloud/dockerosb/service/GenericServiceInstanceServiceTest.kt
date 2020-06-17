@@ -1,11 +1,9 @@
 package io.meshcloud.dockerosb.service
 
 import io.meshcloud.dockerosb.ServiceBrokerFixture
-import io.meshcloud.dockerosb.config.CatalogConfiguration
 import io.meshcloud.dockerosb.model.ServiceInstance
 import io.meshcloud.dockerosb.model.Status
 import io.meshcloud.dockerosb.persistence.GitHandler
-import io.meshcloud.dockerosb.persistence.YamlHandler
 import org.apache.commons.io.FileUtils
 import org.junit.After
 import org.junit.Assert.*
@@ -70,8 +68,6 @@ class GenericServiceInstanceServiceTest {
   }
 
   private fun createServiceInstanceRequest(): CreateServiceInstanceRequest {
-    val catalog = CatalogConfiguration(YamlHandler(), GitHandler(fixture.gitConfig)).catalog()
-
     return CreateServiceInstanceRequest
         .builder()
         .serviceDefinitionId("d40133dd-8373-4c25-8014-fde98f38a728")
@@ -79,7 +75,7 @@ class GenericServiceInstanceServiceTest {
         .serviceInstanceId("e4bd6a78-7e05-4d5a-97b8-f8c5d1c710ab")
         .originatingIdentity(PlatformContext.builder().property("user", "unittester").build())
         .asyncAccepted(true)
-        .serviceDefinition(catalog.serviceDefinitions.first())
+        .serviceDefinition(fixture.catalog.serviceDefinitions.first())
         .build()
   }
 
