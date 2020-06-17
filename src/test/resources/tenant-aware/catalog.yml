@@ -1,0 +1,15 @@
+services:
+- id: "d40133dd-8373-4c25-8014-fde98f38a728"
+  name: "My Tenant Service"
+  description: "This service adds useful things to your cloud tenants."
+  bindable: true
+  tags:
+  - "example"
+  metadata:
+    tenantAware: true
+  plans:
+  - id: "a13edcdf-eb54-44d3-8902-8f24d5acb07e"
+    name: "On Prem VPN"
+    description: "Connects your Cloud VPCs back to the mothership."
+    free: true
+    bindable: true

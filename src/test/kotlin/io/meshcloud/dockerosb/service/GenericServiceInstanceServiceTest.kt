@@ -24,7 +24,7 @@ class GenericServiceInstanceServiceTest {
 
   @Before
   fun before() {
-    fixture = ServiceBrokerFixture()
+    fixture = ServiceBrokerFixture("src/test/resources/catalog.yml")
   }
 
   @After

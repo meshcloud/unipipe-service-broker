@@ -9,7 +9,10 @@ import org.springframework.cloud.servicebroker.model.catalog.Catalog
 import java.io.Closeable
 import java.io.File
 
-class ServiceBrokerFixture : Closeable {
+/**
+ * A fixture for providing common context objects for tests
+ */
+class ServiceBrokerFixture(catalogPath: String) : Closeable {
 
   val yamlHandler: YamlHandler = YamlHandler()
 
@@ -28,7 +31,7 @@ class ServiceBrokerFixture : Closeable {
   val catalog: Catalog
 
   init {
-    FileUtils.copyFile(File("src/test/resources/catalog.yml"), File("$localGitPath/catalog.yml"))
+    FileUtils.copyFile(File(catalogPath), File("$localGitPath/catalog.yml"))
 
     catalog = CatalogConfiguration.parseCatalog(gitHandler, yamlHandler)
   }
