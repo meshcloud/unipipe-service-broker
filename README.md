@@ -17,8 +17,8 @@ The custom configuration can be done via environment variables. The following pr
 - `APP_BASIC-AUTH-USERNAME`: The service broker API itself is secured via HTTP Basic Auth. Define the username for this here.
 - `APP_BASIC-AUTH-PASSWORD`: Define the basic auth password for requests against the API
 
-
 The expected format for the `GIT_SSH-KEY` variable looks like this:
+
 ```text
 GIT_SSH-KEY=-----BEGIN RSA PRIVATE KEY----- Hgiud8z89ijiojdobdikdosaa+hnjk789hdsanlklmladlsagasHOHAo7869+bcG x9tD2aI3...ysKQfmAnDBdG4= -----END RSA PRIVATE KEY-----
 ```
@@ -69,6 +69,7 @@ instances
 ### catalog.yml
 
 The list of provided services and their plans has to be defined in this file, which might look as follows.
+
 ```yaml
 services:
   - id: "d40133dd-8373-4c25-8014-fde98f38a728"
@@ -105,18 +106,19 @@ It is basically the same as the instance.yml, but on binding level. For an examp
 ### status.yml
 
 This file contains the current status information and looks like this:
+
 ```yaml
 status: "in progress"
 description: "Provisioning service instance"
 ```
 
-The pipeline has to update this file. When the instance or binding has been processed successfully, teh status must be 
+The pipeline has to update this file. When the instance or binding has been processed successfully, the status must be
 updated to `succeeded`. In case of a failure, it must be set to `failed`. While the pipeline is still working, it might
-update the description, to give the user some more information about the progress of his request. 
+update the description, to give the user some more information about the progress of his request.
 
 ## Implementation
 
-If you want to contribute to this project, or create your own service broker based on this implementation, 
+If you want to contribute to this project, or create your own service broker based on this implementation
 you can find some details about the implementation here.
 
 This implementation is based on Spring's [Spring Cloud Open Service Broker](https://spring.io/projects/spring-cloud-open-service-broker).
