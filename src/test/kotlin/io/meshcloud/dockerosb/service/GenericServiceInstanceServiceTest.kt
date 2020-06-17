@@ -12,6 +12,7 @@ import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import org.springframework.cloud.servicebroker.model.PlatformContext
+import org.springframework.cloud.servicebroker.model.catalog.Catalog
 import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceRequest
 import org.springframework.cloud.servicebroker.model.instance.DeleteServiceInstanceRequest
 import org.springframework.cloud.servicebroker.model.instance.GetLastServiceOperationRequest
@@ -20,7 +21,10 @@ import java.io.File
 
 class GenericServiceInstanceServiceTest {
 
-  lateinit var fixture: GitRepoFixture
+  private val catalog = Catalog.builder().build()
+  private val yamlHandler = YamlHandler()
+
+  private lateinit var fixture: GitRepoFixture
 
   @Before
   fun before() {
@@ -34,7 +38,8 @@ class GenericServiceInstanceServiceTest {
 
   @Test
   fun `createServiceInstance creates expected yaml`() {
-    val sut = GenericServiceInstanceService(YamlHandler(), GitHandler(fixture.config))
+    val sut = makeSut()
+
     val request = createServiceInstanceRequest()
 
     sut.createServiceInstance(request).block()
@@ -53,7 +58,8 @@ class GenericServiceInstanceServiceTest {
 
   @Test
   fun `createServiceInstance creates git commit`() {
-    val sut = GenericServiceInstanceService(YamlHandler(), GitHandler(fixture.config))
+    val sut = makeSut()
+
     val request = createServiceInstanceRequest()
 
     sut.createServiceInstance(request).block()
@@ -65,6 +71,7 @@ class GenericServiceInstanceServiceTest {
 
   private fun createServiceInstanceRequest(): CreateServiceInstanceRequest {
     val catalog = CatalogConfiguration(YamlHandler(), GitHandler(fixture.config)).catalog()
+
     return CreateServiceInstanceRequest
         .builder()
         .serviceDefinitionId("d40133dd-8373-4c25-8014-fde98f38a728")
@@ -85,10 +92,12 @@ class GenericServiceInstanceServiceTest {
     FileUtils.forceMkdir(statusYmlDestinationDir)
     FileUtils.copyFileToDirectory(statusYmlFile, statusYmlDestinationDir)
 
-    val sut = GenericServiceInstanceService(YamlHandler(), GitHandler(fixture.config))
+    val sut = makeSut()
+
     val request = GetLastServiceOperationRequest
         .builder()
         .serviceInstanceId(serviceInstanceId)
+        .serviceDefinitionId("my-def")
         .build()
 
     val response = sut.getLastOperation(request).block()!!
@@ -99,10 +108,12 @@ class GenericServiceInstanceServiceTest {
 
   @Test
   fun `getLastOperation returns IN_PROGRESS status when no status yaml exists`() {
-    val sut = GenericServiceInstanceService(YamlHandler(), GitHandler(fixture.config))
+    val sut = makeSut()
+
     val request = GetLastServiceOperationRequest
         .builder()
         .serviceInstanceId("test-567")
+        .serviceDefinitionId("my-def")
         .build()
 
     val response = sut.getLastOperation(request).block()!!
@@ -111,13 +122,19 @@ class GenericServiceInstanceServiceTest {
     assertEquals("preparing deployment", response.description)
   }
 
+
+  private fun makeSut(): GenericServiceInstanceService {
+    return GenericServiceInstanceService(yamlHandler, GitHandler(fixture.config), catalog)
+  }
+
   @Test
   fun `instance yaml is correctly updated after delete Service Instance`() {
-    val yamlHandler = YamlHandler()
-    val sut = GenericServiceInstanceService(yamlHandler, GitHandler(fixture.config))
+    val sut = makeSut()
+
     val request = DeleteServiceInstanceRequest
         .builder()
         .serviceInstanceId("test-567")
+        .serviceDefinitionId("my-def")
         .build()
 
     copyInstanceYmlToRepo(request.serviceInstanceId)
@@ -135,11 +152,12 @@ class GenericServiceInstanceServiceTest {
 
   @Test
   fun `status is correctly updated after delete Service Instance`() {
-    val yamlHandler = YamlHandler()
-    val sut = GenericServiceInstanceService(yamlHandler, GitHandler(fixture.config))
+    val sut = makeSut()
+
     val request = DeleteServiceInstanceRequest
         .builder()
         .serviceInstanceId("test-567")
+        .serviceDefinitionId("my-def")
         .build()
 
     copyInstanceYmlToRepo(request.serviceInstanceId)

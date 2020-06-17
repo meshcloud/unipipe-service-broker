@@ -45,3 +45,7 @@ tasks.withType<KotlinCompile> {
     jvmTarget = "11"
   }
 }
+
+tasks.getByName<org.springframework.boot.gradle.tasks.bundling.BootJar>("bootJar") {
+  launchScript()
+}
