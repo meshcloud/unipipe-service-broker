@@ -3,7 +3,7 @@ server:
   port: 8075
 
 git:
-  remote: git@bitbucket.org:meshcloud/example-osb-repo.git
+  local: tmp/git
 
 app:
   basic-auth-username: user
