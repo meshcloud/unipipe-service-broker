@@ -11,7 +11,17 @@ serviceDefinition:
     name: "On Prem VPN"
     description: "Connects your Cloud VPCs back to the mothership."
     metadata: {}
-    schemas: null
+    schemas:
+      service_instance:
+        create:
+          parameters:
+            $schema: "http://json-schema.org/draft-04/schema#"
+            properties:
+              securityContact:
+                default: ""
+                placeholder: "soc@example.com"
+                title: "Security Contact Emails (comma separated)"
+                type: "string"
     free: true
   bindable: true
   planUpdateable: false
@@ -25,6 +35,7 @@ originatingIdentity: !<PlatformContext>
   platform: null
   user: "unittester"
 asyncAccepted: true
-parameters: {}
+parameters:
+  securityContact: "soc@example.com"
 context: null
 deleted: false
