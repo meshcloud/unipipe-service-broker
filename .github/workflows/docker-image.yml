@@ -19,6 +19,7 @@ jobs:
     - uses: docker/build-push-action@v1
       with:
         registry: docker.pkg.github.com
+        repository: meshcloud/generic-osb-api/generic-osb-api
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }} 
         tag_with_ref: true
