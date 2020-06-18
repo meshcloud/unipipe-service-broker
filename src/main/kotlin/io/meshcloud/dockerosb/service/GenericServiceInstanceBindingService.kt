@@ -32,6 +32,7 @@ class GenericServiceInstanceBindingService(
     }
 
     gitHandler.pull()
+
     val bindingYmlPath = "instances/${request.serviceInstanceId}/bindings/${request.bindingId}/binding.yml"
     val bindingYml = gitHandler.fileInRepo(bindingYmlPath)
     yamlHandler.writeObject(
@@ -53,7 +54,6 @@ class GenericServiceInstanceBindingService(
   }
 
   override fun deleteServiceInstanceBinding(request: DeleteServiceInstanceBindingRequest): Mono<DeleteServiceInstanceBindingResponse> {
-
     if (catalog.isSynchronousService(request.serviceDefinitionId)) {
       return Mono.just(
           DeleteServiceInstanceBindingResponse.builder()

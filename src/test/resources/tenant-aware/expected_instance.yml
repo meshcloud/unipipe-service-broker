@@ -1,0 +1,41 @@
+---
+serviceInstanceId: "e4bd6a78-7e05-4d5a-97b8-f8c5d1c710ab"
+serviceDefinitionId: "d40133dd-8373-4c25-8014-fde98f38a728"
+planId: "a13edcdf-eb54-44d3-8902-8f24d5acb07e"
+serviceDefinition:
+  id: "d40133dd-8373-4c25-8014-fde98f38a728"
+  name: "My Tenant Service"
+  description: "This service adds useful things to your cloud tenants."
+  plans:
+  - id: "a13edcdf-eb54-44d3-8902-8f24d5acb07e"
+    name: "On Prem VPN"
+    description: "Connects your Cloud VPCs back to the mothership."
+    metadata: {}
+    schemas:
+      service_instance:
+        create:
+          parameters:
+            $schema: "http://json-schema.org/draft-04/schema#"
+            properties:
+              securityContact:
+                default: ""
+                placeholder: "soc@example.com"
+                title: "Security Contact Emails (comma separated)"
+                type: "string"
+    free: true
+  bindable: true
+  planUpdateable: false
+  tags:
+  - "example"
+  metadata:
+    tenantAware: true
+  requires: []
+  dashboardClient: null
+originatingIdentity: !<PlatformContext>
+  platform: null
+  user: "unittester"
+asyncAccepted: true
+parameters:
+  securityContact: "soc@example.com"
+context: null
+deleted: false

@@ -1,0 +1,26 @@
+services:
+- id: "d40133dd-8373-4c25-8014-fde98f38a728"
+  name: "My Tenant Service"
+  description: "This service adds useful things to your cloud tenants."
+  bindable: true
+  tags:
+  - "example"
+  metadata:
+    tenantAware: true
+  plans:
+  - id: "a13edcdf-eb54-44d3-8902-8f24d5acb07e"
+    name: "On Prem VPN"
+    description: "Connects your Cloud VPCs back to the mothership."
+    free: true
+    bindable: true
+    schemas:
+      service_instance:
+        create:
+          parameters:
+            $schema: 'http://json-schema.org/draft-04/schema#'
+            properties:
+              securityContact:
+                default: ''
+                placeholder: soc@example.com
+                title: Security Contact Emails (comma separated)
+                type: string

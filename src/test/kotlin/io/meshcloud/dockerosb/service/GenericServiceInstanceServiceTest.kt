@@ -1,18 +1,15 @@
 package io.meshcloud.dockerosb.service
 
-import io.meshcloud.dockerosb.GitRepoFixture
-import io.meshcloud.dockerosb.config.CatalogConfiguration
+import io.meshcloud.dockerosb.ServiceBrokerFixture
 import io.meshcloud.dockerosb.model.ServiceInstance
 import io.meshcloud.dockerosb.model.Status
 import io.meshcloud.dockerosb.persistence.GitHandler
-import io.meshcloud.dockerosb.persistence.YamlHandler
 import org.apache.commons.io.FileUtils
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import org.springframework.cloud.servicebroker.model.PlatformContext
-import org.springframework.cloud.servicebroker.model.catalog.Catalog
 import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceRequest
 import org.springframework.cloud.servicebroker.model.instance.DeleteServiceInstanceRequest
 import org.springframework.cloud.servicebroker.model.instance.GetLastServiceOperationRequest
@@ -21,19 +18,20 @@ import java.io.File
 
 class GenericServiceInstanceServiceTest {
 
-  private val catalog = Catalog.builder().build()
-  private val yamlHandler = YamlHandler()
-
-  private lateinit var fixture: GitRepoFixture
+  private lateinit var fixture: ServiceBrokerFixture
 
   @Before
   fun before() {
-    fixture = GitRepoFixture()
+    fixture = ServiceBrokerFixture("src/test/resources/catalog.yml")
   }
 
   @After
   fun cleanUp() {
     fixture.close()
+  }
+
+  private fun makeSut(): GenericServiceInstanceService {
+    return GenericServiceInstanceService(fixture.yamlHandler, fixture.gitHandler, fixture.catalog)
   }
 
   @Test
@@ -64,14 +62,12 @@ class GenericServiceInstanceServiceTest {
 
     sut.createServiceInstance(request).block()
 
-    val gitHandler = GitHandler(fixture.config)
+    val gitHandler = GitHandler(fixture.gitConfig)
 
     assertTrue(gitHandler.getLastCommitMessage().contains(request.serviceInstanceId))
   }
 
   private fun createServiceInstanceRequest(): CreateServiceInstanceRequest {
-    val catalog = CatalogConfiguration(YamlHandler(), GitHandler(fixture.config)).catalog()
-
     return CreateServiceInstanceRequest
         .builder()
         .serviceDefinitionId("d40133dd-8373-4c25-8014-fde98f38a728")
@@ -79,7 +75,7 @@ class GenericServiceInstanceServiceTest {
         .serviceInstanceId("e4bd6a78-7e05-4d5a-97b8-f8c5d1c710ab")
         .originatingIdentity(PlatformContext.builder().property("user", "unittester").build())
         .asyncAccepted(true)
-        .serviceDefinition(catalog.serviceDefinitions.first())
+        .serviceDefinition(fixture.catalog.serviceDefinitions.first())
         .build()
   }
 
@@ -88,7 +84,7 @@ class GenericServiceInstanceServiceTest {
     val serviceInstanceId = "test-123"
     val statusYamlPath = "src/test/resources/status.yml"
     val statusYmlFile = File(statusYamlPath)
-    val statusYmlDestinationDir = File("${fixture.config.localPath}/instances/$serviceInstanceId/")
+    val statusYmlDestinationDir = File("${fixture.gitConfig.localPath}/instances/$serviceInstanceId/")
     FileUtils.forceMkdir(statusYmlDestinationDir)
     FileUtils.copyFileToDirectory(statusYmlFile, statusYmlDestinationDir)
 
@@ -123,10 +119,6 @@ class GenericServiceInstanceServiceTest {
   }
 
 
-  private fun makeSut(): GenericServiceInstanceService {
-    return GenericServiceInstanceService(yamlHandler, GitHandler(fixture.config), catalog)
-  }
-
   @Test
   fun `instance yaml is correctly updated after delete Service Instance`() {
     val sut = makeSut()
@@ -145,7 +137,7 @@ class GenericServiceInstanceServiceTest {
     assertNotNull(response.operation)
 
     val updatedInstanceYml = File("${fixture.localGitPath}/instances/${request.serviceInstanceId}/instance.yml")
-    val updatedInstance = yamlHandler.readObject(updatedInstanceYml, ServiceInstance::class.java)
+    val updatedInstance = fixture.yamlHandler.readObject(updatedInstanceYml, ServiceInstance::class.java)
 
     assertEquals(true, updatedInstance.deleted)
   }
@@ -165,7 +157,7 @@ class GenericServiceInstanceServiceTest {
     sut.deleteServiceInstance(request).block()
 
     val updatedStatusYml = File("${fixture.localGitPath}/instances/${request.serviceInstanceId}/status.yml")
-    val updatedStatus = yamlHandler.readObject(updatedStatusYml, Status::class.java)
+    val updatedStatus = fixture.yamlHandler.readObject(updatedStatusYml, Status::class.java)
 
     assertEquals("in progress", updatedStatus.status)
     assertEquals("preparing service deletion", updatedStatus.description)
