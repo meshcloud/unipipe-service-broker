@@ -6,5 +6,5 @@ git:
   local: tmp/git
 
 app:
-  basic-auth-username: user
-  basic-auth-password: random-secret
+  basicauthusername: user
+  basicauthpassword: random-secret

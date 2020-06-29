@@ -5,9 +5,9 @@ import org.springframework.context.annotation.Configuration
 
 @Configuration
 class AppConfig(
-    @Value("\${app.basic-auth-username}")
+    @Value("\${app.basicauthusername}")
     val basicAuthUsername: String,
 
-    @Value("\${app.basic-auth-password}")
+    @Value("\${app.basicauthpassword}")
     val basicAuthPassword: String
 )
