@@ -5,13 +5,13 @@ import org.springframework.context.annotation.Configuration
 
 @Configuration
 class GitConfig(
-    @Value("\${git.local-path}")
+    @Value("\${git.local_path}")
     val localPath: String,
 
     @Value("\${git.remote:#{null}}")
     val remote: String?,
 
-    @Value("\${git.ssh-key:#{null}}")
+    @Value("\${git.ssh_key:#{null}}")
     val sshKey: String?,
 
     @Value("\${git.username:#{null}}")
