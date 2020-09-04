@@ -14,7 +14,7 @@ jobs:
     - uses: docker/build-push-action@v1
       with:
         registry: ghcr.io
-        repository: ${{github.repository}}/generic-osb-api
+        repository: ${{github.repository}}
         username: ${{ github.actor }}
         password: ${{ secrets.CR_PAT }} 
         tag_with_ref: true
