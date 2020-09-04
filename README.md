@@ -23,6 +23,16 @@ The expected format for the `GIT_SSH-KEY` variable looks like this:
 GIT_SSH-KEY=-----BEGIN RSA PRIVATE KEY----- Hgiud8z89ijiojdobdikdosaa+hnjk789hdsanlklmladlsagasHOHAo7869+bcG x9tD2aI3...ysKQfmAnDBdG4= -----END RSA PRIVATE KEY-----
 ```
 
+## Deployment using Docker
+
+We publish generic-osb-api container images to GitHub Container Registry [here](https://github.com/orgs/meshcloud/packages/container/generic-osb-api/versions). These images are built on GitHub actions and are available publicly
+
+```
+$ docker pull ghcr.io/meshcloud/generic-osb-api:v1.0.5
+```
+
+> Note: We used to publish old versions of generic-osb-api as GitHub packages (not GHCR) which unfortunately can't be deleted from GitHub. Please make sure to use `ghcr.io` to pull the latest versions and not the legacy `docker.pkg.github.com` URLs.
+
 ## Deployment to Cloud Foundry
 
 In order to deploy the Generic OSB API to Cloud Foundry, you just have to use a configured Manifest file like this:
@@ -44,6 +54,8 @@ applications:
 ./gradlew build # build the jar of the Generic OSB API
 cf push -f cf-manifest.yml # deploy it to CF
 ```
+
+Alternatively you can 
 
 ## Communication with the CI/CD pipeline
 
