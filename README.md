@@ -23,6 +23,8 @@ The expected format for the `GIT_SSH-KEY` variable looks like this:
 GIT_SSH-KEY=-----BEGIN RSA PRIVATE KEY----- Hgiud8z89ijiojdobdikdosaa+hnjk789hdsanlklmladlsagasHOHAo7869+bcG x9tD2aI3...ysKQfmAnDBdG4= -----END RSA PRIVATE KEY-----
 ```
 
+Please note there is a space ` ` between `-----BEGIN RSA PRIVATE KEY-----` and the key as well as between the key and `----END RSA PRIVATE KEY-----`. If you omit these spaces the container will not be able to read the private key.
+
 ## Deployment using Docker
 
 We publish generic-osb-api container images to GitHub Container Registry [here](https://github.com/orgs/meshcloud/packages/container/generic-osb-api/versions). These images are built on GitHub actions and are available publicly
