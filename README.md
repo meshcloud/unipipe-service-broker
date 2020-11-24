@@ -51,13 +51,12 @@ applications:
     APP_BASIC-AUTH-USERNAME: <the username for securing the OSB API itself>
     APP_BASIC-AUTH-PASSWORD: <the password for securing the OSB API itself>
 ```
+Build and deploy using the manifest file from above:
 
 ```sh
-./gradlew build # build the jar of the UniPipe Service Broker
+./gradlew build # build the jar of UniPipe Service Broker
 cf push -f cf-manifest.yml # deploy it to CF
 ```
-
-Alternatively you can 
 
 ## Communication with the CI/CD pipeline
 
