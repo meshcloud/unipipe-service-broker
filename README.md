@@ -1,9 +1,11 @@
-# Generic OSB API
+# UniPipe Service Broker
 
-This project implements the OSB API and just stores information about instances and bindings in a Git Repo. 
-The services will be created in a later step via a CI/CD pipeline. This decoupling allows reusing this Generic OSB API
-for all service brokers. The actual provisioning, etc. will be done via the CI/CD pipeline, using tools that are made
-for service provisioning/deployment.
+A universal service broker to connect CI/CD pipelines with Platforms that speak OSB API.
+
+This project implements the OSB API and stores information about instances and bindings in a git repository. 
+The services will be created in a later step via a CI/CD pipeline that tracks the git repository. This decoupling allows using UniPipe Service Broker with any CI/CD piepline of your choice that will do the actual provisioning.
+
+UniPipe Service Broker was formerly known as generic OSB API.
 
 ## Configuration
 
@@ -35,7 +37,7 @@ $ docker pull ghcr.io/meshcloud/generic-osb-api:v1.0.5
 
 ## Deployment to Cloud Foundry
 
-In order to deploy the Generic OSB API to Cloud Foundry, you just have to use a configured Manifest file like this:
+To deploy UniPipe Service Broker to Cloud Foundry, you have to use a configured Manifest file like this:
 
 ```yaml
 applications:
@@ -51,7 +53,7 @@ applications:
 ```
 
 ```sh
-./gradlew build # build the jar of the Generic OSB API
+./gradlew build # build the jar of the UniPipe Service Broker
 cf push -f cf-manifest.yml # deploy it to CF
 ```
 
@@ -59,9 +61,9 @@ Alternatively you can
 
 ## Communication with the CI/CD pipeline
 
-As the OSB API is completely provided by the "Generic OSB API", what you as a developer of a service broker have to focus
-on is to build your CI/CD pipeline. In the following, all files that are used for communication and how the GIT repo
-for exchanging information between the Generic OSB API and the pipeline are described. An example pipeline can be found
+As the OSB API is completely provided by UniPipe Service Broker, what you as a developer of a service broker have to focus
+on is to build your CI/CD pipeline. In the following, all files that are used for communication and how the git repository
+for exchanging information between UniPipe Service Broker and the pipeline are described. An example pipeline can be found
 [here](https://github.com/Meshcloud/example-osb-ci).
 
 ### GIT Repo structure
@@ -70,11 +72,11 @@ for exchanging information between the Generic OSB API and the pipeline are desc
 catalog.yml # file that contains all infos about services and plans this Service broker provides
 instances
     <instance-id>
-        instance.yml # contains all service instance info written by the Generic OSB API
+        instance.yml # contains all service instance info written by the 
         status.yml # this file contains the current status, which is updated by the pipeline
         bindings
             <binding-id>
-                binding.yml # contains all binding info written by the Generic OSB API
+                binding.yml # contains all binding info written by the UniPipe Service Broker
                 status.yml # this file contains the current status, which is updated by the pipeline
 ```
 
