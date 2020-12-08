@@ -5,6 +5,8 @@ A universal service broker to connect CI/CD pipelines with platforms that speak 
 This project implements the OSB API and stores information about instances and bindings in a git repository. 
 The services will be created in a later step via a CI/CD pipeline that tracks the git repository. This decoupling allows using UniPipe Service Broker with any CI/CD piepline of your choice that will do the actual provisioning.
 
+![A marketplace that integrates with a Service Broker](assets/OSB-Graphic-03.png "Service Broker interactions")
+
 UniPipe Service Broker was formerly known as generic OSB API.
 
 ## Configuration
