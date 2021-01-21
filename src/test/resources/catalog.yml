@@ -1,18 +1,18 @@
 services:
-- id: "d40133dd-8373-4c25-8014-fde98f38a728"
-  name: "example-osb"
-  description: "This service spins up a host with OpenStack and Cloud Foundry CLI installed."
-  bindable: true
-  tags:
-  - "example"
-  plans:
-  - id: "a13edcdf-eb54-44d3-8902-8f24d5acb07e"
-    name: "S"
-    description: "A small host with OpenStack and CloudFoundry CLI installed"
-    free: true
+  - id: "d40133dd-8373-4c25-8014-fde98f38a728"
+    name: "example-osb"
+    description: "This service spins up a host with OpenStack and Cloud Foundry CLI installed."
     bindable: true
-  - id: "b387b010-c002-4eab-8902-3851694ef7ba"
-    name: "M"
-    description: "A medium host with OpenStack and CloudFoundry CLI installed"
-    free: true
-    bindable: true
+    tags:
+      - "example"
+    plans:
+      - id: "a13edcdf-eb54-44d3-8902-8f24d5acb07e"
+        name: "S"
+        description: "A small host with OpenStack and CloudFoundry CLI installed"
+        free: true
+        bindable: true
+      - id: "b387b010-c002-4eab-8902-3851694ef7ba"
+        name: "M"
+        description: "A medium host with OpenStack and CloudFoundry CLI installed"
+        free: true
+        bindable: true

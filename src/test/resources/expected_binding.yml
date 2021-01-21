@@ -6,7 +6,7 @@ planId: "a13edcdf-eb54-44d3-8902-8f24d5acb07e"
 originatingIdentity: !<PlatformContext>
   platform: "http://localhost:8080/serviceRegistry/location/1"
   user_id: "67c54164-8f7c-4a86-b0d8-0ecdd6510366"
-parameters: {}
+parameters: { }
 context: !<PlatformContext>
   platform: "http://localhost:8080/serviceRegistry/location/1"
   permission_url: null

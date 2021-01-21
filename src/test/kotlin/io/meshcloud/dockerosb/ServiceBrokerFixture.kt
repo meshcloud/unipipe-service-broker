@@ -1,9 +1,10 @@
 package io.meshcloud.dockerosb
 
-import io.meshcloud.dockerosb.config.CatalogConfiguration
+//import io.meshcloud.dockerosb.config.CatalogConfiguration
 import io.meshcloud.dockerosb.config.GitConfig
 import io.meshcloud.dockerosb.persistence.GitHandler
 import io.meshcloud.dockerosb.persistence.YamlHandler
+import io.meshcloud.dockerosb.service.GenericCatalogService
 import org.apache.commons.io.FileUtils
 import org.springframework.cloud.servicebroker.model.catalog.Catalog
 import java.io.Closeable
@@ -28,12 +29,10 @@ class ServiceBrokerFixture(catalogPath: String) : Closeable {
 
   val gitHandler = GitHandler(gitConfig)
 
-  val catalog: Catalog
+  val catalogService: GenericCatalogService = GenericCatalogService(yamlHandler, gitHandler)
 
   init {
     FileUtils.copyFile(File(catalogPath), File("$localGitPath/catalog.yml"))
-
-    catalog = CatalogConfiguration.parseCatalog(gitHandler, yamlHandler)
   }
 
   override fun close() {
