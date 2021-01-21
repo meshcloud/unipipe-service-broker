@@ -7,7 +7,6 @@ import io.meshcloud.dockerosb.model.Status
 import io.meshcloud.dockerosb.persistence.GitHandler
 import io.meshcloud.dockerosb.persistence.YamlHandler
 import org.springframework.cloud.servicebroker.model.binding.*
-import org.springframework.cloud.servicebroker.model.catalog.Catalog
 import org.springframework.cloud.servicebroker.model.instance.OperationState
 import org.springframework.cloud.servicebroker.service.ServiceInstanceBindingService
 import org.springframework.stereotype.Service

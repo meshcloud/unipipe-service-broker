@@ -8,7 +8,6 @@ import org.springframework.cloud.servicebroker.model.catalog.ServiceDefinition
 import org.springframework.cloud.servicebroker.service.CatalogService
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
-import javax.annotation.PostConstruct
 
 private val log = KotlinLogging.logger { }
 
