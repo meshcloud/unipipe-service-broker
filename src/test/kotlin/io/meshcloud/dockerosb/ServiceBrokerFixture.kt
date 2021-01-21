@@ -33,8 +33,6 @@ class ServiceBrokerFixture(catalogPath: String) : Closeable {
 
   init {
     FileUtils.copyFile(File(catalogPath), File("$localGitPath/catalog.yml"))
-
-    //catalogservice = GenericCatalogService.parseCatalog(gitHandler, yamlHandler)
   }
 
   override fun close() {
