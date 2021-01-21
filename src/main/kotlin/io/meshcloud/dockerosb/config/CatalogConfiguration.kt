@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Configuration
 
 private val log = KotlinLogging.logger { }
 
-@Configuration
+/*@Configuration
 class CatalogConfiguration(
     private val yamlHandler: YamlHandler,
     private val gitHandler: GitHandler
@@ -44,4 +44,4 @@ class CatalogConfiguration(
           .build()
     }
   }
-}
+}*/

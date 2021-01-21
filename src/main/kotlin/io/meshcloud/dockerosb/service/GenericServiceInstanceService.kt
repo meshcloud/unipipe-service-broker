@@ -15,8 +15,9 @@ import reactor.core.publisher.Mono
 class GenericServiceInstanceService(
     private val yamlHandler: YamlHandler,
     private val gitHandler: GitHandler,
-    private val catalog: Catalog
+    catalogService: GenericCatalogService
 ) : ServiceInstanceService {
+    private val catalog = catalogService.getCatalogInternal()
 
   override fun createServiceInstance(request: CreateServiceInstanceRequest): Mono<CreateServiceInstanceResponse> {
 

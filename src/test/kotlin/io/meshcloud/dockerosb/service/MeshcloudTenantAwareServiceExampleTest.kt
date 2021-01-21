@@ -37,7 +37,7 @@ class MeshcloudTenantAwareServiceExampleTest {
 
   @Test
   fun `createServiceInstance creates expected yaml`() {
-    val sut = GenericServiceInstanceService(fixture.yamlHandler, fixture.gitHandler, fixture.catalog)
+    val sut = GenericServiceInstanceService(fixture.yamlHandler, fixture.gitHandler, fixture.catalogService)
 
     val request = CreateServiceInstanceRequest
         .builder()
@@ -49,7 +49,7 @@ class MeshcloudTenantAwareServiceExampleTest {
         .serviceInstanceId("e4bd6a78-7e05-4d5a-97b8-f8c5d1c710ab")
         .originatingIdentity(PlatformContext.builder().property("user", "unittester").build())
         .asyncAccepted(true)
-        .serviceDefinition(fixture.catalog.serviceDefinitions.first())
+        .serviceDefinition(fixture.catalogService.getCatalogInternal().serviceDefinitions.first())
         .build()
 
     sut.createServiceInstance(request).block()
@@ -62,7 +62,7 @@ class MeshcloudTenantAwareServiceExampleTest {
 
   @Test
   fun `createServiceInstanceBinding creates expected yaml`() {
-    val sut = GenericServiceInstanceBindingService(fixture.yamlHandler, fixture.gitHandler, fixture.catalog)
+    val sut = GenericServiceInstanceBindingService(fixture.yamlHandler, fixture.gitHandler, fixture.catalogService)
 
     val properties = mapOf(
         "tenant_id" to "subscriptionid-123",
@@ -79,7 +79,7 @@ class MeshcloudTenantAwareServiceExampleTest {
         .serviceInstanceId("e4bd6a78-7e05-4d5a-97b8-f8c5d1c710ab")
         .originatingIdentity(PlatformContext.builder().property("user", "unittester").build())
         .asyncAccepted(true)
-        .serviceDefinition(fixture.catalog.serviceDefinitions.first())
+        .serviceDefinition(fixture.catalogService.getCatalogInternal().serviceDefinitions.first())
         .bindingId("77643a12-a1d1-4717-abcd-9d66448a2148")
         .bindResource(bindResource)
         .build()
