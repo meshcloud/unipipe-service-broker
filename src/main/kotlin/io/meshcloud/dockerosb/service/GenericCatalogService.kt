@@ -19,12 +19,6 @@ class GenericCatalogService(
 ) : CatalogService {
     private var catalog: Catalog = parseCatalog(gitHandler, yamlHandler)
 
-    @PostConstruct
-    fun init(){
-        gitHandler.pull()
-        this.catalog = parseCatalog(gitHandler, yamlHandler)
-    }
-
     private class YamlCatalog(
         val services: List<ServiceDefinition>
     )
@@ -44,11 +38,15 @@ class GenericCatalogService(
                 .build()
         }
     }
-
+    /**
+     * When ever the endpoint /v2/catalog is accessed  it pulls the catalog from the git repo
+     */
     override fun getCatalog(): Mono<Catalog> {
-        init()
-        return  Mono.just(parseCatalog(gitHandler, yamlHandler))
+        gitHandler.pull()
+        this.catalog = parseCatalog(gitHandler, yamlHandler)
+        return  Mono.just(this.catalog)
     }
+
     /**
     * used to provide Catalog object to be used by other services internally
     */
