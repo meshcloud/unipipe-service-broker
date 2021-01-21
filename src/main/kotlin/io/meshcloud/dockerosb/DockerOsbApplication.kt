@@ -10,5 +10,5 @@ import org.springframework.cloud.servicebroker.autoconfigure.web.Catalog
 class DockerOsbApplication
 
 fun main(args: Array<String>) {
-    runApplication<DockerOsbApplication>(*args)
+  runApplication<DockerOsbApplication>(*args)
 }

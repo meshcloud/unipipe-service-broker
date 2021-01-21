@@ -29,7 +29,7 @@ class ServiceBrokerFixture(catalogPath: String) : Closeable {
 
   val gitHandler = GitHandler(gitConfig)
 
-  val catalogService: GenericCatalogService = GenericCatalogService(yamlHandler,gitHandler)
+  val catalogService: GenericCatalogService = GenericCatalogService(yamlHandler, gitHandler)
 
   init {
     FileUtils.copyFile(File(catalogPath), File("$localGitPath/catalog.yml"))

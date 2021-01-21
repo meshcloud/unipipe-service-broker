@@ -11,8 +11,8 @@ import org.springframework.test.context.junit4.SpringRunner
 @ActiveProfiles("test")
 class DockerOsbApplicationTests {
 
-	@Test
-	fun contextLoads() {
-	}
+  @Test
+  fun contextLoads() {
+  }
 
 }

@@ -8,29 +8,29 @@ serviceDefinition:
   description: "This service spins up a host with OpenStack and Cloud Foundry CLI\
     \ installed."
   plans:
-  - id: "a13edcdf-eb54-44d3-8902-8f24d5acb07e"
-    name: "S"
-    description: "A small host with OpenStack and CloudFoundry CLI installed"
-    metadata: {}
-    schemas: null
-    free: true
-  - id: "b387b010-c002-4eab-8902-3851694ef7ba"
-    name: "M"
-    description: "A medium host with OpenStack and CloudFoundry CLI installed"
-    metadata: {}
-    schemas: null
-    free: true
+    - id: "a13edcdf-eb54-44d3-8902-8f24d5acb07e"
+      name: "S"
+      description: "A small host with OpenStack and CloudFoundry CLI installed"
+      metadata: { }
+      schemas: null
+      free: true
+    - id: "b387b010-c002-4eab-8902-3851694ef7ba"
+      name: "M"
+      description: "A medium host with OpenStack and CloudFoundry CLI installed"
+      metadata: { }
+      schemas: null
+      free: true
   bindable: true
   planUpdateable: false
   tags:
-  - "example"
-  metadata: {}
-  requires: []
+    - "example"
+  metadata: { }
+  requires: [ ]
   dashboardClient: null
 originatingIdentity: !<PlatformContext>
   platform: null
   user: "unittester"
 asyncAccepted: true
-parameters: {}
+parameters: { }
 context: null
 deleted: false

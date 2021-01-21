@@ -6,7 +6,7 @@ planId: "a13edcdf-eb54-44d3-8902-8f24d5acb07e"
 originatingIdentity: !<PlatformContext>
   platform: null
   user: "unittester"
-parameters: {}
+parameters: { }
 bindResource:
   tenant_id: "subscriptionid-123"
   platform: "meshLocation.meshPlatform"
