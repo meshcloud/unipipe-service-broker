@@ -17,9 +17,8 @@ import java.util.*
 class GenericServiceInstanceBindingService(
     private val yamlHandler: YamlHandler,
     private val gitHandler: GitHandler,
-    private  val catalogService: GenericCatalogService
+    private val catalogService: GenericCatalogService
 ) : ServiceInstanceBindingService {
-
 
 
     override fun createServiceInstanceBinding(request: CreateServiceInstanceBindingRequest): Mono<CreateServiceInstanceBindingResponse> {

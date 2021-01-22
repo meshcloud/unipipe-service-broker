@@ -3,3 +3,4 @@ version = 1
 
 [merge]
 method = "merge"
+block_on_reviews_requested = true
