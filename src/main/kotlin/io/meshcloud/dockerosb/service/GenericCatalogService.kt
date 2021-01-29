@@ -61,6 +61,14 @@ class GenericCatalogService(
   }
 
   override fun getServiceDefinition(serviceId: String?): Mono<ServiceDefinition> {
-    TODO("Not yet implemented")
+    val serviceDefinitions: MutableList<ServiceDefinition>? = this.catalog.serviceDefinitions
+    if (serviceDefinitions != null) {
+      return Mono.just(serviceDefinitions.find { serviceDefinition -> serviceDefinition.id == serviceId }!!)
+    }
+    return Mono.just(ServiceDefinition.builder()
+      .id(serviceId)
+      .build())
   }
+
+
 }
