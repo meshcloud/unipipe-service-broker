@@ -61,6 +61,9 @@ class GenericCatalogService(
   }
 
   override fun getServiceDefinition(serviceId: String?): Mono<ServiceDefinition> {
-    TODO("Not yet implemented")
+
+    return Mono.just(this.catalog.serviceDefinitions.singleOrNull { it.id == serviceId }!!)
   }
+
+
 }
