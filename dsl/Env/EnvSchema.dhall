@@ -1,5 +1,5 @@
 {-
-    Base schema for Unipipe service broker configration
+    Base schema for Unipipe service broker configuration
 -}
 
 let GitAccess = ./GitAccess.dhall

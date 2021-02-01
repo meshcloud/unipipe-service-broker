@@ -6,7 +6,7 @@ set -o pipefail
 set -o nounset
 
 main() {
-  # Generate aaplication.yml cofiguration for unipipe service broker
+  # Generate application.yml configuration for unipipe service broker
   dhall-to-yaml < ./EnvConfig.dhall | tee ../../src/main/resources/application-default.yml
 
 }
