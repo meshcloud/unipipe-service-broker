@@ -29,6 +29,53 @@ GIT_SSH-KEY=-----BEGIN RSA PRIVATE KEY----- Hgiud8z89ijiojdobdikdosaa+hnjk789hds
 
 Please note there is a space ` ` between `-----BEGIN RSA PRIVATE KEY-----` and the key as well as between the key and `----END RSA PRIVATE KEY-----`. If you omit these spaces the container will not be able to read the private key.
 
+## Configuration using dhall
+
+Prerequisite:
+- Install dhall and dhall-to-yaml, can find details [here](https://docs.dhall-lang.org/tutorials/Getting-started_Generate-JSON-or-YAML.html#installation).
+
+The properties mentioned in the configuration section can be configured in the file dsl/Env/EnvConfig.dhall
+
+Example configuration to access git through ssh
+
+```
+let Config = ./EnvSchema.dhall
+let GitAccess = ./GitAccess.dhall
+let ExampleSsh 
+    : Config
+    = {
+        app = {basic-auth-username = "username", basic-auth-password ="password"}
+        , git = GitAccess.SSH {local = "local path", remote = "remote path", ssh-key = "----"}
+        , server.port = 8075
+    }
+in ExampleSsh
+
+```
+
+Example configuration to access git through https
+
+```
+let Config = ./EnvSchema.dhall
+let GitAccess = ./GitAccess.dhall
+let ExampleHttps 
+    : Config
+    = {
+        app = {basic-auth-username = "user", basic-auth-password ="password"}
+        , git = GitAccess.HTTPS {local = "local path"
+                                 , remote = "remote path"
+                                 , username = "usernamr"
+                                 , password = "password"}
+        , server.port = 8075
+    }
+in ExampleHttps
+
+```
+After configuring the properties, excute the shell script dsl/Env/run.sh. This will create an application-default.yml file in the resources folder of source.
+
+```
+$ ./run.sh
+```
+
 ## Deployment using Docker
 
 We publish generic-osb-api container images to GitHub Container Registry [here](https://github.com/orgs/meshcloud/packages/container/generic-osb-api/versions). These images are built on GitHub actions and are available publicly
