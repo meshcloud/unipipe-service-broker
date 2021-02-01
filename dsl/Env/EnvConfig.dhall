@@ -1,5 +1,5 @@
 {-
-    Sample unipipe service broker cofigration 
+    Sample unipipe service broker configuration
     using ssh-key method to access the git repo
 -}
 
