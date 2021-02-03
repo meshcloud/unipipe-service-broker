@@ -7,7 +7,7 @@ set -o nounset
 
 main() {
   # Generate application.yml configuration for unipipe service broker
-  dhall-to-yaml < ./EnvConfig.dhall | tee ../../src/main/resources/application-default.yml
+  dhall-to-yaml < ./AppConfig.dhall | tee ../../src/main/resources/application-default.yml
 
 }
 
