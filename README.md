@@ -32,14 +32,15 @@ Please note there is a space ` ` between `-----BEGIN RSA PRIVATE KEY-----` and t
 ## Configuration using dhall
 
 Prerequisite:
-- Install dhall and dhall-to-yaml, can find details [here](https://docs.dhall-lang.org/tutorials/Getting-started_Generate-JSON-or-YAML.html#installation).
+- Install dhall and dhall-to-yaml, you can find details [here](https://docs.dhall-lang.org/tutorials/Getting-started_Generate-JSON-or-YAML.html#installation).
 
-The properties mentioned in the configuration section can be configured in the file dsl/Env/EnvConfig.dhall
+The properties mentioned in the configuration section above can be configured in the file 
+`dsl/config/AppConfig.dhall`
 
 Example configuration to access git through ssh
 
 ```
-let Config = ./EnvSchema.dhall
+let Config = ./AppSchema.dhall
 let GitAccess = ./GitAccess.dhall
 let ExampleSsh 
     : Config
@@ -55,7 +56,7 @@ in ExampleSsh
 Example configuration to access git through https
 
 ```
-let Config = ./EnvSchema.dhall
+let Config = ./AppSchema.dhall
 let GitAccess = ./GitAccess.dhall
 let ExampleHttps 
     : Config
@@ -70,7 +71,7 @@ let ExampleHttps
 in ExampleHttps
 
 ```
-After configuring the properties, excute the shell script dsl/Env/run.sh. This will create an application-default.yml file in the resources folder of source.
+After configuring the properties, execute the shell script `dsl/config/run.sh`. This will create an `application-default.yml` file in the resources folder of source.
 
 ```
 $ ./run.sh

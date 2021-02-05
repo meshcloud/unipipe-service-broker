@@ -30,7 +30,7 @@
                 To access the git repo HTTPS password
 
     Server configuration 
-    port : port to used by the application
+        port : port to used by the application
 
 -}
 let GitAccess = ./GitAccess.dhall

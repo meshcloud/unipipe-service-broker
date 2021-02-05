@@ -17,7 +17,8 @@
             remote : 
                 The remote Git repository to push the repo to
             ssh-key : 
-                This is the SSH key to be used for accessing the remote repo. Linebreaks must be replaced with spaces
+                This is the SSH key to be used for accessing the remote repo. Linebreaks must be replaced with spaces as sample shown below
+                -----BEGIN RSA PRIVATE KEY----- Hgiud8z89ijiojdobdikdosaa+hnjk789hdsanlklmladlsagasHOHAo7869+bcG x9tD2aI3...ysKQfmAnDBdG4= -----END RSA PRIVATE KEY-----
     
     Server configuration 
     port : port to used by the application
@@ -32,7 +33,7 @@ let ExampleSsh
     = { app = { basic-auth-username = "user", basic-auth-password = "password" }
       , git =
           GitAccess.SSH
-            { local = "local path", remote = "remote path", ssh-key = "---" }
+            { local = "local path", remote = "remote path", ssh-key = "-----BEGIN RSA PRIVATE KEY----- Hgiud8z89ijiojdobdikdosaa+hnjk789hdsanlklmladlsagasHOHAo7869+bcG x9tD2aI3...ysKQfmAnDBdG4= -----END RSA PRIVATE KEY-----" }
       , server.port = 8075
       }
 
