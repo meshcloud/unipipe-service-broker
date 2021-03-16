@@ -11,6 +11,9 @@ class GitConfig(
     @Value("\${git.remote:#{null}}")
     val remote: String?,
 
+    @Value("\${git.remote-branch:#{null}}")
+    val remoteBranch: String?,
+
     @Value("\${git.ssh-key:#{null}}")
     val sshKey: String?,
 

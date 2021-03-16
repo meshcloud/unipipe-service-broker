@@ -7,30 +7,33 @@ import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.transport.SshSessionFactory
 import org.eclipse.jgit.transport.URIish
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
-import org.springframework.stereotype.Service
 import java.io.File
 
-@Service
-class GitHandler(
-    private val gitConfig: GitConfig
+open class GitHandler(
+  private val gitConfig: GitConfig
 ) {
 
-  fun commitAndPushChanges(
-      filePaths: List<String>,
-      commitMessage: String
+  open fun commit(
+    filePaths: List<String>,
+    commitMessage: String
   ) {
     getGit(gitConfig).use { git ->
       val addCommand = git.add()
       filePaths.forEach { addCommand.addFilepattern(it) }
       addCommand.call()
       git.commit()
-          .setMessage("OSB API: $commitMessage")
-          .setAuthor("Generic OSB API", "osb@meshcloud.io")
-          .call()
+        .setMessage("OSB API: $commitMessage")
+        .setAuthor("Generic OSB API", "osb@meshcloud.io")
+        .call()
+    }
+  }
+
+  open fun pushAllOpenChanges() {
+    getGit(gitConfig).use { git ->
       gitConfig.remote?.let {
         git.rebase()
-            .setUpstream("master")
-            .call()
+          .setUpstream(gitConfig.remoteBranch)
+          .call()
       }
       push(git)
     }
@@ -46,15 +49,16 @@ class GitHandler(
     }
   }
 
-  fun pull() {
+  open fun pull(doRebase: Boolean = false) {
     if (gitConfig.remote == null) {
       return
     }
 
     getGit(gitConfig).use {
       val pullCommand = it.pull()
-          .setRemote("origin")
-          .setRemoteBranchName("master")
+        .setRemote("origin")
+        .setRemoteBranchName(gitConfig.remoteBranch)
+        .setRebase(doRebase)
 
       gitConfig.username?.let {
         pullCommand.setCredentialsProvider(UsernamePasswordCredentialsProvider(gitConfig.username, gitConfig.password))

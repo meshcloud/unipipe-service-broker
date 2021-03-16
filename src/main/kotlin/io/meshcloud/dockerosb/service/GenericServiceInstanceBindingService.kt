@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference
 import io.meshcloud.dockerosb.isSynchronousService
 import io.meshcloud.dockerosb.model.ServiceBinding
 import io.meshcloud.dockerosb.model.Status
-import io.meshcloud.dockerosb.persistence.GitHandler
+import io.meshcloud.dockerosb.persistence.SynchronizedGitHandlerWrapper
 import io.meshcloud.dockerosb.persistence.YamlHandler
 import org.springframework.cloud.servicebroker.model.binding.*
 import org.springframework.cloud.servicebroker.model.instance.OperationState
@@ -16,7 +16,7 @@ import java.util.*
 @Service
 class GenericServiceInstanceBindingService(
     private val yamlHandler: YamlHandler,
-    private val gitHandler: GitHandler,
+    private val gitHandler: SynchronizedGitHandlerWrapper,
     private val catalogService: GenericCatalogService
 ) : ServiceInstanceBindingService {
 
@@ -39,7 +39,7 @@ class GenericServiceInstanceBindingService(
             objectToWrite = ServiceBinding(request),
             file = bindingYml
         )
-        gitHandler.commitAndPushChanges(
+        gitHandler.safeCommit(
             filePaths = listOf(bindingYmlPath),
             commitMessage = "Created Service binding ${request.bindingId}"
         )
@@ -81,7 +81,7 @@ class GenericServiceInstanceBindingService(
             file = statusYml
         )
 
-        gitHandler.commitAndPushChanges(
+        gitHandler.safeCommit(
             filePaths = listOf(bindingYmlPath, statusPath),
             commitMessage = "Marked Service binding ${request.serviceInstanceId} as deleted."
         )
