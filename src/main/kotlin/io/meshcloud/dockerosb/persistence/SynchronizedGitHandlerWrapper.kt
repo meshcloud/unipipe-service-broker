@@ -42,7 +42,8 @@ class SynchronizedGitHandlerWrapper(gitConfig: GitConfig) : GitHandler(gitConfig
    * of unnecessary calls to git small.
    */
   fun rebaseAndPushAllCommittedChanges(): Boolean {
-    if (!hasNewCommits.getAndSet(false)) {
+    if (!hasNewCommits.get()) {
+
       return false
     }
 
@@ -51,6 +52,7 @@ class SynchronizedGitHandlerWrapper(gitConfig: GitConfig) : GitHandler(gitConfig
       //do not require read lock here as we'd never acquire it here.
       super.pull(true)
       super.pushAllOpenChanges()
+      hasNewCommits.set(false)
 
     } catch (ex: Exception) {
       //TODO what to do in this case?
@@ -58,6 +60,7 @@ class SynchronizedGitHandlerWrapper(gitConfig: GitConfig) : GitHandler(gitConfig
     } finally {
       writeLock.unlock()
     }
+
     return true
   }
 
