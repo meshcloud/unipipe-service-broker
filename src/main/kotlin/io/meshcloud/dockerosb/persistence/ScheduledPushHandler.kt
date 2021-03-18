@@ -14,12 +14,7 @@ class ScheduledPushHandler(val gitAccess: SynchronizedGitHandlerWrapper) {
     fixedDelayString = "\${scheduling.push.pause-delay}"
   )
   fun pushTask() {
-    log.info { "Checking for new commits:" }
-    val pushed = gitAccess.rebaseAndPushAllCommittedChanges()
-    if(!pushed) {
-      log.info { "There were none." }
-    } else {
-      log.info { "New commits have been pushed to git." }
-    }
+    log.info { "Pushing new commits if existing." }
+    gitAccess.rebaseAndPushAllCommittedChanges()
   }
 }

@@ -4,6 +4,8 @@ import io.meshcloud.dockerosb.config.CustomSshSessionFactory
 import io.meshcloud.dockerosb.config.GitConfig
 import io.meshcloud.dockerosb.exceptions.GitCommandException
 import org.eclipse.jgit.api.Git
+import org.eclipse.jgit.api.RebaseResult
+import org.eclipse.jgit.api.ResetCommand
 import org.eclipse.jgit.transport.SshSessionFactory
 import org.eclipse.jgit.transport.URIish
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
@@ -28,19 +30,12 @@ open class GitHandler(
     }
   }
 
-  open fun pushAllOpenChanges() {
-    getGit(gitConfig).use { git ->
-      gitConfig.remote?.let {
-        git.rebase()
-          .setUpstream(gitConfig.remoteBranch)
-          .call()
-      }
-      push(git)
-    }
+  open fun push() {
+    getGit(gitConfig).use { push(it) }
   }
 
   private fun push(git: Git) {
-    gitConfig.remote?.let {
+    gitConfig.remote.let {
       val pushCommand = git.push()
       gitConfig.username?.let {
         pushCommand.setCredentialsProvider(UsernamePasswordCredentialsProvider(gitConfig.username, gitConfig.password))
@@ -49,16 +44,23 @@ open class GitHandler(
     }
   }
 
-  open fun pull(doRebase: Boolean = false) {
-    if (gitConfig.remote == null) {
-      return
+  open fun rebase(): RebaseResult {
+
+    return getGit(gitConfig).use { git ->
+      gitConfig.remote.let {
+        git.rebase()
+          .setUpstream(gitConfig.remoteBranch)
+          .call()
+      }
     }
+  }
+
+  open fun pull() {
 
     getGit(gitConfig).use {
       val pullCommand = it.pull()
         .setRemote("origin")
         .setRemoteBranchName(gitConfig.remoteBranch)
-        .setRebase(doRebase)
 
       gitConfig.username?.let {
         pullCommand.setCredentialsProvider(UsernamePasswordCredentialsProvider(gitConfig.username, gitConfig.password))
@@ -77,6 +79,13 @@ open class GitHandler(
     }
   }
 
+  fun cleanUp() {
+    getGit(gitConfig).use {
+      it.clean().setForce(true).setCleanDirectories(true).call()
+      it.reset().setMode(ResetCommand.ResetType.HARD).setRef("HEAD").call()
+    }
+  }
+
   fun fileInRepo(path: String): File {
     return File(gitConfig.localPath, path)
   }
@@ -84,17 +93,17 @@ open class GitHandler(
   companion object {
 
     fun getGit(gitConfig: GitConfig): Git {
-
       gitConfig.sshKey?.let {
         SshSessionFactory.setInstance(CustomSshSessionFactory(it))
       }
 
       val git = Git.init().setDirectory(File(gitConfig.localPath)).call()
+      ensureRemoteIsAdded(git, gitConfig)
 
-
-      gitConfig.remote?.let {
-        ensureRemoteIsAdded(git, gitConfig)
-      }
+      // TODO
+      //  do we need to do
+      //  git branch --set-upstream-to=origin/${gitConfig.remoteBranch}
+      //  to ensure tracking of the correct remote branch here as well?
 
       return git
     }
