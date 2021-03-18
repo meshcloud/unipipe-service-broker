@@ -1,7 +1,5 @@
 package io.meshcloud.dockerosb.service
 
-import io.meshcloud.dockerosb.persistence.GitHandler
-import io.meshcloud.dockerosb.persistence.SynchronizedGitHandlerWrapper
 import io.meshcloud.dockerosb.persistence.YamlHandler
 import mu.KotlinLogging
 import org.springframework.cloud.servicebroker.model.catalog.Catalog
@@ -15,7 +13,7 @@ private val log = KotlinLogging.logger { }
 @Service
 class GenericCatalogService(
   private val yamlHandler: YamlHandler,
-  private val gitHandler: SynchronizedGitHandlerWrapper
+  private val gitHandler: GitHandler
 ) : CatalogService {
   private var catalog: Catalog = parseCatalog(gitHandler, yamlHandler)
 
@@ -65,6 +63,4 @@ class GenericCatalogService(
 
     return Mono.just(this.catalog.serviceDefinitions.singleOrNull { it.id == serviceId }!!)
   }
-
-
 }

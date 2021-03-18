@@ -13,4 +13,13 @@ app:
 scheduling:
   push:
     initial-delay: 10000
-    pause-delay: 30000
+    pause-delay: 5000
+
+retry:
+  remote-write:
+    attempts: 3
+    backoff-delay: 2000
+  git-lock:
+    attempts: 3
+    backoff-delay: 100
+

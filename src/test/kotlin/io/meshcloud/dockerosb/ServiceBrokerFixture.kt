@@ -2,8 +2,8 @@ package io.meshcloud.dockerosb
 
 
 import io.meshcloud.dockerosb.config.GitConfig
-import io.meshcloud.dockerosb.persistence.GitHandler
-import io.meshcloud.dockerosb.persistence.SynchronizedGitHandlerWrapper
+import io.meshcloud.dockerosb.config.RetryConfig
+import io.meshcloud.dockerosb.persistence.SynchronizedGitHandler
 import io.meshcloud.dockerosb.persistence.YamlHandler
 import io.meshcloud.dockerosb.service.GenericCatalogService
 import org.apache.commons.io.FileUtils
@@ -28,7 +28,14 @@ class ServiceBrokerFixture(catalogPath: String) : Closeable {
       password = null
   )
 
-  val gitHandler = SynchronizedGitHandlerWrapper(gitConfig)
+  val retryConfig = RetryConfig(
+    remoteWriteAttempts = 1,
+    remoteWriteBackOffDelay = 0,
+    gitLockAttempts = 1,
+    gitLockBackOffDelay = 0
+  )
+
+  val gitHandler = SynchronizedGitHandler(gitConfig, retryConfig)
 
   val catalogService: GenericCatalogService = GenericCatalogService(yamlHandler, gitHandler)
 

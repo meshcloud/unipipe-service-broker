@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.type.TypeReference
 import io.meshcloud.dockerosb.isSynchronousService
 import io.meshcloud.dockerosb.model.ServiceBinding
 import io.meshcloud.dockerosb.model.Status
-import io.meshcloud.dockerosb.persistence.SynchronizedGitHandlerWrapper
 import io.meshcloud.dockerosb.persistence.YamlHandler
 import org.springframework.cloud.servicebroker.model.binding.*
 import org.springframework.cloud.servicebroker.model.instance.OperationState
@@ -16,7 +15,7 @@ import java.util.*
 @Service
 class GenericServiceInstanceBindingService(
     private val yamlHandler: YamlHandler,
-    private val gitHandler: SynchronizedGitHandlerWrapper,
+    private val gitHandler: GitHandler,
     private val catalogService: GenericCatalogService
 ) : ServiceInstanceBindingService {
 
@@ -31,15 +30,13 @@ class GenericServiceInstanceBindingService(
             )
         }
 
-        gitHandler.pull()
-
         val bindingYmlPath = "instances/${request.serviceInstanceId}/bindings/${request.bindingId}/binding.yml"
         val bindingYml = gitHandler.fileInRepo(bindingYmlPath)
         yamlHandler.writeObject(
             objectToWrite = ServiceBinding(request),
             file = bindingYml
         )
-        gitHandler.safeCommit(
+        gitHandler.commit(
             filePaths = listOf(bindingYmlPath),
             commitMessage = "Created Service binding ${request.bindingId}"
         )
@@ -63,7 +60,6 @@ class GenericServiceInstanceBindingService(
             )
         }
 
-        gitHandler.pull()
         val bindingYmlPath = "instances/${request.serviceInstanceId}/bindings/${request.bindingId}/binding.yml"
         val bindingYml = gitHandler.fileInRepo(bindingYmlPath)
         val binding = yamlHandler.readObject(bindingYml, ServiceBinding::class.java)
@@ -81,7 +77,7 @@ class GenericServiceInstanceBindingService(
             file = statusYml
         )
 
-        gitHandler.safeCommit(
+        gitHandler.commit(
             filePaths = listOf(bindingYmlPath, statusPath),
             commitMessage = "Marked Service binding ${request.serviceInstanceId} as deleted."
         )

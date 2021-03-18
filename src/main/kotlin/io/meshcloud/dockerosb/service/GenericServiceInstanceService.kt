@@ -3,8 +3,6 @@ package io.meshcloud.dockerosb.service
 import io.meshcloud.dockerosb.isSynchronousService
 import io.meshcloud.dockerosb.model.ServiceInstance
 import io.meshcloud.dockerosb.model.Status
-import io.meshcloud.dockerosb.persistence.GitHandler
-import io.meshcloud.dockerosb.persistence.SynchronizedGitHandlerWrapper
 import io.meshcloud.dockerosb.persistence.YamlHandler
 import org.springframework.cloud.servicebroker.model.instance.*
 import org.springframework.cloud.servicebroker.service.ServiceInstanceService
@@ -14,7 +12,7 @@ import reactor.core.publisher.Mono
 @Service
 class GenericServiceInstanceService(
   private val yamlHandler: YamlHandler,
-  private val gitHandler: SynchronizedGitHandlerWrapper,
+  private val gitHandler: GitHandler,
   private val catalogService: GenericCatalogService
 ) : ServiceInstanceService {
 
@@ -30,14 +28,13 @@ class GenericServiceInstanceService(
       )
     }
 
-    gitHandler.pull()
     val instanceYmlPath = "instances/${request.serviceInstanceId}/instance.yml"
     val instanceYml = gitHandler.fileInRepo(instanceYmlPath)
     yamlHandler.writeObject(
       objectToWrite = ServiceInstance(request),
       file = instanceYml
     )
-    gitHandler.safeCommit(
+    gitHandler.commit(
       filePaths = listOf(instanceYmlPath),
       commitMessage = "Created Service instance ${request.serviceInstanceId}"
     )
@@ -93,7 +90,6 @@ class GenericServiceInstanceService(
       )
     }
 
-    gitHandler.pull()
     val statusPath = "instances/${request.serviceInstanceId}/status.yml"
     val statusYml = gitHandler.fileInRepo(statusPath)
     var status = OperationState.IN_PROGRESS
@@ -127,7 +123,6 @@ class GenericServiceInstanceService(
       )
     }
 
-    gitHandler.pull()
     val instanceYmlPath = "instances/${request.serviceInstanceId}/instance.yml"
     val instanceYml = gitHandler.fileInRepo(instanceYmlPath)
     if (!instanceYml.exists()) {
@@ -153,7 +148,7 @@ class GenericServiceInstanceService(
       file = statusYml
     )
 
-    gitHandler.safeCommit(
+    gitHandler.commit(
       filePaths = listOf(instanceYmlPath, statusPath),
       commitMessage = "Marked Service instance ${request.serviceInstanceId} as deleted."
     )
