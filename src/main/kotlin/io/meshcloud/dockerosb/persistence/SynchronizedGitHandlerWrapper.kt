@@ -41,10 +41,13 @@ class SynchronizedGitHandlerWrapper(gitConfig: GitConfig) : GitHandler(gitConfig
   fun safeCommit(filePaths: List<String>, commitMessage: String) {
     readLock.lock()
     commitSyncLock.lock()
-    super.commit(filePaths, commitMessage)
-    hasNewCommits.set(true)
-    commitSyncLock.unlock()
-    readLock.unlock()
+    try {
+      super.commit(filePaths, commitMessage)
+      hasNewCommits.set(true)
+    } finally {
+      commitSyncLock.unlock()
+      readLock.unlock()
+    }
   }
 
   /**
@@ -144,7 +147,10 @@ class SynchronizedGitHandlerWrapper(gitConfig: GitConfig) : GitHandler(gitConfig
    */
   override fun pull() {
     readLock.lock()
-    super.pull()
-    readLock.unlock()
+    try {
+      super.pull()
+    } finally {
+      readLock.unlock()
+    }
   }
 }
