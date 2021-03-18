@@ -21,7 +21,7 @@ class ServiceBrokerFixture(catalogPath: String) : Closeable {
 
   val gitConfig = GitConfig(
       localPath = localGitPath,
-      remote = "fake-remote",
+      remote = null,
       remoteBranch = "master",
       sshKey = null,
       username = null,

@@ -8,8 +8,8 @@ class GitConfig(
     @Value("\${git.local-path}")
     val localPath: String,
 
-    @Value("\${git.remote}")
-    val remote: String,
+    @Value("\${git.remote:#{null}}")
+    val remote: String?,
 
     @Value("\${git.remote-branch}")
     val remoteBranch: String,

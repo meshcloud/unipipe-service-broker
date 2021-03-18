@@ -31,11 +31,13 @@ open class GitHandler(
   }
 
   open fun push() {
-    getGit(gitConfig).use { push(it) }
+    gitConfig.remote?.let {
+      getGit(gitConfig).use { push(it) }
+    }
   }
 
   private fun push(git: Git) {
-    gitConfig.remote.let {
+    gitConfig.remote?.let {
       val pushCommand = git.push()
       gitConfig.username?.let {
         pushCommand.setCredentialsProvider(UsernamePasswordCredentialsProvider(gitConfig.username, gitConfig.password))
@@ -56,6 +58,10 @@ open class GitHandler(
   }
 
   open fun pull() {
+
+    if (gitConfig.remote == null) {
+      return
+    }
 
     getGit(gitConfig).use {
       val pullCommand = it.pull()
@@ -98,7 +104,10 @@ open class GitHandler(
       }
 
       val git = Git.init().setDirectory(File(gitConfig.localPath)).call()
-      ensureRemoteIsAdded(git, gitConfig)
+
+      gitConfig.remote?.let {
+        ensureRemoteIsAdded(git, gitConfig)
+      }
 
       // TODO
       //  do we need to do
