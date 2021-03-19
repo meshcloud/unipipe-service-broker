@@ -1,17 +1,14 @@
 package io.meshcloud.dockerosb.persistence
 
-import io.meshcloud.dockerosb.config.CustomSshSessionFactory
 import io.meshcloud.dockerosb.config.GitConfig
 import io.meshcloud.dockerosb.config.RetryConfig
 import io.meshcloud.dockerosb.exceptions.GitCommandException
 import io.meshcloud.dockerosb.service.GitHandler
+import io.meshcloud.dockerosb.service.GitHandler.Companion.getGit
 import mu.KotlinLogging
-import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.api.RebaseResult
 import org.eclipse.jgit.api.ResetCommand
 import org.eclipse.jgit.errors.LockFailedException
-import org.eclipse.jgit.transport.SshSessionFactory
-import org.eclipse.jgit.transport.URIish
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
 import org.springframework.retry.backoff.FixedBackOffPolicy
 import org.springframework.retry.policy.SimpleRetryPolicy
@@ -24,14 +21,13 @@ import java.util.concurrent.locks.ReentrantReadWriteLock
 
 private val log = KotlinLogging.logger {}
 
-//FIXME fix issues with checks for git.remote being null that are leftover from the old gitHandler.
 @Service
 class SynchronizedGitHandler(
   private val gitConfig: GitConfig,
   private val retryConfig: RetryConfig
-): GitHandler {
+) : GitHandler {
 
-  private val readWriteLock = ReentrantReadWriteLock()
+  private val readWriteLock = ReentrantReadWriteLock(true)
   private val readLock = readWriteLock.readLock()
   private val writeLock = readWriteLock.writeLock()
   private val commitSyncLock = ReentrantLock()
@@ -60,6 +56,10 @@ class SynchronizedGitHandler(
    * Acquire readLock to be sure that we don't conflict with the writeLock.
    */
   override fun pull() {
+    if (!gitConfig.hasRemoteConfigured()) {
+      return
+    }
+
     readLock.lock()
     try {
       internalPull()
@@ -93,10 +93,14 @@ class SynchronizedGitHandler(
    * of unnecessary calls to git small.
    */
   override fun rebaseAndPushAllCommittedChanges() {
+    if (!gitConfig.hasRemoteConfigured()) {
+      return
+    }
+
     writeLock.lock()
     try {
       internalRebaseAndPushAllCommittedChanges()
-    } catch(ex: Exception) {
+    } catch (ex: Exception) {
       log.error { "Failed to rebase and commit changes." }
     } finally {
       writeLock.unlock()
@@ -131,7 +135,9 @@ class SynchronizedGitHandler(
        */
       rebaseResult = remoteWriteRetryTemplate.execute<RebaseResult, Exception> { ctx ->
         try {
-          rebase()
+          git.rebase()
+            .setUpstream(gitConfig.remoteBranch)
+            .call()
         } catch (ex: Exception) {
           log.error { "Rebase attempt #${ctx.retryCount}: ${ex.message}." }
           throw ex
@@ -209,36 +215,22 @@ class SynchronizedGitHandler(
   }
 
   private fun cleanUp() {
-      git.clean().setForce(true).setCleanDirectories(true).call()
-      git.reset().setMode(ResetCommand.ResetType.HARD).setRef("HEAD").call()
+    git.clean().setForce(true).setCleanDirectories(true).call()
+    git.reset().setMode(ResetCommand.ResetType.HARD).setRef("HEAD").call()
   }
 
   private fun internalPull() {
-    if (gitConfig.remote == null) {
-      return
+    val pullCommand = git.pull()
+      .setRemote("origin")
+      .setRemoteBranchName(gitConfig.remoteBranch)
+
+    gitConfig.username?.let {
+      pullCommand.setCredentialsProvider(UsernamePasswordCredentialsProvider(gitConfig.username, gitConfig.password))
     }
+    val pullResult = pullCommand.call()
 
-    getGit(gitConfig).use {
-      val pullCommand = it.pull()
-        .setRemote("origin")
-        .setRemoteBranchName(gitConfig.remoteBranch)
-
-      gitConfig.username?.let {
-        pullCommand.setCredentialsProvider(UsernamePasswordCredentialsProvider(gitConfig.username, gitConfig.password))
-      }
-      val pullResult = pullCommand.call()
-
-      if (!pullResult.isSuccessful) {
-        throw GitCommandException("Git Pull failed.", null)
-      }
-    }
-  }
-
-  private fun rebase(): RebaseResult {
-    return gitConfig.remote.let {
-      git.rebase()
-        .setUpstream(gitConfig.remoteBranch)
-        .call()
+    if (!pullResult.isSuccessful) {
+      throw GitCommandException("Git Pull failed.", null)
     }
   }
 
@@ -249,37 +241,6 @@ class SynchronizedGitHandler(
       } catch (ex: LockFailedException) {
         log.warn { "There was a LockFailedException, will retry." }
         throw ex
-      }
-    }
-  }
-
-  companion object {
-
-    fun getGit(gitConfig: GitConfig): Git {
-      gitConfig.sshKey?.let {
-        SshSessionFactory.setInstance(CustomSshSessionFactory(it))
-      }
-
-      val git = Git.init().setDirectory(File(gitConfig.localPath)).call()
-
-      gitConfig.remote?.let {
-        ensureRemoteIsAdded(git, gitConfig)
-      }
-
-      // TODO
-      //  do we need to do
-      //  git branch --set-upstream-to=origin/${gitConfig.remoteBranch}
-      //  to ensure tracking of the correct remote branch here as well?
-
-      return git
-    }
-
-    private fun ensureRemoteIsAdded(git: Git, gitConfig: GitConfig) {
-      if (git.remoteList().call().isEmpty()) {
-        val remoteAddCommand = git.remoteAdd()
-        remoteAddCommand.setName("origin")
-        remoteAddCommand.setUri(URIish(gitConfig.remote))
-        remoteAddCommand.call()
       }
     }
   }

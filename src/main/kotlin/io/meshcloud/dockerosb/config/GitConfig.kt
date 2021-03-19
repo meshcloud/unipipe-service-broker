@@ -22,4 +22,8 @@ class GitConfig(
 
     @Value("\${git.password:#{null}}")
     val password: String?
-)
+) {
+    fun hasRemoteConfigured(): Boolean {
+        return this.remote != null
+    }
+}
