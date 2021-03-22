@@ -15,7 +15,7 @@ The custom configuration can be done via environment variables. The following pr
 
 - `GIT_REMOTE`: The remote Git repository to push the repo to
 - `GIT_LOCAL-PATH`: The path where the local Git Repo shall be created/used. Defaults to tmp/git
-- `GIT_SSH-KEY`: If you want to use SSH, this is the SSH key to be used for accessing the remote repo. Linebreaks must be replaced with spaces
+- `GIT_SSH-KEY`: If you want to use SSH, this is the PEM encoded RSA SSH key to be used for accessing the remote repo. Linebreaks must be replaced with spaces.
 - `GIT_USERNAME`: If you use HTTPS to access the git repo, define the HTTPS username here
 - `GIT_PASSWORD`: If you use HTTPS to access the git repo, define the HTTPS password here
 - `APP_BASIC-AUTH-USERNAME`: The service broker API itself is secured via HTTP Basic Auth. Define the username for this here.
@@ -28,6 +28,7 @@ GIT_SSH-KEY=-----BEGIN RSA PRIVATE KEY----- Hgiud8z89ijiojdobdikdosaa+hnjk789hds
 ```
 
 Please note there is a space ` ` between `-----BEGIN RSA PRIVATE KEY-----` and the key as well as between the key and `----END RSA PRIVATE KEY-----`. If you omit these spaces the container will not be able to read the private key.
+Please also note that the RSA key is PEM encoded and therefore starts with  `-----BEGIN RSA PRIVATE KEY-----`. OpenSSH encoded keys starting with `-----BEGIN OPENSSH PRIVATE KEY-----` must be converted to PEM before being used.
 
 ## Configuration using dhall
 
