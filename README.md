@@ -79,10 +79,10 @@ $ ./run.sh
 
 ## Deployment using Docker
 
-We publish generic-osb-api container images to GitHub Container Registry [here](https://github.com/orgs/meshcloud/packages/container/generic-osb-api/versions). These images are built on GitHub actions and are available publicly
+We publish generic-osb-api container images to GitHub Container Registry [here](https://github.com/orgs/meshcloud/packages/container/unipipe-service-broker/versions). These images are built on GitHub actions and are available publicly
 
 ```
-$ docker pull ghcr.io/meshcloud/generic-osb-api:v1.0.5
+$ docker pull ghcr.io/meshcloud/unipipe-service-broker:v1.0.6
 ```
 
 > Note: We used to publish old versions of generic-osb-api as GitHub packages (not GHCR) which unfortunately can't be deleted from GitHub. Please make sure to use `ghcr.io` to pull the latest versions and not the legacy `docker.pkg.github.com` URLs.
