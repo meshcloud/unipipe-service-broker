@@ -3,8 +3,7 @@ package io.meshcloud.dockerosb.persistence
 import io.meshcloud.dockerosb.config.GitConfig
 import io.meshcloud.dockerosb.config.RetryConfig
 import io.meshcloud.dockerosb.exceptions.GitCommandException
-import io.meshcloud.dockerosb.service.GitHandler
-import io.meshcloud.dockerosb.service.GitHandler.Companion.getGit
+import io.meshcloud.dockerosb.persistence.GitHandler.Companion.getGit
 import mu.KotlinLogging
 import org.eclipse.jgit.api.RebaseResult
 import org.eclipse.jgit.api.ResetCommand
@@ -94,14 +93,22 @@ class SynchronizedGitHandler(
    */
   override fun rebaseAndPushAllCommittedChanges() {
     if (!gitConfig.hasRemoteConfigured()) {
+      log.info { "Rebase/push called, but no remote is configured." }
       return
     }
 
     writeLock.lock()
+    log.info { "Executing rebase/push:" }
+
     try {
-      internalRebaseAndPushAllCommittedChanges()
+      if (!hasNewCommits.get()) {
+        log.info { "No commits found. Nothing has been pushed to remote git." }
+      } else {
+        internalRebaseAndPushAllCommittedChanges()
+        log.info { "All recent commits have been pushed to remote git." }
+      }
     } catch (ex: Exception) {
-      log.error { "Failed to rebase and commit changes." }
+      log.error { "Failed to rebase and push changes." }
     } finally {
       writeLock.unlock()
     }
@@ -116,12 +123,6 @@ class SynchronizedGitHandler(
   }
 
   private fun internalRebaseAndPushAllCommittedChanges() {
-    if (!hasNewCommits.get()) {
-      return
-    }
-
-    log.info { "Pushing new commits." }
-
     var rebaseResult: RebaseResult
     var retryRebase: Boolean
 
@@ -149,6 +150,9 @@ class SynchronizedGitHandler(
 
           // This should never occur, but we can resolve it easily.
           RebaseResult.Status.UNCOMMITTED_CHANGES -> {
+            log.warn { "Rebase failed due to uncommitted changes: " }
+            rebaseResult.uncommittedChanges.forEach { log.info { "  $it" } }
+            log.warn { "Cleaning up repository and retry rebase." }
             cleanUp()
             retryRebase = true
           }

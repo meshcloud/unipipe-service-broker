@@ -1,5 +1,6 @@
 package io.meshcloud.dockerosb.service
 
+import io.meshcloud.dockerosb.persistence.GitHandler
 import io.meshcloud.dockerosb.persistence.YamlHandler
 import mu.KotlinLogging
 import org.springframework.cloud.servicebroker.model.catalog.Catalog

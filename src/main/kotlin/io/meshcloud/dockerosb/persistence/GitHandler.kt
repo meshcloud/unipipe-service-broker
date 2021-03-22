@@ -1,4 +1,4 @@
-package io.meshcloud.dockerosb.service
+package io.meshcloud.dockerosb.persistence
 
 import io.meshcloud.dockerosb.config.CustomSshSessionFactory
 import io.meshcloud.dockerosb.config.GitConfig
@@ -35,12 +35,8 @@ interface GitHandler {
 
       gitConfig.remote?.let {
         ensureRemoteIsAdded(git, gitConfig)
+        git.checkout().setName(gitConfig.remoteBranch).call()
       }
-
-      // TODO
-      //  do we need to do
-      //  git branch --set-upstream-to=origin/${gitConfig.remoteBranch}
-      //  to ensure tracking of the correct remote branch here as well?
 
       return git
     }

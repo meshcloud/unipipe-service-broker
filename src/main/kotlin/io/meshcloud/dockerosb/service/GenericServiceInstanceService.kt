@@ -3,6 +3,7 @@ package io.meshcloud.dockerosb.service
 import io.meshcloud.dockerosb.isSynchronousService
 import io.meshcloud.dockerosb.model.ServiceInstance
 import io.meshcloud.dockerosb.model.Status
+import io.meshcloud.dockerosb.persistence.GitHandler
 import io.meshcloud.dockerosb.persistence.YamlHandler
 import org.springframework.cloud.servicebroker.model.instance.*
 import org.springframework.cloud.servicebroker.service.ServiceInstanceService

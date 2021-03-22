@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference
 import io.meshcloud.dockerosb.isSynchronousService
 import io.meshcloud.dockerosb.model.ServiceBinding
 import io.meshcloud.dockerosb.model.Status
+import io.meshcloud.dockerosb.persistence.GitHandler
 import io.meshcloud.dockerosb.persistence.YamlHandler
 import org.springframework.cloud.servicebroker.model.binding.*
 import org.springframework.cloud.servicebroker.model.instance.OperationState

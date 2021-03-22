@@ -14,6 +14,7 @@ UniPipe Service Broker was formerly known as generic OSB API.
 The custom configuration can be done via environment variables. The following properties can be configured:
 
 - `GIT_REMOTE`: The remote Git repository to push the repo to
+- `GIT_REMOTE-BRANCH`: The used branch of the remote Git repository
 - `GIT_LOCAL-PATH`: The path where the local Git Repo shall be created/used. Defaults to tmp/git
 - `GIT_SSH-KEY`: If you want to use SSH, this is the SSH key to be used for accessing the remote repo. Linebreaks must be replaced with spaces
 - `GIT_USERNAME`: If you use HTTPS to access the git repo, define the HTTPS username here
