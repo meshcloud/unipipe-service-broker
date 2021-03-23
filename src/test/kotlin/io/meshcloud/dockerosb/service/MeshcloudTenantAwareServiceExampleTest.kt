@@ -3,7 +3,8 @@ package io.meshcloud.dockerosb.service
 import io.meshcloud.dockerosb.ServiceBrokerFixture
 import org.apache.commons.io.FileUtils
 import org.junit.After
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.springframework.cloud.servicebroker.model.PlatformContext

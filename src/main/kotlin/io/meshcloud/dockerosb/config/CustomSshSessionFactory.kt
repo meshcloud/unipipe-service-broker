@@ -3,14 +3,11 @@ package io.meshcloud.dockerosb.config
 import com.jcraft.jsch.JSch
 import com.jcraft.jsch.JSchException
 import com.jcraft.jsch.Session
-import mu.KotlinLogging
 import org.apache.commons.io.FileUtils
 import org.eclipse.jgit.transport.JschConfigSessionFactory
 import org.eclipse.jgit.transport.OpenSshConfig
 import org.eclipse.jgit.util.FS
 import java.io.File
-
-private val logger = KotlinLogging.logger {}
 
 class CustomSshSessionFactory(
     private val sshKey: String

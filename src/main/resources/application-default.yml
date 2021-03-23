@@ -3,8 +3,23 @@ server:
   port: 8075
 
 git:
-  local: tmp/git
+  local: /tmp/git
+  remote-branch: master
 
 app:
   basic-auth-username: user
   basic-auth-password: random-secret
+
+scheduling:
+  push:
+    initial-delay: 10000
+    pause-delay: 5000
+
+retry:
+  remote-write:
+    attempts: 3
+    backoff-delay: 2000
+  git-lock:
+    attempts: 3
+    backoff-delay: 100
+

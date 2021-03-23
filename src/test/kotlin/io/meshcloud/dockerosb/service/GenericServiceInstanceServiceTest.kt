@@ -3,7 +3,7 @@ package io.meshcloud.dockerosb.service
 import io.meshcloud.dockerosb.ServiceBrokerFixture
 import io.meshcloud.dockerosb.model.ServiceInstance
 import io.meshcloud.dockerosb.model.Status
-import io.meshcloud.dockerosb.persistence.GitHandler
+import io.meshcloud.dockerosb.persistence.SynchronizedGitHandler
 import org.apache.commons.io.FileUtils
 import org.junit.After
 import org.junit.Assert.*
@@ -62,7 +62,7 @@ class GenericServiceInstanceServiceTest {
 
     sut.createServiceInstance(request).block()
 
-    val gitHandler = GitHandler(fixture.gitConfig)
+    val gitHandler = SynchronizedGitHandler(fixture.gitConfig, fixture.retryConfig)
 
     assertTrue(gitHandler.getLastCommitMessage().contains(request.serviceInstanceId))
   }
