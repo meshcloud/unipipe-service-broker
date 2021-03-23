@@ -88,6 +88,8 @@ $ docker pull ghcr.io/meshcloud/generic-osb-api:v1.0.5
 
 > Note: We used to publish old versions of generic-osb-api as GitHub packages (not GHCR) which unfortunately can't be deleted from GitHub. Please make sure to use `ghcr.io` to pull the latest versions and not the legacy `docker.pkg.github.com` URLs.
 
+> Note: You should attach a persistent volume to the image to make sure the changes to the local git repository are persisted in case the application terminates unexpectedly or restarts.
+
 ## Deployment to Cloud Foundry
 
 To deploy UniPipe Service Broker to Cloud Foundry, you have to use a configured Manifest file like this:
