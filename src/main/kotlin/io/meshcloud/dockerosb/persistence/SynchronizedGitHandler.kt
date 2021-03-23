@@ -35,7 +35,7 @@ class SynchronizedGitHandler(
    * We assume there are new commits in git, in case there are some.
    * This prevents commits "laying around" at start time until a new
    * commit would set this flag.
-   * TODO we can determine this exactly here instead.
+   * TODO we could determine this exactly here instead.
    */
   private val hasNewCommits = AtomicBoolean(true)
 
@@ -157,10 +157,14 @@ class SynchronizedGitHandler(
             retryRebase = true
           }
 
+          RebaseResult.Status.FAILED -> {
+            log.warn { "Rebase failed due to unknown reasons." }
+            retryRebase = true //just retry we know that the original HEAD was restored already.
+          }
+
           else -> {
             // TODO any more cases we can solve automatically?
             // RebaseResult.Status.STOPPED
-            // RebaseResult.Status.FAILED
             // RebaseResult.Status.CONFLICTS
             // and these should never occur here:
             // RebaseResult.Status.ABORTED
