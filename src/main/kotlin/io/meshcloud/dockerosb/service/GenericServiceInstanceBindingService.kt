@@ -80,7 +80,7 @@ class GenericServiceInstanceBindingService(
 
         gitHandler.commit(
             filePaths = listOf(bindingYmlPath, statusPath),
-            commitMessage = "Marked Service binding ${request.serviceInstanceId} as deleted."
+            commitMessage = "Marked Service binding ${request.bindingId} as deleted."
         )
 
         return Mono.just(
