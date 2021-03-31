@@ -121,6 +121,15 @@ on is to build your CI/CD pipeline. In the following, all files that are used fo
 for exchanging information between UniPipe Service Broker and the pipeline are described. An example pipeline can be found
 [here](https://github.com/Meshcloud/example-osb-ci).
 
+### OSB commit messages
+In some cases your CI/CD needs to read the git commits of the unipipe service broker to register that some service or service binding is (de)provisioned.
+The unipipe service broker will always commit the following messages:
+Git commit will always start with `OSB API:`
+- Service Instance creation commits: `OSB API: Created Service instance {ServiceInstanceId}`
+- Service Instance deletion commits: `OSB API: Marked Service instance {ServiceInstanceId} as deleted.`
+- Service Binding creation commits: `OSB API: Created Service binding {ServiceBindingID}`
+- Service Binding deletion commits: `OSB API: Marked Service binding ${ServiceBindingID} as deleted.`
+
 ### GIT Repo structure
 
 ```yaml
