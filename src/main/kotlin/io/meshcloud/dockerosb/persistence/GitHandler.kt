@@ -5,6 +5,7 @@ import io.meshcloud.dockerosb.config.GitConfig
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.transport.SshSessionFactory
 import org.eclipse.jgit.transport.URIish
+import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
 import java.io.File
 
 interface GitHandler {
@@ -35,6 +36,7 @@ interface GitHandler {
 
       gitConfig.remote?.let {
         ensureRemoteIsAdded(git, gitConfig)
+        git.pull().setCredentialsProvider(UsernamePasswordCredentialsProvider(gitConfig.username, gitConfig.password)).call()
         git.checkout().setName(gitConfig.remoteBranch).call()
       }
 
