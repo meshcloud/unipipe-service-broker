@@ -40,7 +40,11 @@ interface GitHandler {
 
       gitConfig.remote?.let {
         ensureRemoteIsAdded(git, gitConfig)
-        git.pull().setCredentialsProvider(UsernamePasswordCredentialsProvider(gitConfig.username, gitConfig.password)).call()
+        val pull = git.pull()
+        gitConfig.username?.let {
+          pull.setCredentialsProvider(UsernamePasswordCredentialsProvider(gitConfig.username, gitConfig.password))
+        }
+        pull.call()
         switchToBranchAndCreateIfMissing(git, gitConfig.remoteBranch)
       }
 
