@@ -61,7 +61,7 @@ interface GitHandler {
     }
 
     private fun switchToBranchAndCreateIfMissing(git: Git, branchName: String) {
-      val exists = git.repository.allRefs.map { it.value.name }.contains("refs/heads/$branchName")
+      val exists = git.repository.refDatabase.refs.map { it.name }.contains("refs/heads/$branchName")
       if (exists) {
         log.info { "Branch $branchName exists." }
         git.checkout()

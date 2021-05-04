@@ -29,7 +29,9 @@ dependencies {
   implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
   implementation("org.springframework.cloud:spring-cloud-starter-open-service-broker:3.1.1.RELEASE")
 
-  implementation("org.eclipse.jgit:org.eclipse.jgit:4.11.0.201803080745-r")
+  implementation("org.eclipse.jgit:org.eclipse.jgit:5.11.0.202103091610-r")
+  implementation("org.eclipse.jgit:org.eclipse.jgit.ssh.jsch:5.11.0.202103091610-r")
+
   implementation("commons-io:commons-io:2.4")
   implementation("io.github.microutils:kotlin-logging:1.4.9")
   implementation("io.projectreactor.kotlin:reactor-kotlin-extensions:1.0.2.RELEASE")
