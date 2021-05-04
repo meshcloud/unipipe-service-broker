@@ -38,6 +38,13 @@ interface GitHandler {
 
       val git = Git.init().setDirectory(File(gitConfig.localPath)).call()
 
+      // setup default user info (could make this configurable)
+      git.repository.config.apply {
+        setString("user", null, "name", "OSB API")
+        setString("user", null, "email", "unipipe@meshcloud.io")
+        save()
+      }
+
       gitConfig.remote?.let {
         ensureRemoteIsAdded(git, gitConfig)
         val pull = git.pull()
