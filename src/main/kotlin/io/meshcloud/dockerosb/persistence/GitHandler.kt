@@ -14,11 +14,11 @@ private val log = KotlinLogging.logger {}
 
 interface GitHandler {
 
-  fun pull()
+  fun pullFastForwardOnly()
 
   fun commit(filePaths: List<String>, commitMessage: String)
 
-  fun rebaseAndPushAllCommittedChanges()
+  fun synchronizeWithRemoteRepository()
 
   fun fileInRepo(path: String): File
 

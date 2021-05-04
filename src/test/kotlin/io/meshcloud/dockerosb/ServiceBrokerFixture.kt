@@ -7,22 +7,26 @@ import io.meshcloud.dockerosb.persistence.GitOperationContextFactory
 import io.meshcloud.dockerosb.persistence.RetryingGitHandler
 import io.meshcloud.dockerosb.persistence.YamlHandler
 import io.meshcloud.dockerosb.service.GenericCatalogService
-import org.apache.commons.io.FileUtils
+import org.junit.rules.TemporaryFolder
 import java.io.Closeable
-import java.io.File
 
 /**
  * A fixture for providing common context objects for tests
  */
 class ServiceBrokerFixture(catalogPath: String) : Closeable {
+  private val tmp = TemporaryFolder().apply {
+    create()
+  }
 
   val yamlHandler: YamlHandler = YamlHandler()
 
-  val localGitPath = "tmp/test/git"
+
+  val localGitPath = tmp.newFolder("git-local").absolutePath
+  val remoteGitPath = tmp.newFolder("git-remote").absolutePath
 
   val gitConfig = GitConfig(
       localPath = localGitPath,
-      remote = null,
+      remote = remoteGitPath,
       remoteBranch = "master",
       sshKey = null,
       username = null,
@@ -30,24 +34,24 @@ class ServiceBrokerFixture(catalogPath: String) : Closeable {
   )
 
   val retryConfig = RetryConfig(
-    remoteWriteAttempts = 1,
-    remoteWriteBackOffDelay = 0
+      remoteWriteAttempts = 1,
+      remoteWriteBackOffDelay = 0
   )
 
   // note: it's important we place the initializer before the constructors below since we need to seed the repo with a
   // catalog before we access it internally
-  init {
-    FileUtils.copyFile(File(catalogPath), File("$localGitPath/catalog.yml"))
+  val remote = RemoteGitFixture(remoteGitPath).apply {
+    initWithCatalog(catalogPath)
   }
 
   val gitHandler = RetryingGitHandler(gitConfig, retryConfig)
-
   val contextFactory = GitOperationContextFactory(gitHandler, yamlHandler)
 
   val catalogService: GenericCatalogService = GenericCatalogService(contextFactory)
 
 
   override fun close() {
-    FileUtils.deleteDirectory(File(localGitPath))
+    this.tmp.delete()
   }
 }
+

@@ -32,7 +32,7 @@ class GenericCatalogService(
    * Fetches the latest service catalog from git
    */
   private fun fetchAndCacheCatalog(context: GitOperationContext): Catalog {
-    context.gitHandler.pull()
+    context.gitHandler.pullFastForwardOnly()
 
     val catalog = parseCatalog(context)
     this.cachedCatalog = catalog

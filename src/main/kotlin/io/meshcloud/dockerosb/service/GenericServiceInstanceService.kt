@@ -48,36 +48,21 @@ class GenericServiceInstanceService(
   }
 
   override fun getServiceInstance(request: GetServiceInstanceRequest): Mono<GetServiceInstanceResponse> {
-    // TODO: not supported
-    return Mono.just(
-        GetServiceInstanceResponse.builder()
-            .serviceDefinitionId("<serviceDefinitionId>")
-            .planId("<planId>")
-            .dashboardUrl("http://localhost:8080")
-            .parameters(
-                mapOf(
-                    "textarea" to "Any text",
-                    "checkbox" to true,
-                    "conditionaltextarea" to "Any conditional text",
-                    "dropdown" to "option2",
-                    "array" to arrayOf(
-                        mapOf(
-                            "mapper" to "groups",
-                            "mapper_access_token" to false,
-                            "mapper_id_token" to true,
-                            "mapper_userinfo" to false
-                        ),
-                        mapOf(
-                            "mapper" to "duns",
-                            "mapper_access_token" to true,
-                            "mapper_id_token" to true,
-                            "mapper_userinfo" to true
-                        )
-                    )
-                )
-            )
-            .build()
-    )
+    gitContextFactory.acquireContext().use { context ->
+      val instanceYmlPath = "instances/${request.serviceInstanceId}/instance.yml"
+      val instanceYml = context.gitHandler.fileInRepo(instanceYmlPath)
+
+      val instance = context.yamlHandler.readObject(instanceYml, ServiceInstance::class.java)
+
+      return Mono.just(
+          GetServiceInstanceResponse.builder()
+              .parameters(instance.parameters)
+              .planId(instance.planId)
+              .serviceDefinitionId(instance.serviceDefinitionId)
+              .dashboardUrl(instance.serviceDefinition.dashboardClient?.redirectUri)
+              .build()
+      )
+    }
   }
 
   override fun getLastOperation(request: GetLastServiceOperationRequest): Mono<GetLastServiceOperationResponse> {

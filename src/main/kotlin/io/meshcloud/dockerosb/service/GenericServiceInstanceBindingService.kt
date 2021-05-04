@@ -99,7 +99,7 @@ class GenericServiceInstanceBindingService(
 
   override fun getLastOperation(request: GetLastServiceBindingOperationRequest): Mono<GetLastServiceBindingOperationResponse> {
     gitContextFactory.acquireContext().use { context ->
-      context.gitHandler.pull()
+      context.gitHandler.pullFastForwardOnly()
 
       val statusPath = "instances/${request.serviceInstanceId}/bindings/${request.bindingId}/status.yml"
       val statusYml = context.gitHandler.fileInRepo(statusPath)
@@ -127,7 +127,7 @@ class GenericServiceInstanceBindingService(
 
   override fun getServiceInstanceBinding(request: GetServiceInstanceBindingRequest): Mono<GetServiceInstanceBindingResponse> {
     gitContextFactory.acquireContext().use { context ->
-      context.gitHandler.pull()
+      context.gitHandler.pullFastForwardOnly()
 
       val credentialsPath = "instances/${request.serviceInstanceId}/bindings/${request.bindingId}/credentials.yml"
       val credentialsYml = context.gitHandler.fileInRepo(credentialsPath)

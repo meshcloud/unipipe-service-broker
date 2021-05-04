@@ -2,12 +2,11 @@ package io.meshcloud.dockerosb.persistence
 
 import io.meshcloud.dockerosb.config.GitConfig
 import io.meshcloud.dockerosb.config.RetryConfig
-import io.meshcloud.dockerosb.exceptions.GitCommandException
 import io.meshcloud.dockerosb.persistence.GitHandler.Companion.getGit
 import mu.KotlinLogging
-import org.eclipse.jgit.api.RebaseResult
-import org.eclipse.jgit.api.ResetCommand
-import org.eclipse.jgit.errors.LockFailedException
+import org.eclipse.jgit.api.*
+import org.eclipse.jgit.lib.Ref
+import org.eclipse.jgit.merge.MergeStrategy
 import org.eclipse.jgit.revwalk.RevCommit
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
 import org.springframework.retry.backoff.FixedBackOffPolicy
@@ -16,8 +15,6 @@ import org.springframework.retry.support.RetryTemplate
 import org.springframework.stereotype.Service
 import java.io.File
 import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.locks.ReentrantLock
-import java.util.concurrent.locks.ReentrantReadWriteLock
 
 private val log = KotlinLogging.logger {}
 
@@ -31,9 +28,10 @@ class RetryingGitHandler(
    * We assume there are new commits in git, in case there are some.
    * This prevents commits "laying around" at start time until a new
    * commit would set this flag.
+   *
    * TODO we could determine this exactly here instead.
    */
-  private val hasNewCommits = AtomicBoolean(true)
+  private val hasLocalCommits = AtomicBoolean(true)
 
   private val remoteWriteRetryTemplate = RetryTemplate().apply {
     setBackOffPolicy(FixedBackOffPolicy().apply { backOffPeriod = retryConfig.remoteWriteBackOffDelay })
@@ -42,15 +40,26 @@ class RetryingGitHandler(
 
   private val git = getGit(gitConfig)
 
-  /**
-   * Acquire readLock to be sure that we don't conflict with the writeLock.
-   */
-  override fun pull() {
+  override fun pullFastForwardOnly() {
     if (!gitConfig.hasRemoteConfigured()) {
       return
     }
 
-    internalPull()
+    val pullResult = git.pull()
+        .apply {
+          remote = "origin"
+          remoteBranchName = gitConfig.remoteBranch
+          setFastForward(MergeCommand.FastForwardMode.FF_ONLY)
+
+          gitConfig.username?.let {
+            setCredentialsProvider(UsernamePasswordCredentialsProvider(gitConfig.username, gitConfig.password))
+          }
+        }
+        .call()
+
+    if (!pullResult.isSuccessful) {
+      log.warn { "git pull --ff-only failed - operating on potentially stale state until next periodic sync" }
+    }
   }
 
   /**
@@ -61,33 +70,26 @@ class RetryingGitHandler(
     internalAdd(filePaths)
     internalCommit(commitMessage)
 
-    hasNewCommits.set(true)
+    hasLocalCommits.set(true)
   }
 
-  /**
-   * This will acquire the writeLock so all parallel access to
-   * the writeLock and any access to the readLock will be delayed.
-   *
-   * If there are no new commits, we do nothing to keep to amount
-   * of unnecessary calls to git small.
-   */
-  override fun rebaseAndPushAllCommittedChanges() {
+  override fun synchronizeWithRemoteRepository() {
     if (!gitConfig.hasRemoteConfigured()) {
-      log.info { "Rebase/push called, but no remote is configured." }
+      log.info { "synchronizeWithRemoteRepository called, but no remote is configured." }
       return
     }
 
-    log.info { "Executing rebase/push:" }
+    log.info { "Executing synchronizeWithRemoteRepository:" }
 
     try {
-      if (!hasNewCommits.get()) {
-        log.info { "No commits found. Nothing has been pushed to remote git." }
+      if (!hasLocalCommits.get()) {
+        log.info { "No new local commits found - skipping." }
       } else {
-        internalRebaseAndPushAllCommittedChanges()
-        log.info { "All recent commits have been pushed to remote git." }
+        synchronizeWithRemoteRepositoryUsingRetryStrategy()
+        log.info { "Completed synchronizeWithRemoteRepository" }
       }
     } catch (ex: Exception) {
-      log.error { "Failed to rebase and push changes." }
+      log.error(ex) { "Failed to synchronize with remote git repository" }
 
     }
   }
@@ -100,75 +102,85 @@ class RetryingGitHandler(
     return git.log().setMaxCount(1).call().single().fullMessage
   }
 
-  private fun internalRebaseAndPushAllCommittedChanges() {
-    var rebaseResult: RebaseResult
-    var retryRebase: Boolean
+  private fun synchronizeWithRemoteRepositoryUsingRetryStrategy() {
 
-    do {
-      retryRebase = false
 
-      /**
-       * Retry rebase command execution, in case something goes wrong, not in terms of conflicts or similar,
-       * but in case the rebase command itself could be properly executed, e.g. remote not reachable etc.
-       * In case the rebase fails for all attempts an exception is thrown and we won't continue.
-       */
-      rebaseResult = remoteWriteRetryTemplate.execute<RebaseResult, Exception> { ctx ->
-        try {
-          git.rebase()
-              .setUpstream(gitConfig.remoteBranch)
-              .call()
-        } catch (ex: Exception) {
-          log.error { "Rebase attempt #${ctx.retryCount}: ${ex.message}." }
-          throw ex
-        }
+    /**
+     * Retry merge command execution, in case something goes wrong, not in terms of conflicts or similar,
+     * but in case the rebase command itself could be properly executed, e.g. remote not reachable etc.
+     */
+    val merge = remoteWriteRetryTemplate.execute<MergeResult, Exception> { ctx ->
+      try {
+        git.fetch()
+            .apply { remote = "origin" }
+            .call()
+
+        git.merge()
+            .include(git.repository.resolve("origin/${gitConfig.remoteBranch}"))
+            .apply {
+              setFastForward(MergeCommand.FastForwardMode.FF) // fast-forward if possible, otherwise merge
+              setCommit(true)
+              setMessage("Auto-merged by UniPipe OSB\nattempt #${ctx.retryCount}")
+
+              // unfortunately jgit does not support "git merge --recursive -X ours"... yet but it will
+              // https://github.com/eclipse/jgit/commit/8210f29fe43ccd35e7d2ed3ed45a84a75b2717c4
+              setStrategy(MergeStrategy.RECURSIVE) // we are
+            }
+            .call()
+
+
+      } catch (ex: Exception) {
+        log.error { "Merge attempt #${ctx.retryCount}: ${ex.message}." }
+        throw ex
+      }
+    }
+
+    when (merge.mergeStatus) {
+
+      MergeResult.MergeStatus.CONFLICTING -> {
+        val files = merge.conflicts.entries.map { it.key }
+        log.warn { "Encountered conflicts in files $files. Will attempt to auto-resolve conflicts, preferring local changes." }
+
+        // just check out our version of conflicting files
+        git.checkout()
+            .addPaths(files)
+            .setStage(CheckoutCommand.Stage.OURS)
+            .call()
+
+        // stage everything
+        git.add()
+            .addFilepattern(".")
+            .call()
+
+        // commit, this does not need anny messages because they are already present
+        git.commit()
+            .call()
+      }
+      MergeResult.MergeStatus.CHECKOUT_CONFLICT,
+      MergeResult.MergeStatus.FAILED -> {
+        log.warn { "Merge failed with status ${merge.mergeStatus.name}. Will retry on next periodic sync." }
+        cleanUp()
       }
 
-      if (!rebaseResult.status.isSuccessful) {
-        when (rebaseResult.status) {
-
-          // This should never occur, because we should never have uncomitted local changes
-          // However we can resolve it easily.
-          RebaseResult.Status.UNCOMMITTED_CHANGES -> {
-            log.warn { "Rebase failed due to uncommitted changes: " }
-            rebaseResult.uncommittedChanges.forEach { log.info { "  $it" } }
-
-            log.warn { "Cleaning up repository and retry rebase." }
-            cleanUp()
-            retryRebase = true
-          }
-
-          RebaseResult.Status.FAILED -> {
-            log.warn { "Rebase failed due to unknown reasons." }
-            retryRebase = true //just retry we know that the original HEAD was restored already.
-          }
-
-          RebaseResult.Status.OK,
-          RebaseResult.Status.UP_TO_DATE,
-          RebaseResult.Status.FAST_FORWARD,
-          RebaseResult.Status.STOPPED,
-          RebaseResult.Status.CONFLICTS -> {
-            log.info { "Rebase status: ${rebaseResult.status}. Taking no further action." }
-          }
-
-          RebaseResult.Status.ABORTED,
-          RebaseResult.Status.INTERACTIVE_PREPARED,
-          RebaseResult.Status.NOTHING_TO_COMMIT,
-          RebaseResult.Status.STASH_APPLY_CONFLICTS,
-          RebaseResult.Status.EDIT -> {
-            log.warn { "Encountered unexpected rebase status: ${rebaseResult.status}. Taking no action." }
-          }
-
-          // make kotlin happy
-          null -> {
-            throw NullPointerException("rebaseResult.status was null")
-          }
-        }
+      MergeResult.MergeStatus.ALREADY_UP_TO_DATE,
+      MergeResult.MergeStatus.FAST_FORWARD,
+      MergeResult.MergeStatus.FAST_FORWARD_SQUASHED,
+      MergeResult.MergeStatus.MERGED,
+      MergeResult.MergeStatus.MERGED_NOT_COMMITTED,
+      MergeResult.MergeStatus.MERGED_SQUASHED,
+      MergeResult.MergeStatus.MERGED_SQUASHED_NOT_COMMITTED -> {
+        log.info { "Merge succeeded with status ${merge.mergeStatus.name}." }
       }
-    } while (retryRebase)
 
-    if (rebaseResult.status.isSuccessful) {
-      log.info { "Successfully rebased." }
+      MergeResult.MergeStatus.ABORTED,
+      MergeResult.MergeStatus.NOT_SUPPORTED ->
+        log.error { "Merge failed with unexpected status ${merge.mergeStatus.name}. Taking no further action. An operator needs to resolve conflicts on the remote repository." }
 
+      null -> throw KotlinNullPointerException("merge.mergeStatus")
+    }
+
+
+    if (merge.mergeStatus.isSuccessful) {
       /**
        * Retry push command execution, in case something goes wrong, e.g. remote not reachable etc.
        * In case the push fails for all attempts an exception is thrown and we won't continue.
@@ -176,20 +188,13 @@ class RetryingGitHandler(
       remoteWriteRetryTemplate.execute<Unit, Exception> { ctx ->
         try {
           push()
-          hasNewCommits.set(false)
+          hasLocalCommits.set(false)
           log.info { "Successfully pushed all commits." }
         } catch (ex: Exception) {
           log.error { "Push attempt #${ctx.retryCount}: ${ex.message}." }
           throw ex
         }
       }
-    } else {
-      /**
-       * We know the rebase cannot be done automatically here.
-       * So there are conflicts that need to be resolved.
-       * TODO is there any strategy to resolve this?
-       */
-      log.error { "Could not rebase and push commits." }
     }
   }
 
@@ -226,21 +231,6 @@ class RetryingGitHandler(
         .setMode(ResetCommand.ResetType.HARD)
         .setRef("HEAD")
         .call()
-  }
-
-  private fun internalPull() {
-    val pullCommand = git.pull()
-        .setRemote("origin")
-        .setRemoteBranchName(gitConfig.remoteBranch)
-
-    gitConfig.username?.let {
-      pullCommand.setCredentialsProvider(UsernamePasswordCredentialsProvider(gitConfig.username, gitConfig.password))
-    }
-    val pullResult = pullCommand.call()
-
-    if (!pullResult.isSuccessful) {
-      throw GitCommandException("Git Pull failed.", null)
-    }
   }
 
   fun getLog(): MutableIterable<RevCommit> {
