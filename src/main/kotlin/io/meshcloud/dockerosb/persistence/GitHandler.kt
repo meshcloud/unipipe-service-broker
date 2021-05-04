@@ -16,7 +16,7 @@ interface GitHandler {
 
   fun pullFastForwardOnly()
 
-  fun commit(filePaths: List<String>, commitMessage: String)
+  fun commitAllChanges(commitMessage: String)
 
   fun synchronizeWithRemoteRepository()
 

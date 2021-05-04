@@ -38,8 +38,7 @@ class GenericServiceInstanceBindingService(
           file = bindingYml
       )
 
-      context.gitHandler.commit(
-          filePaths = listOf(bindingYmlPath),
+      context.gitHandler.commitAllChanges(
           commitMessage = "Created Service binding ${request.bindingId}"
       )
 
@@ -82,8 +81,7 @@ class GenericServiceInstanceBindingService(
           file = statusYml
       )
 
-      context.gitHandler.commit(
-          filePaths = listOf(bindingYmlPath, statusPath),
+      context.gitHandler.commitAllChanges(
           commitMessage = "Marked Service binding ${request.bindingId} as deleted."
       )
 

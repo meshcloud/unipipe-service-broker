@@ -73,7 +73,7 @@ class ConcurrentGitInteractionsTest {
         .toList()
 
     val expected = listOf(
-        "Auto-merged by UniPipe OSB attempt #0 :: 2",
+        "OSB API: auto-merging upstream changes attempt #0 :: 2",
         "OSB API: Created Service instance 00000000-7e05-4d5a-97b8-f8c5d1c710ab :: 1",
         "non-conflicting change on remote :: 1",
         "initial commit on remote :: 0"
@@ -102,7 +102,7 @@ class ConcurrentGitInteractionsTest {
         .toList()
 
     val expected = listOf(
-        "Auto-merged by UniPipe OSB attempt #0 :: 2",
+        "OSB API: auto-merging upstream changes attempt #0 :: 2",
         "OSB API: Created Service instance 00000000-7e05-4d5a-97b8-f8c5d1c710ab :: 1",
         "conflicting change on remote :: 1",
         "initial commit on remote :: 0"
@@ -116,6 +116,62 @@ class ConcurrentGitInteractionsTest {
     assertEquals(createRequest.serviceDefinitionId, instance.serviceDefinitionId)
   }
 
+  @Test
+  fun `can synchronize with concurrent, conflicting changes that involve deletion and`() {
+    // note: checkout conflicts are something different,
+    val sut = makeSut()
+
+    val createRequest = createServiceInstanceRequest("00000000-7e05-4d5a-97b8-f8c5d1c710ab")
+
+    val statusFilePath = "instances/${createRequest.serviceInstanceId}/status.yml"
+
+    // this will create a local service instance request
+    sut.createServiceInstance(createRequest).block()
+    fixture.gitHandler.synchronizeWithRemoteRepository()
+
+    // pretend the remote starts deploying the service
+    fixture.remote.writeFile(statusFilePath, "status: in progress\ndescription: deploying")
+    fixture.remote.commit("deployed service - started")
+
+    // now pull locally
+    fixture.gitHandler.pullFastForwardOnly()
+
+    // pretend the remote deployed the service
+    fixture.remote.writeFile(statusFilePath, "status: succeeded\ndescription: all good")
+    fixture.remote.commit("deployed service - succeeded")
+
+    // pretend we locally delete the file because we need to invalidate the status, e.g. due to an instance update
+    fixture.gitHandler.fileInRepo(statusFilePath).delete()
+    fixture.gitHandler.commitAllChanges("invalidated status")
+
+    // sync
+    fixture.gitHandler.synchronizeWithRemoteRepository()
+
+    val log = fixture.gitHandler
+        .getLog()
+        .map { "${it.shortMessage} :: ${it.parentCount}" }
+        .toList()
+
+    val expected = listOf(
+        "OSB API: auto-merging upstream changes attempt #0 :: 2",
+        "OSB API: invalidated status :: 1",
+        "deployed service - succeeded :: 1",
+        "deployed service - started :: 1",
+        "OSB API: Created Service instance 00000000-7e05-4d5a-97b8-f8c5d1c710ab :: 1",
+        "initial commit on remote :: 0"
+    )
+
+    assertEquals(expected, log)
+
+    // verify that our local changes have won over the remote changes - status file should not exist anymore... but
+    // SURPRISE: this is no the case because `git checkout --ours` cannot remove changes
+    //  - see https://stackoverflow.com/questions/39438168/git-checkout-ours-does-not-remove-files-from-unmerged-files-list
+    //  - we may have to wait for jgit alternative https://github.com/eclipse/jgit/commit/8210f29fe43ccd35e7d2ed3ed45a84a75b2717c4 to ship in a release
+    //  - fixing this could also be relevant for properly implementing https://github.com/meshcloud/unipipe-service-broker/issues/22
+    //
+    // because this is a fairly uncommon edge case we'll just leave the merge logic in place like it is for now (conflicting updates/deletes should be rare)
+    assertTrue(fixture.gitHandler.fileInRepo(statusFilePath).exists())
+  }
 
   private fun createServiceInstanceRequest(instanceId: String): CreateServiceInstanceRequest {
     return CreateServiceInstanceRequest

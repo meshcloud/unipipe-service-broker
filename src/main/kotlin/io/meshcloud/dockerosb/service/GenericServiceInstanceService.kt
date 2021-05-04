@@ -33,8 +33,7 @@ class GenericServiceInstanceService(
           objectToWrite = ServiceInstance(request),
           file = instanceYml
       )
-      context.gitHandler.commit(
-          filePaths = listOf(instanceYmlPath),
+      context.gitHandler.commitAllChanges(
           commitMessage = "Created Service instance ${request.serviceInstanceId}"
       )
 
@@ -136,8 +135,7 @@ class GenericServiceInstanceService(
           file = statusYml
       )
 
-      context.gitHandler.commit(
-          filePaths = listOf(instanceYmlPath, statusPath),
+      context.gitHandler.commitAllChanges(
           commitMessage = "Marked Service instance ${request.serviceInstanceId} as deleted."
       )
 

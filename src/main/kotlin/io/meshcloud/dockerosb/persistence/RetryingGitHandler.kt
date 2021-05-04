@@ -5,7 +5,6 @@ import io.meshcloud.dockerosb.config.RetryConfig
 import io.meshcloud.dockerosb.persistence.GitHandler.Companion.getGit
 import mu.KotlinLogging
 import org.eclipse.jgit.api.*
-import org.eclipse.jgit.lib.Ref
 import org.eclipse.jgit.merge.MergeStrategy
 import org.eclipse.jgit.revwalk.RevCommit
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
@@ -66,9 +65,9 @@ class RetryingGitHandler(
    * git add .
    * git commit -m "$commitMessage"
    */
-  override fun commit(filePaths: List<String>, commitMessage: String) {
-    internalAdd(filePaths)
-    internalCommit(commitMessage)
+  override fun commitAllChanges(commitMessage: String) {
+    addAllChanges()
+    commitAsOsbApi(commitMessage)
 
     hasLocalCommits.set(true)
   }
@@ -104,7 +103,6 @@ class RetryingGitHandler(
 
   private fun synchronizeWithRemoteRepositoryUsingRetryStrategy() {
 
-
     /**
      * Retry merge command execution, in case something goes wrong, not in terms of conflicts or similar,
      * but in case the rebase command itself could be properly executed, e.g. remote not reachable etc.
@@ -120,7 +118,7 @@ class RetryingGitHandler(
             .apply {
               setFastForward(MergeCommand.FastForwardMode.FF) // fast-forward if possible, otherwise merge
               setCommit(true)
-              setMessage("Auto-merged by UniPipe OSB\nattempt #${ctx.retryCount}")
+              setMessage("OSB API: auto-merging upstream changes\nattempt #${ctx.retryCount}")
 
               // unfortunately jgit does not support "git merge --recursive -X ours"... yet but it will
               // https://github.com/eclipse/jgit/commit/8210f29fe43ccd35e7d2ed3ed45a84a75b2717c4
@@ -142,15 +140,13 @@ class RetryingGitHandler(
         log.warn { "Encountered conflicts in files $files. Will attempt to auto-resolve conflicts, preferring local changes." }
 
         // just check out our version of conflicting files
-        git.checkout()
+        val checkoutCommand = git.checkout()
             .addPaths(files)
             .setStage(CheckoutCommand.Stage.OURS)
             .call()
 
         // stage everything
-        git.add()
-            .addFilepattern(".")
-            .call()
+        addAllChanges()
 
         // commit, this does not need anny messages because they are already present
         git.commit()
@@ -159,6 +155,15 @@ class RetryingGitHandler(
       MergeResult.MergeStatus.CHECKOUT_CONFLICT,
       MergeResult.MergeStatus.FAILED -> {
         log.warn { "Merge failed with status ${merge.mergeStatus.name}. Will retry on next periodic sync." }
+        log.warn {
+          " - failing paths: ${merge.failingPaths.map { "${it.key}: ${it.value}" }}"
+        }
+        log.warn {
+          " - conflicts: ${merge.conflicts.map { it.key }}"
+        }
+        log.warn {
+          " - checkout conflicts: ${merge.checkoutConflicts}"
+        }
         cleanUp()
       }
 
@@ -198,16 +203,27 @@ class RetryingGitHandler(
     }
   }
 
-  private fun internalAdd(filePaths: List<String>) {
-    val addCommand = git.add()
-    filePaths.forEach { addCommand.addFilepattern(it) }
-    addCommand.call()
+  private fun addAllChanges() {
+    // note: jgit is a little quirky here and does not work exactly like the git command line
+    git.add()
+        .apply {
+          isUpdate = false    // add modified + new files
+          addFilepattern(".")
+        }
+        .call()
+
+    git.add()
+        .apply {
+          isUpdate = true   // add modified + removed files
+          addFilepattern(".")
+        }
+        .call()
+
   }
 
-  private fun internalCommit(commitMessage: String) {
+  private fun commitAsOsbApi(commitMessage: String) {
     git.commit()
         .setMessage("OSB API: $commitMessage")
-        .setAuthor("UniPipe OSB API", "osb@meshcloud.io")
         .call()
   }
 
