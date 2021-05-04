@@ -9,11 +9,5 @@ class RetryConfig (
   val remoteWriteAttempts: Int,
 
   @Value("\${retry.remote-write.backoff-delay}")
-  val remoteWriteBackOffDelay: Long,
-
-  @Value("\${retry.git-lock.attempts}")
-  val gitLockAttempts: Int,
-
-  @Value("\${retry.git-lock.backoff-delay}")
-  val gitLockBackOffDelay: Long
+  val remoteWriteBackOffDelay: Long
 )

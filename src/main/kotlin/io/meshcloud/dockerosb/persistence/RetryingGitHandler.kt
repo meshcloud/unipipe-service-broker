@@ -40,11 +40,6 @@ class RetryingGitHandler(
     setRetryPolicy(SimpleRetryPolicy().apply { maxAttempts = retryConfig.remoteWriteAttempts })
   }
 
-  private val gitLockRetryTemplate = RetryTemplate().apply {
-    setBackOffPolicy(FixedBackOffPolicy().apply { backOffPeriod = retryConfig.gitLockBackOffDelay })
-    setRetryPolicy(SimpleRetryPolicy().apply { maxAttempts = retryConfig.gitLockAttempts })
-  }
-
   private val git = getGit(gitConfig)
 
   /**
@@ -59,14 +54,14 @@ class RetryingGitHandler(
   }
 
   /**
-   * Acquire readLock to be sure that we don't conflict with the writeLock.
-   * Additionally acquire commitSync lock to not interfere with other commits.
+   * git add .
+   * git commit -m "$commitMessage"
    */
   override fun commit(filePaths: List<String>, commitMessage: String) {
-    withLockExceptionRetry { internalAdd(filePaths) }
-    withLockExceptionRetry { internalCommit(commitMessage) }
-    hasNewCommits.set(true)
+    internalAdd(filePaths)
+    internalCommit(commitMessage)
 
+    hasNewCommits.set(true)
   }
 
   /**
@@ -245,17 +240,6 @@ class RetryingGitHandler(
 
     if (!pullResult.isSuccessful) {
       throw GitCommandException("Git Pull failed.", null)
-    }
-  }
-
-  private fun withLockExceptionRetry(code: () -> Unit) {
-    gitLockRetryTemplate.execute<Unit, LockFailedException> {
-      try {
-        code()
-      } catch (ex: LockFailedException) {
-        log.warn { "There was a LockFailedException, will retry." }
-        throw ex
-      }
     }
   }
 

@@ -31,9 +31,7 @@ class ServiceBrokerFixture(catalogPath: String) : Closeable {
 
   val retryConfig = RetryConfig(
     remoteWriteAttempts = 1,
-    remoteWriteBackOffDelay = 0,
-    gitLockAttempts = 1,
-    gitLockBackOffDelay = 0
+    remoteWriteBackOffDelay = 0
   )
 
   // note: it's important we place the initializer before the constructors below since we need to seed the repo with a

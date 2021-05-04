@@ -53,7 +53,7 @@ class ConcurrentGitInteractionsTest {
     val expectedMessages = ids.map { "OSB API: Created Service instance $it" }
     assertEquals(expectedMessages, log.sorted()) // note: have to sort logs as the order is not guaranteed
   }
-  
+
 
   private fun createServiceInstanceRequest(instanceId: String): CreateServiceInstanceRequest {
     return CreateServiceInstanceRequest
@@ -66,5 +66,4 @@ class ConcurrentGitInteractionsTest {
         .serviceDefinition(fixture.catalogService.getCatalogInternal().serviceDefinitions.first())
         .build()
   }
-
 }
