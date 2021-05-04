@@ -2,7 +2,6 @@ package io.meshcloud.dockerosb
 
 
 import io.meshcloud.dockerosb.config.GitConfig
-import io.meshcloud.dockerosb.config.RetryConfig
 import io.meshcloud.dockerosb.persistence.GitOperationContextFactory
 import io.meshcloud.dockerosb.persistence.RetryingGitHandler
 import io.meshcloud.dockerosb.persistence.YamlHandler
@@ -20,7 +19,6 @@ class ServiceBrokerFixture(catalogPath: String) : Closeable {
 
   val yamlHandler: YamlHandler = YamlHandler()
 
-
   val localGitPath = tmp.newFolder("git-local").absolutePath
   val remoteGitPath = tmp.newFolder("git-remote").absolutePath
 
@@ -33,18 +31,13 @@ class ServiceBrokerFixture(catalogPath: String) : Closeable {
       password = null
   )
 
-  val retryConfig = RetryConfig(
-      remoteWriteAttempts = 1,
-      remoteWriteBackOffDelay = 0
-  )
-
   // note: it's important we place the initializer before the constructors below since we need to seed the repo with a
   // catalog before we access it internally
   val remote = RemoteGitFixture(remoteGitPath).apply {
     initWithCatalog(catalogPath)
   }
 
-  val gitHandler = RetryingGitHandler(gitConfig, retryConfig)
+  val gitHandler = RetryingGitHandler(gitConfig)
   val contextFactory = GitOperationContextFactory(gitHandler, yamlHandler)
 
   val catalogService: GenericCatalogService = GenericCatalogService(contextFactory)

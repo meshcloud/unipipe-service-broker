@@ -73,7 +73,7 @@ class ConcurrentGitInteractionsTest {
         .toList()
 
     val expected = listOf(
-        "OSB API: auto-merging upstream changes attempt #0 :: 2",
+        "OSB API: auto-merging upstream changes :: 2",
         "OSB API: Created Service instance 00000000-7e05-4d5a-97b8-f8c5d1c710ab :: 1",
         "non-conflicting change on remote :: 1",
         "initial commit on remote :: 0"
@@ -102,7 +102,7 @@ class ConcurrentGitInteractionsTest {
         .toList()
 
     val expected = listOf(
-        "OSB API: auto-merging upstream changes attempt #0 :: 2",
+        "OSB API: auto-merging upstream changes :: 2",
         "OSB API: Created Service instance 00000000-7e05-4d5a-97b8-f8c5d1c710ab :: 1",
         "conflicting change on remote :: 1",
         "initial commit on remote :: 0"
@@ -153,7 +153,7 @@ class ConcurrentGitInteractionsTest {
         .toList()
 
     val expected = listOf(
-        "OSB API: auto-merging upstream changes attempt #0 :: 2",
+        "OSB API: auto-merging upstream changes :: 2",
         "OSB API: invalidated status :: 1",
         "deployed service - succeeded :: 1",
         "deployed service - started :: 1",

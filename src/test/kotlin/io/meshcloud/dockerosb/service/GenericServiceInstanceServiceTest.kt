@@ -62,7 +62,7 @@ class GenericServiceInstanceServiceTest {
 
     sut.createServiceInstance(request).block()
 
-    val gitHandler = RetryingGitHandler(fixture.gitConfig, fixture.retryConfig)
+    val gitHandler = RetryingGitHandler(fixture.gitConfig)
 
     assertTrue(gitHandler.getLastCommitMessage().contains(request.serviceInstanceId))
   }

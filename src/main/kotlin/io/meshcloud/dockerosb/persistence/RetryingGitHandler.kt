@@ -1,16 +1,14 @@
 package io.meshcloud.dockerosb.persistence
 
+import io.meshcloud.dockerosb.config.CustomSshSessionFactory
 import io.meshcloud.dockerosb.config.GitConfig
-import io.meshcloud.dockerosb.config.RetryConfig
-import io.meshcloud.dockerosb.persistence.GitHandler.Companion.getGit
 import mu.KotlinLogging
 import org.eclipse.jgit.api.*
 import org.eclipse.jgit.merge.MergeStrategy
 import org.eclipse.jgit.revwalk.RevCommit
+import org.eclipse.jgit.transport.SshSessionFactory
+import org.eclipse.jgit.transport.URIish
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
-import org.springframework.retry.backoff.FixedBackOffPolicy
-import org.springframework.retry.policy.SimpleRetryPolicy
-import org.springframework.retry.support.RetryTemplate
 import org.springframework.stereotype.Service
 import java.io.File
 import java.util.concurrent.atomic.AtomicBoolean
@@ -19,26 +17,34 @@ private val log = KotlinLogging.logger {}
 
 @Service
 class RetryingGitHandler(
-    private val gitConfig: GitConfig,
-    private val retryConfig: RetryConfig
+    private val gitConfig: GitConfig
 ) : GitHandler {
 
   /**
-   * We assume there are new commits in git, in case there are some.
+   * Signal if we have local commits that we want to sync or not.
+   *
+   * At startup we just assume there are new commits in git.
    * This prevents commits "laying around" at start time until a new
    * commit would set this flag.
-   *
-   * TODO we could determine this exactly here instead.
    */
   private val hasLocalCommits = AtomicBoolean(true)
 
-  private val remoteWriteRetryTemplate = RetryTemplate().apply {
-    setBackOffPolicy(FixedBackOffPolicy().apply { backOffPeriod = retryConfig.remoteWriteBackOffDelay })
-    setRetryPolicy(SimpleRetryPolicy().apply { maxAttempts = retryConfig.remoteWriteAttempts })
+  private val git = initGit(gitConfig)
+
+  override fun fileInRepo(path: String): File {
+    return File(gitConfig.localPath, path)
   }
 
-  private val git = getGit(gitConfig)
+  override fun getLastCommitMessage(): String {
+    return git.log().setMaxCount(1).call().single().fullMessage
+  }
 
+  /**
+   * git pull --ff-only
+   *
+   * Consumers can call this as an best effort attempt for retrieving a state that is "as fresh as possible".
+   * This will not update the repository in case of pending local changes.
+   */
   override fun pullFastForwardOnly() {
     if (!gitConfig.hasRemoteConfigured()) {
       return
@@ -74,97 +80,62 @@ class RetryingGitHandler(
 
   override fun synchronizeWithRemoteRepository() {
     if (!gitConfig.hasRemoteConfigured()) {
-      log.info { "synchronizeWithRemoteRepository called, but no remote is configured." }
+      log.info { "synchronizeWithRemoteRepository called, but no remote is configured - skipping." }
       return
     }
 
-    log.info { "Executing synchronizeWithRemoteRepository:" }
+    if (!hasLocalCommits.get()) {
+      // note: we do also not execute a fetch in this case because if the unipipe-osb is just idling
+      // there's no sense in us fetching from the remote all the time. Consumers can explicitly call
+      // pullFastForwardOnly if they want an up to date copy
+      log.info { "synchronizeWithRemoteRepository called, but no new local commits found - skipping." }
+      return
+    }
+
+    log.info { "Starting synchronizeWithRemoteRepository" }
 
     try {
-      if (!hasLocalCommits.get()) {
-        log.info { "No new local commits found - skipping." }
-      } else {
-        synchronizeWithRemoteRepositoryUsingRetryStrategy()
-        log.info { "Completed synchronizeWithRemoteRepository" }
+      val pushedSuccessfully = fetchMergePush()
+      if (pushedSuccessfully) {
+        hasLocalCommits.set(false)
       }
+
+      log.info { "Completed synchronizeWithRemoteRepository" }
     } catch (ex: Exception) {
-      log.error(ex) { "Failed to synchronize with remote git repository" }
-
+      log.error(ex) { "Failed synchronizeWithRemoteRepository" }
     }
   }
 
-  override fun fileInRepo(path: String): File {
-    return File(gitConfig.localPath, path)
-  }
+  private fun fetchMergePush(): Boolean {
+    // fetch from the remote
+    git.fetch()
+        .apply { remote = "origin" }
+        .call()
 
-  override fun getLastCommitMessage(): String {
-    return git.log().setMaxCount(1).call().single().fullMessage
-  }
+    // merge changes - this happens locally in our repository
+    val merge = git.merge()
+        .include(git.repository.resolve("origin/${gitConfig.remoteBranch}"))
+        .apply {
+          setFastForward(MergeCommand.FastForwardMode.FF) // fast-forward if possible, otherwise merge
+          setCommit(true)
+          setMessage("OSB API: auto-merging upstream changes")
 
-  private fun synchronizeWithRemoteRepositoryUsingRetryStrategy() {
-
-    /**
-     * Retry merge command execution, in case something goes wrong, not in terms of conflicts or similar,
-     * but in case the rebase command itself could be properly executed, e.g. remote not reachable etc.
-     */
-    val merge = remoteWriteRetryTemplate.execute<MergeResult, Exception> { ctx ->
-      try {
-        git.fetch()
-            .apply { remote = "origin" }
-            .call()
-
-        git.merge()
-            .include(git.repository.resolve("origin/${gitConfig.remoteBranch}"))
-            .apply {
-              setFastForward(MergeCommand.FastForwardMode.FF) // fast-forward if possible, otherwise merge
-              setCommit(true)
-              setMessage("OSB API: auto-merging upstream changes\nattempt #${ctx.retryCount}")
-
-              // unfortunately jgit does not support "git merge --recursive -X ours"... yet but it will
-              // https://github.com/eclipse/jgit/commit/8210f29fe43ccd35e7d2ed3ed45a84a75b2717c4
-              setStrategy(MergeStrategy.RECURSIVE) // we are
-            }
-            .call()
-
-
-      } catch (ex: Exception) {
-        log.error { "Merge attempt #${ctx.retryCount}: ${ex.message}." }
-        throw ex
-      }
-    }
+          // unfortunately jgit does not support "git merge --recursive -X ours"... yet but it will
+          // https://github.com/eclipse/jgit/commit/8210f29fe43ccd35e7d2ed3ed45a84a75b2717c4
+          setStrategy(MergeStrategy.RECURSIVE) // we are
+        }
+        .call()
 
     when (merge.mergeStatus) {
-
       MergeResult.MergeStatus.CONFLICTING -> {
         val files = merge.conflicts.entries.map { it.key }
-        log.warn { "Encountered conflicts in files $files. Will attempt to auto-resolve conflicts, preferring local changes." }
-
-        // just check out our version of conflicting files
-        val checkoutCommand = git.checkout()
-            .addPaths(files)
-            .setStage(CheckoutCommand.Stage.OURS)
-            .call()
-
-        // stage everything
-        addAllChanges()
-
-        // commit, this does not need anny messages because they are already present
-        git.commit()
-            .call()
+        resolveMergeConflictsUsingOurs(files)
       }
       MergeResult.MergeStatus.CHECKOUT_CONFLICT,
       MergeResult.MergeStatus.FAILED -> {
         log.warn { "Merge failed with status ${merge.mergeStatus.name}. Will retry on next periodic sync." }
-        log.warn {
-          " - failing paths: ${merge.failingPaths.map { "${it.key}: ${it.value}" }}"
-        }
-        log.warn {
-          " - conflicts: ${merge.conflicts.map { it.key }}"
-        }
-        log.warn {
-          " - checkout conflicts: ${merge.checkoutConflicts}"
-        }
-        cleanUp()
+        logFailedMergeDetails(merge)
+        recoverFromFailedMerge()
       }
 
       MergeResult.MergeStatus.ALREADY_UP_TO_DATE,
@@ -178,29 +149,43 @@ class RetryingGitHandler(
       }
 
       MergeResult.MergeStatus.ABORTED,
-      MergeResult.MergeStatus.NOT_SUPPORTED ->
+      MergeResult.MergeStatus.NOT_SUPPORTED -> {
         log.error { "Merge failed with unexpected status ${merge.mergeStatus.name}. Taking no further action. An operator needs to resolve conflicts on the remote repository." }
-
+        recoverFromFailedMerge()
+      }
       null -> throw KotlinNullPointerException("merge.mergeStatus")
     }
 
-
+    // when successful, push back to the remote repo
+    // pushing to the remote repository can fail if the remote repo sees changes in the meantime
     if (merge.mergeStatus.isSuccessful) {
-      /**
-       * Retry push command execution, in case something goes wrong, e.g. remote not reachable etc.
-       * In case the push fails for all attempts an exception is thrown and we won't continue.
-       */
-      remoteWriteRetryTemplate.execute<Unit, Exception> { ctx ->
-        try {
-          push()
-          hasLocalCommits.set(false)
-          log.info { "Successfully pushed all commits." }
-        } catch (ex: Exception) {
-          log.error { "Push attempt #${ctx.retryCount}: ${ex.message}." }
-          throw ex
-        }
+      try {
+        push()
+        log.info { "Successfully pushed all commits." }
+        return true
+      } catch (ex: Exception) {
+        log.error(ex) { "Failed to push to remote. Will fetch and merge upstream changes on next periodic sync." }
       }
     }
+
+    return false
+  }
+
+  private fun resolveMergeConflictsUsingOurs(files: List<String>) {
+    log.warn { "Encountered conflicts in files $files. Will attempt to auto-resolve conflicts, preferring local changes." }
+
+    // just check out our version of conflicting files
+    git.checkout()
+        .addPaths(files)
+        .setStage(CheckoutCommand.Stage.OURS)
+        .call()
+
+    // stage everything
+    addAllChanges()
+
+    // commit, this does not need anny messages because they are already present
+    git.commit()
+        .call()
   }
 
   private fun addAllChanges() {
@@ -237,7 +222,7 @@ class RetryingGitHandler(
     pushCommand.call()
   }
 
-  private fun cleanUp() {
+  private fun recoverFromFailedMerge() {
     git.clean()
         .setForce(true)
         .setCleanDirectories(true)
@@ -251,5 +236,86 @@ class RetryingGitHandler(
 
   fun getLog(): MutableIterable<RevCommit> {
     return git.log().call()
+  }
+
+  companion object {
+
+    /**
+     * It might be that the created git object has no remote configured. (e.g. in tests)
+     * So we need to check for gitConfig.hasRemoteConfigured() before we do git operations
+     * that require remote access.
+     */
+    fun initGit(gitConfig: GitConfig): Git {
+      gitConfig.sshKey?.let {
+        SshSessionFactory.setInstance(CustomSshSessionFactory(it))
+      }
+
+      val git = Git.init().setDirectory(File(gitConfig.localPath)).call()
+
+      // setup default user info (could make this configurable)
+      setupDefaultUser(git)
+
+      gitConfig.remote?.let {
+        ensureRemoteIsAdded(git, gitConfig)
+        val pull = git.pull()
+
+        gitConfig.username?.let {
+          pull.setCredentialsProvider(UsernamePasswordCredentialsProvider(gitConfig.username, gitConfig.password))
+        }
+
+        pull.call()
+
+        switchToBranchAndCreateIfMissing(git, gitConfig.remoteBranch)
+      }
+
+      return git
+    }
+
+    private fun setupDefaultUser(git: Git) {
+      git.repository.config.apply {
+        setString("user", null, "name", "OSB API")
+        setString("user", null, "email", "unipipe@meshcloud.io")
+        save()
+      }
+    }
+
+    private fun ensureRemoteIsAdded(git: Git, gitConfig: GitConfig) {
+      if (git.remoteList().call().isEmpty()) {
+        val remoteAddCommand = git.remoteAdd()
+        remoteAddCommand.setName("origin")
+        remoteAddCommand.setUri(URIish(gitConfig.remote))
+        remoteAddCommand.call()
+      }
+    }
+
+    private fun switchToBranchAndCreateIfMissing(git: Git, branchName: String) {
+      val exists = git.repository.refDatabase.refs.map { it.name }.contains("refs/heads/$branchName")
+      if (exists) {
+        log.info { "Branch $branchName exists." }
+        git.checkout()
+            .setName(branchName)
+            .call()
+      } else {
+        log.info { "Branch $branchName does not exist locally. Creating it." }
+        git.checkout()
+            .setCreateBranch(true)
+            .setName(branchName)
+            .setUpstreamMode(CreateBranchCommand.SetupUpstreamMode.TRACK)
+            .setStartPoint("origin/$branchName")
+            .call()
+      }
+    }
+
+    private fun logFailedMergeDetails(merge: MergeResult) {
+      log.warn {
+        " - failing paths: ${merge.failingPaths.map { "${it.key}: ${it.value}" }}"
+      }
+      log.warn {
+        " - conflicts: ${merge.conflicts.map { it.key }}"
+      }
+      log.warn {
+        " - checkout conflicts: ${merge.checkoutConflicts}"
+      }
+    }
   }
 }
