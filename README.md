@@ -2,8 +2,9 @@
 
 A universal service broker to connect CI/CD pipelines with platforms that speak [OSB API](https://www.openservicebrokerapi.org/).
 
-This project implements the OSB API and stores information about instances and bindings in a git repository. 
-The services will be created in a later step via a CI/CD pipeline that tracks the git repository. This decoupling allows using UniPipe Service Broker with any CI/CD piepline of your choice that will do the actual provisioning.
+This project implements the OSB API and stores information about instances and bindings in a git repository.
+The services will be created in a later step via a CI/CD pipeline that tracks the git repository.
+This decoupling allows using UniPipe Service Broker with any CI/CD piepline of your choice that will do the actual provisioning.
 
 ![A marketplace that integrates with a Service Broker](assets/OSB-Graphic-03.png "Service Broker interactions")
 
@@ -28,12 +29,15 @@ The expected format for the `GIT_SSH-KEY` variable looks like this:
 GIT_SSH-KEY=-----BEGIN RSA PRIVATE KEY----- Hgiud8z89ijiojdobdikdosaa+hnjk789hdsanlklmladlsagasHOHAo7869+bcG x9tD2aI3...ysKQfmAnDBdG4= -----END RSA PRIVATE KEY-----
 ```
 
-Please note there is a space ` ` between `-----BEGIN RSA PRIVATE KEY-----` and the key as well as between the key and `----END RSA PRIVATE KEY-----`. If you omit these spaces the container will not be able to read the private key.
-Please also note that the RSA key is PEM encoded and therefore starts with  `-----BEGIN RSA PRIVATE KEY-----`. OpenSSH encoded keys starting with `-----BEGIN OPENSSH PRIVATE KEY-----` must be converted to PEM before being used.
+Please note there is a space ` ` between `-----BEGIN RSA PRIVATE KEY-----` and the key as well as between the key and `----END RSA PRIVATE KEY-----`.
+If you omit these spaces unipipe will not be able to read the private key. 
+Please also note that the RSA key is PEM encoded and therefore starts with  `-----BEGIN RSA PRIVATE KEY-----`. 
+OpenSSH encoded keys starting with `-----BEGIN OPENSSH PRIVATE KEY-----` must be converted to PEM before being used.
 
 ## Configuration using dhall
 
 Prerequisite:
+
 - Install dhall and dhall-to-yaml, you can find details [here](https://docs.dhall-lang.org/tutorials/Getting-started_Generate-JSON-or-YAML.html#installation).
 
 The properties mentioned in the configuration section above can be configured in the file 
@@ -41,7 +45,7 @@ The properties mentioned in the configuration section above can be configured in
 
 Example configuration to access git through ssh
 
-```
+```dhall
 let Config = ./AppSchema.dhall
 let GitAccess = ./GitAccess.dhall
 let ExampleSsh 
@@ -57,7 +61,7 @@ in ExampleSsh
 
 Example configuration to access git through https
 
-```
+```dhall
 let Config = ./AppSchema.dhall
 let GitAccess = ./GitAccess.dhall
 let ExampleHttps 
@@ -71,20 +75,20 @@ let ExampleHttps
         , server.port = 8075
     }
 in ExampleHttps
-
 ```
+
 After configuring the properties, execute the shell script `dsl/config/run.sh`. This will create an `application-default.yml` file in the resources folder of source.
 
-```
-$ ./run.sh
+```bash
+./run.sh
 ```
 
 ## Deployment using Docker
 
 We publish generic-osb-api container images to GitHub Container Registry [here](https://github.com/orgs/meshcloud/packages/container/unipipe-service-broker/versions). These images are built on GitHub actions and are available publicly
 
-```
-$ docker pull ghcr.io/meshcloud/unipipe-service-broker:v1.0.6
+```bash
+docker pull ghcr.io/meshcloud/unipipe-service-broker:v1.0.6
 ```
 
 > Note: We used to publish old versions of generic-osb-api as GitHub packages (not GHCR) which unfortunately can't be deleted from GitHub. Please make sure to use `ghcr.io` to pull the latest versions and not the legacy `docker.pkg.github.com` URLs.
@@ -107,6 +111,7 @@ applications:
     APP_BASIC-AUTH-USERNAME: <the username for securing the OSB API itself>
     APP_BASIC-AUTH-PASSWORD: <the password for securing the OSB API itself>
 ```
+
 Build and deploy using the manifest file from above:
 
 ```sh
@@ -133,15 +138,15 @@ Git commit will always start with `OSB API:`
 ### GIT Repo structure
 
 ```yaml
-catalog.yml # file that contains all infos about services and plans this Service broker provides
+catalog.yml           # file that contains all infos about services and plans this Service broker provides
 instances
     <instance-id>
-        instance.yml # contains all service instance info written by the 
-        status.yml # this file contains the current status, which is updated by the pipeline
+        instance.yml  # contains all service instance info written by the 
+        status.yml    # this file contains the current status, which is updated by the pipeline
         bindings
             <binding-id>
                 binding.yml # contains all binding info written by the UniPipe Service Broker
-                status.yml # this file contains the current status, which is updated by the pipeline
+                status.yml  # this file contains the current status, which is updated by the pipeline
 ```
 
 ### catalog.yml
