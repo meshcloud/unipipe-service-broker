@@ -1,2 +1,3 @@
 git:
-  local-path: tmp/git
+  local-path: /tmp/git
+  remote-branch: master

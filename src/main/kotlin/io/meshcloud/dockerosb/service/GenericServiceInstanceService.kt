@@ -12,9 +12,9 @@ import reactor.core.publisher.Mono
 
 @Service
 class GenericServiceInstanceService(
-    private val yamlHandler: YamlHandler,
-    private val gitHandler: GitHandler,
-    private val catalogService: GenericCatalogService
+  private val yamlHandler: YamlHandler,
+  private val gitHandler: GitHandler,
+  private val catalogService: GenericCatalogService
 ) : ServiceInstanceService {
 
 
@@ -23,61 +23,60 @@ class GenericServiceInstanceService(
     val catalog = catalogService.getCatalogInternal()
     if (catalog.isSynchronousService(request.serviceDefinitionId)) {
       return Mono.just(
-          CreateServiceInstanceResponse.builder()
-              .async(false)
-              .build()
+        CreateServiceInstanceResponse.builder()
+          .async(false)
+          .build()
       )
     }
 
-    gitHandler.pull()
     val instanceYmlPath = "instances/${request.serviceInstanceId}/instance.yml"
     val instanceYml = gitHandler.fileInRepo(instanceYmlPath)
     yamlHandler.writeObject(
-        objectToWrite = ServiceInstance(request),
-        file = instanceYml
+      objectToWrite = ServiceInstance(request),
+      file = instanceYml
     )
-    gitHandler.commitAndPushChanges(
-        filePaths = listOf(instanceYmlPath),
-        commitMessage = "Created Service instance ${request.serviceInstanceId}"
+    gitHandler.commit(
+      filePaths = listOf(instanceYmlPath),
+      commitMessage = "Created Service instance ${request.serviceInstanceId}"
     )
 
     return Mono.just(
-        CreateServiceInstanceResponse.builder()
-            .async(true)
-            .operation("creating service")
-            .build()
+      CreateServiceInstanceResponse.builder()
+        .async(true)
+        .operation("creating service")
+        .build()
     )
   }
 
   override fun getServiceInstance(request: GetServiceInstanceRequest): Mono<GetServiceInstanceResponse> {
     return Mono.just(
-        GetServiceInstanceResponse.builder()
-            .serviceDefinitionId("<serviceDefinitionId>")
-            .planId("<planId>")
-            .dashboardUrl("http://localhost:8080")
-            .parameters(
-                mapOf(
-                    "textarea" to "Any text",
-                    "checkbox" to true,
-                    "conditionaltextarea" to "Any conditional text",
-                    "dropdown" to "option2",
-                    "array" to arrayOf(
-                        mapOf(
-                            "mapper" to "groups",
-                            "mapper_access_token" to false,
-                            "mapper_id_token" to true,
-                            "mapper_userinfo" to false
-                        ),
-                        mapOf(
-                            "mapper" to "duns",
-                            "mapper_access_token" to true,
-                            "mapper_id_token" to true,
-                            "mapper_userinfo" to true
-                        )
-                    )
-                )
+      GetServiceInstanceResponse.builder()
+        .serviceDefinitionId("<serviceDefinitionId>")
+        .planId("<planId>")
+        .dashboardUrl("http://localhost:8080")
+        .parameters(
+          mapOf(
+            "textarea" to "Any text",
+            "checkbox" to true,
+            "conditionaltextarea" to "Any conditional text",
+            "dropdown" to "option2",
+            "array" to arrayOf(
+              mapOf(
+                "mapper" to "groups",
+                "mapper_access_token" to false,
+                "mapper_id_token" to true,
+                "mapper_userinfo" to false
+              ),
+              mapOf(
+                "mapper" to "duns",
+                "mapper_access_token" to true,
+                "mapper_id_token" to true,
+                "mapper_userinfo" to true
+              )
             )
-            .build()
+          )
+        )
+        .build()
     )
   }
 
@@ -86,13 +85,12 @@ class GenericServiceInstanceService(
     val catalog = catalogService.getCatalogInternal()
     if (catalog.isSynchronousService(request.serviceDefinitionId)) {
       return Mono.just(
-          GetLastServiceOperationResponse.builder()
-              .operationState(OperationState.SUCCEEDED)
-              .build()
+        GetLastServiceOperationResponse.builder()
+          .operationState(OperationState.SUCCEEDED)
+          .build()
       )
     }
 
-    gitHandler.pull()
     val statusPath = "instances/${request.serviceInstanceId}/status.yml"
     val statusYml = gitHandler.fileInRepo(statusPath)
     var status = OperationState.IN_PROGRESS
@@ -108,10 +106,10 @@ class GenericServiceInstanceService(
     }
 
     return Mono.just(
-        GetLastServiceOperationResponse.builder()
-            .operationState(status)
-            .description(description)
-            .build()
+      GetLastServiceOperationResponse.builder()
+        .operationState(status)
+        .description(description)
+        .build()
     )
   }
 
@@ -120,56 +118,55 @@ class GenericServiceInstanceService(
     val catalog = catalogService.getCatalogInternal()
     if (catalog.isSynchronousService(request.serviceDefinitionId)) {
       return Mono.just(
-          DeleteServiceInstanceResponse.builder()
-              .async(false)
-              .build()
+        DeleteServiceInstanceResponse.builder()
+          .async(false)
+          .build()
       )
     }
 
-    gitHandler.pull()
     val instanceYmlPath = "instances/${request.serviceInstanceId}/instance.yml"
     val instanceYml = gitHandler.fileInRepo(instanceYmlPath)
     if (!instanceYml.exists()) {
       return Mono.just(
-          DeleteServiceInstanceResponse.builder()
-              .async(false)
-              .build()
+        DeleteServiceInstanceResponse.builder()
+          .async(false)
+          .build()
       )
     }
 
     val instance = yamlHandler.readObject(instanceYml, ServiceInstance::class.java)
     instance.deleted = true
     yamlHandler.writeObject(
-        objectToWrite = instance,
-        file = instanceYml
+      objectToWrite = instance,
+      file = instanceYml
     )
 
     val statusPath = "instances/${request.serviceInstanceId}/status.yml"
     val statusYml = gitHandler.fileInRepo(statusPath)
     val status = Status("in progress", "preparing service deletion")
     yamlHandler.writeObject(
-        objectToWrite = status,
-        file = statusYml
+      objectToWrite = status,
+      file = statusYml
     )
 
-    gitHandler.commitAndPushChanges(
-        filePaths = listOf(instanceYmlPath, statusPath),
-        commitMessage = "Marked Service instance ${request.serviceInstanceId} as deleted."
+    gitHandler.commit(
+      filePaths = listOf(instanceYmlPath, statusPath),
+      commitMessage = "Marked Service instance ${request.serviceInstanceId} as deleted."
     )
 
     return Mono.just(
-        DeleteServiceInstanceResponse.builder()
-            .async(true)
-            .operation("deleting service")
-            .build()
+      DeleteServiceInstanceResponse.builder()
+        .async(true)
+        .operation("deleting service")
+        .build()
     )
   }
 
   override fun updateServiceInstance(request: UpdateServiceInstanceRequest): Mono<UpdateServiceInstanceResponse> {
     return Mono.just(
-        UpdateServiceInstanceResponse.builder()
-            .async(false)
-            .build()
+      UpdateServiceInstanceResponse.builder()
+        .async(false)
+        .build()
     )
   }
 }

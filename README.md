@@ -15,8 +15,9 @@ UniPipe Service Broker was formerly known as generic OSB API.
 The custom configuration can be done via environment variables. The following properties can be configured:
 
 - `GIT_REMOTE`: The remote Git repository to push the repo to
+- `GIT_REMOTE-BRANCH`: The used branch of the remote Git repository
 - `GIT_LOCAL-PATH`: The path where the local Git Repo shall be created/used. Defaults to tmp/git
-- `GIT_SSH-KEY`: If you want to use SSH, this is the SSH key to be used for accessing the remote repo. Linebreaks must be replaced with spaces
+- `GIT_SSH-KEY`: If you want to use SSH, this is the PEM encoded RSA SSH key to be used for accessing the remote repo. Linebreaks must be replaced with spaces.
 - `GIT_USERNAME`: If you use HTTPS to access the git repo, define the HTTPS username here
 - `GIT_PASSWORD`: If you use HTTPS to access the git repo, define the HTTPS password here
 - `APP_BASIC-AUTH-USERNAME`: The service broker API itself is secured via HTTP Basic Auth. Define the username for this here.
@@ -29,7 +30,9 @@ GIT_SSH-KEY=-----BEGIN RSA PRIVATE KEY----- Hgiud8z89ijiojdobdikdosaa+hnjk789hds
 ```
 
 Please note there is a space ` ` between `-----BEGIN RSA PRIVATE KEY-----` and the key as well as between the key and `----END RSA PRIVATE KEY-----`.
-If you omit these spaces the container will not be able to read the private key.
+If you omit these spaces unipipe will not be able to read the private key. 
+Please also note that the RSA key is PEM encoded and therefore starts with  `-----BEGIN RSA PRIVATE KEY-----`. 
+OpenSSH encoded keys starting with `-----BEGIN OPENSSH PRIVATE KEY-----` must be converted to PEM before being used.
 
 ## Configuration using dhall
 
@@ -82,13 +85,15 @@ After configuring the properties, execute the shell script `dsl/config/run.sh`. 
 
 ## Deployment using Docker
 
-We publish generic-osb-api container images to GitHub Container Registry [here](https://github.com/orgs/meshcloud/packages/container/generic-osb-api/versions). These images are built on GitHub actions and are available publicly
+We publish generic-osb-api container images to GitHub Container Registry [here](https://github.com/orgs/meshcloud/packages/container/unipipe-service-broker/versions). These images are built on GitHub actions and are available publicly
 
 ```bash
-docker pull ghcr.io/meshcloud/generic-osb-api:v1.0.5
+docker pull ghcr.io/meshcloud/unipipe-service-broker:v1.0.6
 ```
 
 > Note: We used to publish old versions of generic-osb-api as GitHub packages (not GHCR) which unfortunately can't be deleted from GitHub. Please make sure to use `ghcr.io` to pull the latest versions and not the legacy `docker.pkg.github.com` URLs.
+
+> Note: You should attach a persistent volume to the image to make sure the changes to the local git repository are persisted in case the application terminates unexpectedly or restarts.
 
 ## Deployment to Cloud Foundry
 
@@ -120,6 +125,15 @@ As the OSB API is completely provided by UniPipe Service Broker, what you as a d
 on is to build your CI/CD pipeline. In the following, all files that are used for communication and how the git repository
 for exchanging information between UniPipe Service Broker and the pipeline are described. An example pipeline can be found
 [here](https://github.com/Meshcloud/example-osb-ci).
+
+### OSB commit messages
+In some cases your CI/CD needs to read the git commits of the unipipe service broker to register that some service or service binding is (de)provisioned.
+The unipipe service broker will always commit the following messages:
+Git commit will always start with `OSB API:`
+- Service Instance creation commits: `OSB API: Created Service instance {ServiceInstanceId}`
+- Service Instance deletion commits: `OSB API: Marked Service instance {ServiceInstanceId} as deleted.`
+- Service Binding creation commits: `OSB API: Created Service binding {ServiceBindingID}`
+- Service Binding deletion commits: `OSB API: Marked Service binding ${ServiceBindingID} as deleted.`
 
 ### GIT Repo structure
 

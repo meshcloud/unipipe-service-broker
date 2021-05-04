@@ -11,6 +11,9 @@ class GitConfig(
     @Value("\${git.remote:#{null}}")
     val remote: String?,
 
+    @Value("\${git.remote-branch}")
+    val remoteBranch: String,
+
     @Value("\${git.ssh-key:#{null}}")
     val sshKey: String?,
 
@@ -19,4 +22,8 @@ class GitConfig(
 
     @Value("\${git.password:#{null}}")
     val password: String?
-)
+) {
+    fun hasRemoteConfigured(): Boolean {
+        return this.remote != null
+    }
+}

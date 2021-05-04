@@ -13,13 +13,13 @@ private val log = KotlinLogging.logger { }
 
 @Service
 class GenericCatalogService(
-    private val yamlHandler: YamlHandler,
-    private val gitHandler: GitHandler
+  private val yamlHandler: YamlHandler,
+  private val gitHandler: GitHandler
 ) : CatalogService {
   private var catalog: Catalog = parseCatalog(gitHandler, yamlHandler)
 
   private class YamlCatalog(
-      val services: List<ServiceDefinition>
+    val services: List<ServiceDefinition>
   )
 
   companion object {
@@ -34,8 +34,8 @@ class GenericCatalogService(
 
       val catalog = yamlHandler.readObject(statusYml, YamlCatalog::class.java)
       return Catalog.builder()
-          .serviceDefinitions(catalog.services)
-          .build()
+        .serviceDefinitions(catalog.services)
+        .build()
     }
   }
 
@@ -64,6 +64,4 @@ class GenericCatalogService(
 
     return Mono.just(this.catalog.serviceDefinitions.singleOrNull { it.id == serviceId }!!)
   }
-
-
 }

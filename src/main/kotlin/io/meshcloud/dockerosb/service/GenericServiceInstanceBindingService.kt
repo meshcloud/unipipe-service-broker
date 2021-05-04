@@ -31,15 +31,13 @@ class GenericServiceInstanceBindingService(
             )
         }
 
-        gitHandler.pull()
-
         val bindingYmlPath = "instances/${request.serviceInstanceId}/bindings/${request.bindingId}/binding.yml"
         val bindingYml = gitHandler.fileInRepo(bindingYmlPath)
         yamlHandler.writeObject(
             objectToWrite = ServiceBinding(request),
             file = bindingYml
         )
-        gitHandler.commitAndPushChanges(
+        gitHandler.commit(
             filePaths = listOf(bindingYmlPath),
             commitMessage = "Created Service binding ${request.bindingId}"
         )
@@ -63,7 +61,6 @@ class GenericServiceInstanceBindingService(
             )
         }
 
-        gitHandler.pull()
         val bindingYmlPath = "instances/${request.serviceInstanceId}/bindings/${request.bindingId}/binding.yml"
         val bindingYml = gitHandler.fileInRepo(bindingYmlPath)
         val binding = yamlHandler.readObject(bindingYml, ServiceBinding::class.java)
@@ -81,9 +78,9 @@ class GenericServiceInstanceBindingService(
             file = statusYml
         )
 
-        gitHandler.commitAndPushChanges(
+        gitHandler.commit(
             filePaths = listOf(bindingYmlPath, statusPath),
-            commitMessage = "Marked Service binding ${request.serviceInstanceId} as deleted."
+            commitMessage = "Marked Service binding ${request.bindingId} as deleted."
         )
 
         return Mono.just(

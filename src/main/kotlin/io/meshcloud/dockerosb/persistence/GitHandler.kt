@@ -2,94 +2,50 @@ package io.meshcloud.dockerosb.persistence
 
 import io.meshcloud.dockerosb.config.CustomSshSessionFactory
 import io.meshcloud.dockerosb.config.GitConfig
-import io.meshcloud.dockerosb.exceptions.GitCommandException
+import mu.KotlinLogging
+import org.eclipse.jgit.api.CreateBranchCommand
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.transport.SshSessionFactory
 import org.eclipse.jgit.transport.URIish
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
-import org.springframework.stereotype.Service
 import java.io.File
 
-@Service
-class GitHandler(
-    private val gitConfig: GitConfig
-) {
+private val log = KotlinLogging.logger {}
 
-  fun commitAndPushChanges(
-      filePaths: List<String>,
-      commitMessage: String
-  ) {
-    getGit(gitConfig).use { git ->
-      val addCommand = git.add()
-      filePaths.forEach { addCommand.addFilepattern(it) }
-      addCommand.call()
-      git.commit()
-          .setMessage("OSB API: $commitMessage")
-          .setAuthor("Generic OSB API", "osb@meshcloud.io")
-          .call()
-      gitConfig.remote?.let {
-        git.rebase()
-            .setUpstream("master")
-            .call()
-      }
-      push(git)
-    }
-  }
+interface GitHandler {
 
-  private fun push(git: Git) {
-    gitConfig.remote?.let {
-      val pushCommand = git.push()
-      gitConfig.username?.let {
-        pushCommand.setCredentialsProvider(UsernamePasswordCredentialsProvider(gitConfig.username, gitConfig.password))
-      }
-      pushCommand.call()
-    }
-  }
+  fun pull()
 
-  fun pull() {
-    if (gitConfig.remote == null) {
-      return
-    }
+  fun commit(filePaths: List<String>, commitMessage: String)
 
-    getGit(gitConfig).use {
-      val pullCommand = it.pull()
-          .setRemote("origin")
-          .setRemoteBranchName("master")
+  fun rebaseAndPushAllCommittedChanges()
 
-      gitConfig.username?.let {
-        pullCommand.setCredentialsProvider(UsernamePasswordCredentialsProvider(gitConfig.username, gitConfig.password))
-      }
-      val pullResult = pullCommand.call()
+  fun fileInRepo(path: String): File
 
-      if (!pullResult.isSuccessful) {
-        throw GitCommandException("Git Pull failed.", null)
-      }
-    }
-  }
-
-  fun getLastCommitMessage(): String {
-    return getGit(gitConfig).use {
-      it.log().setMaxCount(1).call().single().fullMessage
-    }
-  }
-
-  fun fileInRepo(path: String): File {
-    return File(gitConfig.localPath, path)
-  }
+  fun getLastCommitMessage(): String
 
   companion object {
 
+    /**
+     * It might be that the created git object has no remote configured. (e.g. in tests)
+     * So we need to check for gitConfig.hasRemoteConfigured() before we do git operations
+     * that require remote access.
+     */
     fun getGit(gitConfig: GitConfig): Git {
-
       gitConfig.sshKey?.let {
         SshSessionFactory.setInstance(CustomSshSessionFactory(it))
       }
 
       val git = Git.init().setDirectory(File(gitConfig.localPath)).call()
 
-
       gitConfig.remote?.let {
         ensureRemoteIsAdded(git, gitConfig)
+        val pull = git.pull()
+        gitConfig.username?.let {
+          pull.setCredentialsProvider(UsernamePasswordCredentialsProvider(gitConfig.username, gitConfig.password))
+        }
+        pull.call()
+        switchToBranchAndCreateIfMissing(git, gitConfig.remoteBranch)
       }
 
       return git
@@ -103,6 +59,23 @@ class GitHandler(
         remoteAddCommand.call()
       }
     }
-  }
 
+    private fun switchToBranchAndCreateIfMissing(git: Git, branchName: String) {
+      val exists = git.repository.allRefs.map { it.value.name }.contains("refs/heads/$branchName")
+      if (exists) {
+        log.info { "Branch $branchName exists." }
+        git.checkout()
+          .setName(branchName)
+          .call()
+      } else {
+        log.info { "Branch $branchName does not exist locally. Creating it." }
+        git.checkout()
+          .setCreateBranch(true)
+          .setName(branchName)
+          .setUpstreamMode(CreateBranchCommand.SetupUpstreamMode.TRACK)
+          .setStartPoint("origin/$branchName")
+          .call()
+      }
+    }
+  }
 }
