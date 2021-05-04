@@ -8,6 +8,7 @@ import mu.KotlinLogging
 import org.eclipse.jgit.api.RebaseResult
 import org.eclipse.jgit.api.ResetCommand
 import org.eclipse.jgit.errors.LockFailedException
+import org.eclipse.jgit.revwalk.RevCommit
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
 import org.springframework.retry.backoff.FixedBackOffPolicy
 import org.springframework.retry.policy.SimpleRetryPolicy
@@ -256,5 +257,9 @@ class RetryingGitHandler(
         throw ex
       }
     }
+  }
+
+  fun getLog(): MutableIterable<RevCommit> {
+    return git.log().call()
   }
 }
