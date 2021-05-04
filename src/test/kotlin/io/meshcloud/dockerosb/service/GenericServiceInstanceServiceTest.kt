@@ -3,7 +3,7 @@ package io.meshcloud.dockerosb.service
 import io.meshcloud.dockerosb.ServiceBrokerFixture
 import io.meshcloud.dockerosb.model.ServiceInstance
 import io.meshcloud.dockerosb.model.Status
-import io.meshcloud.dockerosb.persistence.SynchronizedGitHandler
+import io.meshcloud.dockerosb.persistence.RetryingGitHandler
 import org.apache.commons.io.FileUtils
 import org.junit.After
 import org.junit.Assert.*
@@ -31,7 +31,7 @@ class GenericServiceInstanceServiceTest {
   }
 
   private fun makeSut(): GenericServiceInstanceService {
-    return GenericServiceInstanceService(fixture.yamlHandler, fixture.gitHandler, fixture.catalogService)
+    return GenericServiceInstanceService(fixture.contextFactory, fixture.catalogService)
   }
 
   @Test
@@ -62,7 +62,7 @@ class GenericServiceInstanceServiceTest {
 
     sut.createServiceInstance(request).block()
 
-    val gitHandler = SynchronizedGitHandler(fixture.gitConfig, fixture.retryConfig)
+    val gitHandler = RetryingGitHandler(fixture.gitConfig, fixture.retryConfig)
 
     assertTrue(gitHandler.getLastCommitMessage().contains(request.serviceInstanceId))
   }

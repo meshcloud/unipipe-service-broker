@@ -21,15 +21,10 @@ import java.util.concurrent.locks.ReentrantReadWriteLock
 private val log = KotlinLogging.logger {}
 
 @Service
-class SynchronizedGitHandler(
-  private val gitConfig: GitConfig,
-  private val retryConfig: RetryConfig
+class RetryingGitHandler(
+    private val gitConfig: GitConfig,
+    private val retryConfig: RetryConfig
 ) : GitHandler {
-
-  private val readWriteLock = ReentrantReadWriteLock(true)
-  private val readLock = readWriteLock.readLock()
-  private val writeLock = readWriteLock.writeLock()
-  private val commitSyncLock = ReentrantLock()
 
   /**
    * We assume there are new commits in git, in case there are some.
@@ -59,12 +54,7 @@ class SynchronizedGitHandler(
       return
     }
 
-    readLock.lock()
-    try {
-      internalPull()
-    } finally {
-      readLock.unlock()
-    }
+    internalPull()
   }
 
   /**
@@ -72,16 +62,10 @@ class SynchronizedGitHandler(
    * Additionally acquire commitSync lock to not interfere with other commits.
    */
   override fun commit(filePaths: List<String>, commitMessage: String) {
-    readLock.lock()
-    commitSyncLock.lock()
-    try {
-      withLockExceptionRetry { internalAdd(filePaths) }
-      withLockExceptionRetry { internalCommit(commitMessage) }
-      hasNewCommits.set(true)
-    } finally {
-      commitSyncLock.unlock()
-      readLock.unlock()
-    }
+    withLockExceptionRetry { internalAdd(filePaths) }
+    withLockExceptionRetry { internalCommit(commitMessage) }
+    hasNewCommits.set(true)
+
   }
 
   /**
@@ -97,7 +81,6 @@ class SynchronizedGitHandler(
       return
     }
 
-    writeLock.lock()
     log.info { "Executing rebase/push:" }
 
     try {
@@ -109,8 +92,7 @@ class SynchronizedGitHandler(
       }
     } catch (ex: Exception) {
       log.error { "Failed to rebase and push changes." }
-    } finally {
-      writeLock.unlock()
+
     }
   }
 
@@ -137,8 +119,8 @@ class SynchronizedGitHandler(
       rebaseResult = remoteWriteRetryTemplate.execute<RebaseResult, Exception> { ctx ->
         try {
           git.rebase()
-            .setUpstream(gitConfig.remoteBranch)
-            .call()
+              .setUpstream(gitConfig.remoteBranch)
+              .call()
         } catch (ex: Exception) {
           log.error { "Rebase attempt #${ctx.retryCount}: ${ex.message}." }
           throw ex
@@ -148,10 +130,12 @@ class SynchronizedGitHandler(
       if (!rebaseResult.status.isSuccessful) {
         when (rebaseResult.status) {
 
-          // This should never occur, but we can resolve it easily.
+          // This should never occur, because we should never have uncomitted local changes
+          // However we can resolve it easily.
           RebaseResult.Status.UNCOMMITTED_CHANGES -> {
             log.warn { "Rebase failed due to uncommitted changes: " }
             rebaseResult.uncommittedChanges.forEach { log.info { "  $it" } }
+
             log.warn { "Cleaning up repository and retry rebase." }
             cleanUp()
             retryRebase = true
@@ -162,13 +146,25 @@ class SynchronizedGitHandler(
             retryRebase = true //just retry we know that the original HEAD was restored already.
           }
 
-          else -> {
-            // TODO any more cases we can solve automatically?
-            // RebaseResult.Status.STOPPED
-            // RebaseResult.Status.CONFLICTS
-            // and these should never occur here:
-            // RebaseResult.Status.ABORTED
-            // RebaseResult.Status.EDIT
+          RebaseResult.Status.OK,
+          RebaseResult.Status.UP_TO_DATE,
+          RebaseResult.Status.FAST_FORWARD,
+          RebaseResult.Status.STOPPED,
+          RebaseResult.Status.CONFLICTS -> {
+            log.info { "Rebase status: ${rebaseResult.status}. Taking no further action." }
+          }
+
+          RebaseResult.Status.ABORTED,
+          RebaseResult.Status.INTERACTIVE_PREPARED,
+          RebaseResult.Status.NOTHING_TO_COMMIT,
+          RebaseResult.Status.STASH_APPLY_CONFLICTS,
+          RebaseResult.Status.EDIT -> {
+            log.warn { "Encountered unexpected rebase status: ${rebaseResult.status}. Taking no action." }
+          }
+
+          // make kotlin happy
+          null -> {
+            throw NullPointerException("rebaseResult.status was null")
           }
         }
       }
@@ -209,28 +205,37 @@ class SynchronizedGitHandler(
 
   private fun internalCommit(commitMessage: String) {
     git.commit()
-      .setMessage("OSB API: $commitMessage")
-      .setAuthor("UniPipe OSB API", "osb@meshcloud.io")
-      .call()
+        .setMessage("OSB API: $commitMessage")
+        .setAuthor("UniPipe OSB API", "osb@meshcloud.io")
+        .call()
   }
 
   private fun push() {
     val pushCommand = git.push()
+
     gitConfig.username?.let {
       pushCommand.setCredentialsProvider(UsernamePasswordCredentialsProvider(gitConfig.username, gitConfig.password))
     }
+
     pushCommand.call()
   }
 
   private fun cleanUp() {
-    git.clean().setForce(true).setCleanDirectories(true).call()
-    git.reset().setMode(ResetCommand.ResetType.HARD).setRef("HEAD").call()
+    git.clean()
+        .setForce(true)
+        .setCleanDirectories(true)
+        .call()
+
+    git.reset()
+        .setMode(ResetCommand.ResetType.HARD)
+        .setRef("HEAD")
+        .call()
   }
 
   private fun internalPull() {
     val pullCommand = git.pull()
-      .setRemote("origin")
-      .setRemoteBranchName(gitConfig.remoteBranch)
+        .setRemote("origin")
+        .setRemoteBranchName(gitConfig.remoteBranch)
 
     gitConfig.username?.let {
       pullCommand.setCredentialsProvider(UsernamePasswordCredentialsProvider(gitConfig.username, gitConfig.password))
