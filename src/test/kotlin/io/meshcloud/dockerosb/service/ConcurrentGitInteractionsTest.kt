@@ -59,14 +59,14 @@ class ConcurrentGitInteractionsTest {
    * This is a reasonably slow test, however it explicitly stresses our concurrency logic
    */
   @Test
-  fun `can process instance requests concurrently with synchronization - stress test`() {
+  fun `can process instance and catalog requests concurrently with synchronization - stress test`() {
     val sut = makeSut()
+    val catalogService = GenericCatalogService(fixture.contextFactory)
     val scheduledPush = ScheduledPushHandler(fixture.contextFactory)
 
     val ids = (0..100).map { "000000$it-7e05-4d5a-97b8-f8c5d1c710ab" }
     val syncs = 10
     val requests = ids.map { createServiceInstanceRequest(it) }
-
 
     val executor = Executors.newFixedThreadPool(10)
     try {
@@ -75,6 +75,7 @@ class ConcurrentGitInteractionsTest {
 
       val runnables: List<Runnable> =
           requests.map { Runnable { sut.createServiceInstance(it).block() } } +
+              (0..10).map { Runnable { catalogService.catalog.block() } } +
               (0..syncs).map {
                 Runnable {
                   try {
