@@ -54,6 +54,10 @@ class GitOperationContext(
     return ServiceInstanceRepository(yamlHandler, gitHandler)
   }
 
+  fun buildServiceInstanceBindingRepository(): ServiceInstanceBindingRepository {
+    return ServiceInstanceBindingRepository(yamlHandler, gitHandler)
+  }
+
 }
 
 

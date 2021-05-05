@@ -56,11 +56,6 @@ class ServiceInstanceRepository(private val yamlHandler: YamlHandler, private va
     return yamlHandler.readObject(instanceYml, ServiceInstance::class.java)
   }
 
-  private fun serviceInstanceYmlFile(serviceInstanceId: String): File {
-    val instanceYmlPath = "instances/$serviceInstanceId/instance.yml"
-
-    return gitHandler.fileInRepo(instanceYmlPath)
-  }
 
   fun getServiceInstanceStatus(serviceInstanceId: String): Status {
     val statusYml = serviceInstanceStatusYmlFile(serviceInstanceId)
@@ -74,9 +69,20 @@ class ServiceInstanceRepository(private val yamlHandler: YamlHandler, private va
     }
   }
 
-  private fun serviceInstanceStatusYmlFile(serviceInstanceId: String): File {
-    val instanceYmlPath = "instances/$serviceInstanceId/status.yml"
+  private fun serviceInstanceYmlFile(serviceInstanceId: String): File {
+    val instanceYmlPath = instanceFolderPath(serviceInstanceId) + "/instance.yml"
 
     return gitHandler.fileInRepo(instanceYmlPath)
   }
+
+  private fun serviceInstanceStatusYmlFile(serviceInstanceId: String): File {
+    val instanceYmlPath = instanceFolderPath(serviceInstanceId) + "/status.yml"
+
+    return gitHandler.fileInRepo(instanceYmlPath)
+  }
+
+  private fun instanceFolderPath(serviceInstanceId: String): String {
+    return "instances/$serviceInstanceId"
+  }
 }
+
