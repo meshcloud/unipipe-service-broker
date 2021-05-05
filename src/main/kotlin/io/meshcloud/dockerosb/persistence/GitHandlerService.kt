@@ -15,6 +15,9 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 private val log = KotlinLogging.logger {}
 
+/**
+ * Note: consumers should use this only via a [GitOperationContext]
+ */
 @Service
 class GitHandlerService(
     private val gitConfig: GitConfig

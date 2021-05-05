@@ -9,6 +9,9 @@ import org.springframework.stereotype.Service
 import java.io.File
 import java.io.FileWriter
 
+/**
+ * Note: consumers should use this only via a [GitOperationContext]
+ */
 @Service
 class YamlHandler {
 
