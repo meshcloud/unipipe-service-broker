@@ -1,6 +1,5 @@
 package io.meshcloud.dockerosb.persistence
 
-import mu.KotlinLogging
 import java.io.File
 
 interface GitHandler {

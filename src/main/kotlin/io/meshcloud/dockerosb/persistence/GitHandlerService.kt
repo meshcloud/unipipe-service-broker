@@ -16,7 +16,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 private val log = KotlinLogging.logger {}
 
 @Service
-class RetryingGitHandler(
+class GitHandlerService(
     private val gitConfig: GitConfig
 ) : GitHandler {
 
@@ -118,7 +118,7 @@ class RetryingGitHandler(
         .apply {
           setFastForward(MergeCommand.FastForwardMode.FF) // fast-forward if possible, otherwise merge
           setCommit(true)
-          setMessage("OSB API: auto-merging upstream changes")
+          setMessage("OSB API: auto-merging remote changes")
 
           // unfortunately jgit does not support "git merge --recursive -X ours"... yet but it will
           // https://github.com/eclipse/jgit/commit/8210f29fe43ccd35e7d2ed3ed45a84a75b2717c4
@@ -164,7 +164,7 @@ class RetryingGitHandler(
         log.info { "Successfully pushed all commits." }
         return true
       } catch (ex: Exception) {
-        log.error(ex) { "Failed to push to remote. Will fetch and merge upstream changes on next periodic sync." }
+        log.error(ex) { "Failed to push to remote. Will fetch and merge remote changes on next periodic sync." }
       }
     }
 

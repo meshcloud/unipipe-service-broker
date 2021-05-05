@@ -1,6 +1,9 @@
 package io.meshcloud.dockerosb.service
 
 import io.meshcloud.dockerosb.ServiceBrokerFixture
+import io.meshcloud.dockerosb.persistence.ScheduledPushHandler
+import org.hamcrest.MatcherAssert
+import org.hamcrest.Matchers.greaterThan
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
@@ -9,6 +12,7 @@ import org.springframework.cloud.servicebroker.model.PlatformContext
 import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceRequest
 import org.springframework.cloud.servicebroker.model.instance.GetServiceInstanceRequest
 import java.util.concurrent.Executors
+import java.util.concurrent.locks.ReentrantLock
 
 
 class ConcurrentGitInteractionsTest {
@@ -51,6 +55,57 @@ class ConcurrentGitInteractionsTest {
     assertEquals(expectedMessages, log.sorted()) // note: have to sort logs as the order is not guaranteed
   }
 
+  /**
+   * This is a reasonably slow test, however it explicitly stresses our concurrency logic
+   */
+  @Test
+  fun `can process instance requests concurrently with synchronization - stress test`() {
+    val sut = makeSut()
+    val scheduledPush = ScheduledPushHandler(fixture.contextFactory)
+
+    val ids = (0..100).map { "000000$it-7e05-4d5a-97b8-f8c5d1c710ab" }
+    val syncs = 10
+    val requests = ids.map { createServiceInstanceRequest(it) }
+
+
+    val executor = Executors.newFixedThreadPool(10)
+    try {
+      // write something to the remote and schedule a sync
+      val remoteLock = ReentrantLock(true) // we have to manually lock the remote because we don't have a GitOperationContext for it
+
+      val runnables: List<Runnable> =
+          requests.map { Runnable { sut.createServiceInstance(it).block() } } +
+              (0..syncs).map {
+                Runnable {
+                  try {
+                    remoteLock.lock()
+                    fixture.remote.writeFile("test.md", "$it")
+                    fixture.remote.commit("non-conflicting change on remote #$it")
+                  } finally {
+                    remoteLock.unlock()
+                  }
+
+                  scheduledPush.pushTask()
+                }
+              }
+
+
+      val futures = runnables.shuffled().map { executor.submit(it) }
+
+      // resolve all futures
+      futures.forEach { it.get() }
+    } finally {
+      executor.shutdown()
+    }
+
+    val log = fixture.gitHandler.getLog()
+        .map { it.shortMessage }
+        .toList()
+
+    val expectedMinimumCommits = ids.size + syncs + 1 //  1 for "initial commit on remote"
+    MatcherAssert.assertThat(log.size, greaterThan(expectedMinimumCommits)) // we expect more commits due to merge commits
+  }
+
 
   @Test
   fun `can synchronize with concurrent, non-conflicting remote changes`() {
@@ -73,7 +128,7 @@ class ConcurrentGitInteractionsTest {
         .toList()
 
     val expected = listOf(
-        "OSB API: auto-merging upstream changes :: 2",
+        "OSB API: auto-merging remote changes :: 2",
         "OSB API: Created Service instance 00000000-7e05-4d5a-97b8-f8c5d1c710ab :: 1",
         "non-conflicting change on remote :: 1",
         "initial commit on remote :: 0"
@@ -102,7 +157,7 @@ class ConcurrentGitInteractionsTest {
         .toList()
 
     val expected = listOf(
-        "OSB API: auto-merging upstream changes :: 2",
+        "OSB API: auto-merging remote changes :: 2",
         "OSB API: Created Service instance 00000000-7e05-4d5a-97b8-f8c5d1c710ab :: 1",
         "conflicting change on remote :: 1",
         "initial commit on remote :: 0"
@@ -153,7 +208,7 @@ class ConcurrentGitInteractionsTest {
         .toList()
 
     val expected = listOf(
-        "OSB API: auto-merging upstream changes :: 2",
+        "OSB API: auto-merging remote changes :: 2",
         "OSB API: invalidated status :: 1",
         "deployed service - succeeded :: 1",
         "deployed service - started :: 1",

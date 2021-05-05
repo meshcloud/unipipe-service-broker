@@ -27,13 +27,15 @@ import org.springframework.stereotype.Component
  *                        failed instances with quick turnaround.
  */
 @Component
-class ScheduledPushHandler(val gitAccess: RetryingGitHandler) {
+class ScheduledPushHandler(val gitOperationContextFactory: GitOperationContextFactory) {
 
   @Scheduled(
-    initialDelayString = "\${scheduling.push.initial-delay}",
-    fixedDelayString = "\${scheduling.push.pause-delay}"
+      initialDelayString = "\${scheduling.push.initial-delay}",
+      fixedDelayString = "\${scheduling.push.pause-delay}"
   )
   fun pushTask() {
-    gitAccess.synchronizeWithRemoteRepository()
+    gitOperationContextFactory.acquireContext().use { context ->
+      context.gitHandler.synchronizeWithRemoteRepository()
+    }
   }
 }

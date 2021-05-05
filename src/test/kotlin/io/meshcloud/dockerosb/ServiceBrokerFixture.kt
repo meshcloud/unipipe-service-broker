@@ -3,7 +3,7 @@ package io.meshcloud.dockerosb
 
 import io.meshcloud.dockerosb.config.GitConfig
 import io.meshcloud.dockerosb.persistence.GitOperationContextFactory
-import io.meshcloud.dockerosb.persistence.RetryingGitHandler
+import io.meshcloud.dockerosb.persistence.GitHandlerService
 import io.meshcloud.dockerosb.persistence.YamlHandler
 import io.meshcloud.dockerosb.service.GenericCatalogService
 import org.junit.rules.TemporaryFolder
@@ -37,7 +37,7 @@ class ServiceBrokerFixture(catalogPath: String) : Closeable {
     initWithCatalog(catalogPath)
   }
 
-  val gitHandler = RetryingGitHandler(gitConfig)
+  val gitHandler = GitHandlerService(gitConfig)
   val contextFactory = GitOperationContextFactory(gitHandler, yamlHandler)
 
   val catalogService: GenericCatalogService = GenericCatalogService(contextFactory)
