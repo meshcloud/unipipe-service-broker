@@ -85,6 +85,9 @@ class GitOperationContext(
     return ServiceInstanceBindingRepository(yamlHandler, gitHandler)
   }
 
+  fun buildCatalogRepository(): CatalogRepository {
+    return CatalogRepository(yamlHandler, gitHandler)
+  }
 }
 
 
