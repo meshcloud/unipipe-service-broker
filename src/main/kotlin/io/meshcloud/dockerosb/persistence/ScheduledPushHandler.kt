@@ -35,7 +35,7 @@ class ScheduledPushHandler(val gitOperationContextFactory: GitOperationContextFa
   )
   fun pushTask() {
     gitOperationContextFactory.acquireContext().use { context ->
-      context.gitHandler.synchronizeWithRemoteRepository()
+      context.synchronizeWithRemoteRepository()
     }
   }
 }

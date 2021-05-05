@@ -61,6 +61,9 @@ class GenericServiceInstanceService(
 
   override fun getLastOperation(request: GetLastServiceOperationRequest): Mono<GetLastServiceOperationResponse> {
     gitContextFactory.acquireContext().use { context ->
+
+      context.attemptToRefreshRemoteChanges()
+
       val catalog = catalogService.getCatalogInternal()
 
       if (catalog.isSynchronousService(request.serviceDefinitionId)) {

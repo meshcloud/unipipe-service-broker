@@ -77,7 +77,7 @@ class GenericServiceInstanceBindingService(
 
   override fun getLastOperation(request: GetLastServiceBindingOperationRequest): Mono<GetLastServiceBindingOperationResponse> {
     gitContextFactory.acquireContext().use { context ->
-      context.gitHandler.pullFastForwardOnly()
+      context.attemptToRefreshRemoteChanges()
 
       val repository = context.buildServiceInstanceBindingRepository()
 
@@ -94,7 +94,7 @@ class GenericServiceInstanceBindingService(
 
   override fun getServiceInstanceBinding(request: GetServiceInstanceBindingRequest): Mono<GetServiceInstanceBindingResponse> {
     gitContextFactory.acquireContext().use { context ->
-      context.gitHandler.pullFastForwardOnly()
+      context.attemptToRefreshRemoteChanges()
 
       val repository = context.buildServiceInstanceBindingRepository()
 
