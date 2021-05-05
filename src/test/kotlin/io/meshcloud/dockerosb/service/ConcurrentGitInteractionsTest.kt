@@ -30,7 +30,7 @@ class ConcurrentGitInteractionsTest {
   }
 
   private fun makeSut(): GenericServiceInstanceService {
-    return GenericServiceInstanceService(fixture.contextFactory, fixture.catalogService)
+    return GenericServiceInstanceService(fixture.contextFactory)
   }
 
   @Test
@@ -237,7 +237,7 @@ class ConcurrentGitInteractionsTest {
         .serviceInstanceId(instanceId)
         .originatingIdentity(PlatformContext.builder().property("user", "unittester").build())
         .asyncAccepted(true)
-        .serviceDefinition(fixture.catalogService.getCatalogInternal().serviceDefinitions.first())
+        .serviceDefinition(fixture.catalogService.cachedServiceDefinitions().first())
         .build()
   }
 }

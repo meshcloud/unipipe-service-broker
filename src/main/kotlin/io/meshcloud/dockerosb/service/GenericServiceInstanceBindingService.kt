@@ -1,8 +1,8 @@
 package io.meshcloud.dockerosb.service
 
-import io.meshcloud.dockerosb.isSynchronousService
 import io.meshcloud.dockerosb.model.ServiceBinding
 import io.meshcloud.dockerosb.persistence.GitOperationContextFactory
+import org.springframework.cloud.servicebroker.exception.ServiceBrokerAsyncRequiredException
 import org.springframework.cloud.servicebroker.model.binding.*
 import org.springframework.cloud.servicebroker.service.ServiceInstanceBindingService
 import org.springframework.stereotype.Service
@@ -10,23 +10,16 @@ import reactor.core.publisher.Mono
 
 @Service
 class GenericServiceInstanceBindingService(
-    private val gitContextFactory: GitOperationContextFactory,
-    private val catalogService: GenericCatalogService
+    private val gitContextFactory: GitOperationContextFactory
 ) : ServiceInstanceBindingService {
 
 
   override fun createServiceInstanceBinding(request: CreateServiceInstanceBindingRequest): Mono<CreateServiceInstanceBindingResponse> {
+    if (!request.isAsyncAccepted){
+      throw ServiceBrokerAsyncRequiredException("UniPipe service broker invokes async CI/CD pipelines")
+    }
+
     gitContextFactory.acquireContext().use { context ->
-
-      val catalog = catalogService.getCatalogInternal()
-      if (catalog.isSynchronousService(request.serviceDefinitionId)) {
-        return Mono.just(
-            CreateServiceInstanceAppBindingResponse.builder()
-                .credentials(mapOf("accessKey" to "no-access-available"))
-                .build()
-        )
-      }
-
       val repository = context.buildServiceInstanceBindingRepository()
 
       val serviceBinding = ServiceBinding(request)
@@ -44,16 +37,6 @@ class GenericServiceInstanceBindingService(
 
   override fun deleteServiceInstanceBinding(request: DeleteServiceInstanceBindingRequest): Mono<DeleteServiceInstanceBindingResponse> {
     gitContextFactory.acquireContext().use { context ->
-
-      val catalog = catalogService.getCatalogInternal()
-      if (catalog.isSynchronousService(request.serviceDefinitionId)) {
-        return Mono.just(
-            DeleteServiceInstanceBindingResponse.builder()
-                .async(false)
-                .build()
-        )
-      }
-
       val repository = context.buildServiceInstanceBindingRepository()
       val binding = repository.tryGetServiceBinding(request.serviceInstanceId, request.bindingId)
 
@@ -63,6 +46,10 @@ class GenericServiceInstanceBindingService(
                 .async(false)
                 .build()
         )
+
+      if (!request.isAsyncAccepted){
+        throw ServiceBrokerAsyncRequiredException("UniPipe service broker invokes async CI/CD pipelines")
+      }
 
       repository.deleteServiceInstanceBinding(binding)
 

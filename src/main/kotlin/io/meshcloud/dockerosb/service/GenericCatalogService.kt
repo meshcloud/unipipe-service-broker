@@ -23,13 +23,11 @@ class GenericCatalogService(
     }
   }
 
-
   /**
    * When ever the endpoint /v2/catalog is accessed  it pulls the catalog from the git repo
    */
   override fun getCatalog(): Mono<Catalog> {
     contextFactory.acquireContext().use { context ->
-
       context.attemptToRefreshRemoteChanges()
 
       val repository = context.buildCatalogRepository()
@@ -45,8 +43,8 @@ class GenericCatalogService(
    * Used to provide Catalog object to be used by other services internally.
    * Uses the cached catalog.
    */
-  fun getCatalogInternal(): Catalog {
-    return cachedCatalog
+  fun cachedServiceDefinitions(): List<ServiceDefinition> {
+    return cachedCatalog.serviceDefinitions
   }
 
   override fun getServiceDefinition(serviceId: String?): Mono<ServiceDefinition> {

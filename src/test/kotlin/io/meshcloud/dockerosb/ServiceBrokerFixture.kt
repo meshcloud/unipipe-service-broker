@@ -42,7 +42,6 @@ class ServiceBrokerFixture(catalogPath: String) : Closeable {
 
   val catalogService: GenericCatalogService = GenericCatalogService(contextFactory)
 
-
   override fun close() {
     this.tmp.delete()
   }

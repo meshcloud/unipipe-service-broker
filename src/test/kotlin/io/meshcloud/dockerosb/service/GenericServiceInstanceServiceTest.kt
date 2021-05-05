@@ -9,6 +9,7 @@ import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
+import org.springframework.cloud.servicebroker.exception.ServiceBrokerAsyncRequiredException
 import org.springframework.cloud.servicebroker.model.PlatformContext
 import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceRequest
 import org.springframework.cloud.servicebroker.model.instance.DeleteServiceInstanceRequest
@@ -31,7 +32,7 @@ class GenericServiceInstanceServiceTest {
   }
 
   private fun makeSut(): GenericServiceInstanceService {
-    return GenericServiceInstanceService(fixture.contextFactory, fixture.catalogService)
+    return GenericServiceInstanceService(fixture.contextFactory)
   }
 
   @Test
@@ -75,7 +76,7 @@ class GenericServiceInstanceServiceTest {
         .serviceInstanceId("e4bd6a78-7e05-4d5a-97b8-f8c5d1c710ab")
         .originatingIdentity(PlatformContext.builder().property("user", "unittester").build())
         .asyncAccepted(true)
-        .serviceDefinition(fixture.catalogService.getCatalogInternal().serviceDefinitions.first())
+        .serviceDefinition(fixture.catalogService.cachedServiceDefinitions().first())
         .build()
   }
 
@@ -120,6 +121,24 @@ class GenericServiceInstanceServiceTest {
 
 
   @Test
+  fun `deleting a service without asyncAccepted throws`() {
+    val sut = makeSut()
+
+    val serviceInstanceId = copyInstanceYmlToRepo()
+
+    val request = DeleteServiceInstanceRequest
+        .builder()
+        .serviceInstanceId(serviceInstanceId)
+        .serviceDefinitionId("my-def")
+        .asyncAccepted(false)
+        .build()
+
+    assertThrows(ServiceBrokerAsyncRequiredException::class.java) {
+      sut.deleteServiceInstance(request).block()!!
+    }
+  }
+
+  @Test
   fun `instance yaml is correctly updated after delete Service Instance`() {
     val sut = makeSut()
 
@@ -129,6 +148,7 @@ class GenericServiceInstanceServiceTest {
         .builder()
         .serviceInstanceId(serviceInstanceId)
         .serviceDefinitionId("my-def")
+        .asyncAccepted(true)
         .build()
 
 
@@ -153,6 +173,7 @@ class GenericServiceInstanceServiceTest {
         .builder()
         .serviceInstanceId(serviceInstanceId)
         .serviceDefinitionId("my-def")
+        .asyncAccepted(true)
         .build()
 
 
