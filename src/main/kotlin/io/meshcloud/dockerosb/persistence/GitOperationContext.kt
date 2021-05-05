@@ -49,5 +49,11 @@ class GitOperationContext(
   override fun close() {
     onClose(this)
   }
+
+  fun buildServiceInstanceRepository(): ServiceInstanceRepository {
+    return ServiceInstanceRepository(yamlHandler, gitHandler)
+  }
+
 }
+
 
