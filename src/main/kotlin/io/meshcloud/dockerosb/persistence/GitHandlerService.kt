@@ -120,9 +120,14 @@ class GitHandlerService(
           setCommit(true)
           setMessage("OSB API: auto-merging remote changes")
 
-          // unfortunately jgit does not support "git merge --recursive -X ours"... yet but it will
-          // https://github.com/eclipse/jgit/commit/8210f29fe43ccd35e7d2ed3ed45a84a75b2717c4
-          setStrategy(MergeStrategy.RECURSIVE) // we are
+          /**
+           * Recursive is the default merge strategy when running git on the command line.
+           * Recursive strategy recursively merges the two trees paths and also file contents.
+           * For our purposes, we'd ideally want semantics like "git merge --recursive -X ours" but configuring that
+           * is not yet supported by jgit https://github.com/eclipse/jgit/commit/8210f29fe43ccd35e7d2ed3ed45a84a75b2717c4
+           * Instead we provide our own merge resolution logic in [resolveMergeConflictsUsingOurs] below
+           */
+          setStrategy(MergeStrategy.RECURSIVE)
         }
         .call()
 
@@ -153,7 +158,7 @@ class GitHandlerService(
         log.error { "Merge failed with unexpected status ${merge.mergeStatus.name}. Taking no further action. An operator needs to resolve conflicts on the remote repository." }
         recoverFromFailedMerge()
       }
-      null -> throw KotlinNullPointerException("merge.mergeStatus")
+      null -> throw IllegalStateException("merge.mergeStatus was null")
     }
 
     // when successful, push back to the remote repo

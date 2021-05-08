@@ -173,7 +173,7 @@ class ConcurrentGitInteractionsTest {
   }
 
   @Test
-  fun `can synchronize with concurrent, conflicting changes that involve deletion and`() {
+  fun `can synchronize with concurrent, conflicting changes that involve deletion and modification of the same file`() {
     // note: checkout conflicts are something different,
     val sut = makeSut()
 
