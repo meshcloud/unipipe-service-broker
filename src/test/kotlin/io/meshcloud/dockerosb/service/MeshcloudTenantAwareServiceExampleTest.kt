@@ -38,7 +38,7 @@ class MeshcloudTenantAwareServiceExampleTest {
 
   @Test
   fun `createServiceInstance creates expected yaml`() {
-    val sut = GenericServiceInstanceService(fixture.yamlHandler, fixture.gitHandler, fixture.catalogService)
+    val sut = GenericServiceInstanceService(fixture.contextFactory, fixture.catalogService)
 
     val request = CreateServiceInstanceRequest
         .builder()
@@ -63,7 +63,7 @@ class MeshcloudTenantAwareServiceExampleTest {
 
   @Test
   fun `createServiceInstanceBinding creates expected yaml`() {
-    val sut = GenericServiceInstanceBindingService(fixture.yamlHandler, fixture.gitHandler, fixture.catalogService)
+    val sut = GenericServiceInstanceBindingService(fixture.contextFactory, fixture.catalogService)
 
     val properties = mapOf(
         "tenant_id" to "subscriptionid-123",

@@ -1,7 +1,7 @@
 package io.meshcloud.dockerosb.service
 
-import io.meshcloud.dockerosb.persistence.GitHandler
-import io.meshcloud.dockerosb.persistence.YamlHandler
+import io.meshcloud.dockerosb.persistence.GitOperationContext
+import io.meshcloud.dockerosb.persistence.GitOperationContextFactory
 import mu.KotlinLogging
 import org.springframework.cloud.servicebroker.model.catalog.Catalog
 import org.springframework.cloud.servicebroker.model.catalog.ServiceDefinition
@@ -13,55 +13,73 @@ private val log = KotlinLogging.logger { }
 
 @Service
 class GenericCatalogService(
-  private val yamlHandler: YamlHandler,
-  private val gitHandler: GitHandler
+    private val contextFactory: GitOperationContextFactory
 ) : CatalogService {
-  private var catalog: Catalog = parseCatalog(gitHandler, yamlHandler)
 
-  private class YamlCatalog(
-    val services: List<ServiceDefinition>
-  )
+  private lateinit var cachedCatalog: Catalog
 
-  companion object {
-
-    fun parseCatalog(gitHandler: GitHandler, yamlHandler: YamlHandler): Catalog {
-      val statusYml = gitHandler.fileInRepo("catalog.yml")
-
-      if (!statusYml.isFile) {
-        log.error { "Could not read catalog.yml file from '${statusYml.absolutePath}'. Will start with an empty catalog." }
-        return Catalog.builder().build()
-      }
-
-      val catalog = yamlHandler.readObject(statusYml, YamlCatalog::class.java)
-      return Catalog.builder()
-        .serviceDefinitions(catalog.services)
-        .build()
+  init {
+    contextFactory.acquireContext().use { context ->
+      this.cachedCatalog = fetchAndCacheCatalog(context)
     }
   }
 
-  fun getLatestCatalog() {
-    gitHandler.pull()
-    this.catalog = parseCatalog(gitHandler, yamlHandler)
+  private class YamlCatalog(
+      val services: List<ServiceDefinition>
+  )
+
+  /**
+   * Fetches the latest service catalog from git
+   */
+  private fun fetchAndCacheCatalog(context: GitOperationContext): Catalog {
+    context.gitHandler.pullFastForwardOnly()
+
+    val catalog = parseCatalog(context)
+    this.cachedCatalog = catalog
+
+    return catalog
   }
 
   /**
    * When ever the endpoint /v2/catalog is accessed  it pulls the catalog from the git repo
    */
   override fun getCatalog(): Mono<Catalog> {
-    getLatestCatalog()
-    return Mono.just(this.catalog)
+    contextFactory.acquireContext().use { context ->
+      val catalog = fetchAndCacheCatalog(context)
+
+      return Mono.just(catalog)
+    }
   }
 
   /**
-   * used to provide Catalog object to be used by other services internally
+   * Used to provide Catalog object to be used by other services internally.
+   * Uses the cached catalog.
    */
   fun getCatalogInternal(): Catalog {
-    getLatestCatalog()
-    return this.catalog
+    return cachedCatalog
   }
 
   override fun getServiceDefinition(serviceId: String?): Mono<ServiceDefinition> {
+    val serviceDefinition = this.cachedCatalog.serviceDefinitions.singleOrNull { it.id == serviceId }!!
 
-    return Mono.just(this.catalog.serviceDefinitions.singleOrNull { it.id == serviceId }!!)
+    return Mono.just(serviceDefinition)
   }
+
+  companion object {
+    fun parseCatalog(context: GitOperationContext): Catalog {
+      val statusYml = context.gitHandler.fileInRepo("catalog.yml")
+
+      if (!statusYml.isFile) {
+        log.error { "Could not read catalog.yml file from '${statusYml.absolutePath}'. Will start with an empty catalog." }
+        return Catalog.builder().build()
+      }
+
+      val catalog = context.yamlHandler.readObject(statusYml, YamlCatalog::class.java)
+
+      return Catalog.builder()
+          .serviceDefinitions(catalog.services)
+          .build()
+    }
+  }
+
 }

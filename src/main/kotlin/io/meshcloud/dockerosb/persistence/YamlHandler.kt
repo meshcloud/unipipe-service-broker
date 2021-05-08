@@ -15,11 +15,12 @@ class YamlHandler {
   fun writeObject(objectToWrite: Any, file: File) {
     FileUtils.forceMkdir(file.parentFile)
 
-    val writer = FileWriter(file)
-    yamlMapper
-        .writerWithDefaultPrettyPrinter()
-        .writeValue(writer, objectToWrite)
-    writer.close()
+    FileWriter(file).use { writer ->
+      yamlMapper
+          .writerWithDefaultPrettyPrinter()
+          .writeValue(writer, objectToWrite)
+
+    }
   }
 
   fun <T> readObject(file: File, targetClass: Class<T>): T {

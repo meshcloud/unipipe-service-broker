@@ -6,10 +6,3 @@ scheduling:
   push:
     initial-delay: 10000
     pause-delay: 30000
-retry:
-  remote-write:
-    attempts: 1
-    backoff-delay: 0
-  git-lock:
-    attempts: 1
-    backoff-delay: 0
