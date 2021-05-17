@@ -12,14 +12,14 @@ class CatalogRepository(
 ) {
 
   fun getCatalog(): Catalog {
-    val statusYml = gitHandler.fileInRepo("catalog.yml")
+    val catalogYml = gitHandler.fileInRepo("catalog.yml")
 
-    if (!statusYml.isFile) {
-      log.error { "Could not read catalog.yml file from '${statusYml.absolutePath}'. Will start with an empty catalog." }
+    if (!catalogYml.isFile) {
+      log.error { "Could not read catalog.yml file from '${catalogYml.absolutePath}'. Will start with an empty catalog." }
       return Catalog.builder().build()
     }
 
-    val catalog = yamlHandler.readObject(statusYml, YamlCatalog::class.java)
+    val catalog = yamlHandler.readObject(catalogYml, YamlCatalog::class.java)
 
     return Catalog.builder()
         .serviceDefinitions(catalog.services)
