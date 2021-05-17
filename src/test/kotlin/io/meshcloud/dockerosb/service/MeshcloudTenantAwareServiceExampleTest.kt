@@ -55,20 +55,20 @@ class MeshcloudTenantAwareServiceExampleTest {
   fun `createServiceInstanceBinding creates expected yaml`() {
     val sut = GenericServiceInstanceBindingService(fixture.contextFactory)
 
-    val properties = mapOf(
-        "tenant_id" to "subscriptionid-123",
-        "platform" to "meshLocation.meshPlatform"
-    )
-
-    val bindResource = BindResource.builder()
-        .properties(properties)
-        .build()
-
     val request = fixture.builder.createServiceInstanceBindingRequest(
         instanceId = "e4bd6a78-7e05-4d5a-97b8-f8c5d1c710ab",
-        bindingId = "77643a12-a1d1-4717-abcd-9d66448a2148",
-        bindResource = bindResource
-    )
+        bindingId = "77643a12-a1d1-4717-abcd-9d66448a2148"
+    ) {
+
+      val br = BindResource.builder()
+          .properties(mapOf(
+              "tenant_id" to "subscriptionid-123",
+              "platform" to "meshLocation.meshPlatform"
+          ))
+          .build()
+
+      bindResource(br)
+    }
 
     sut.createServiceInstanceBinding(request)
 

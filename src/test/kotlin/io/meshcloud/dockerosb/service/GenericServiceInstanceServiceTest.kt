@@ -105,7 +105,6 @@ class GenericServiceInstanceServiceTest {
     assertEquals("preparing deployment", response.description)
   }
 
-
   @Test
   fun `deleting a service without asyncAccepted throws`() {
     val sut = makeSut()

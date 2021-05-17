@@ -5,10 +5,10 @@ import io.meshcloud.dockerosb.persistence.ScheduledPushHandler
 import org.hamcrest.MatcherAssert
 import org.hamcrest.Matchers.greaterThan
 import org.junit.After
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import org.springframework.cloud.servicebroker.model.PlatformContext
 import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceRequest
 import org.springframework.cloud.servicebroker.model.instance.GetServiceInstanceRequest
 import java.util.concurrent.Executors

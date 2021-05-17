@@ -3,8 +3,8 @@ package io.meshcloud.dockerosb
 import io.meshcloud.dockerosb.persistence.CatalogRepository
 import io.meshcloud.dockerosb.persistence.YamlHandler
 import org.springframework.cloud.servicebroker.model.PlatformContext
-import org.springframework.cloud.servicebroker.model.binding.BindResource
 import org.springframework.cloud.servicebroker.model.binding.CreateServiceInstanceBindingRequest
+import org.springframework.cloud.servicebroker.model.binding.DeleteServiceInstanceBindingRequest
 import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceRequest
 import java.io.File
 
@@ -41,7 +41,7 @@ class TestDataBuilder(catalogPath: String, yamlHandler: YamlHandler) {
   fun createServiceInstanceBindingRequest(
       instanceId: String,
       bindingId: String,
-      bindResource: BindResource
+      customize: (CreateServiceInstanceBindingRequest.CreateServiceInstanceBindingRequestBuilder.() -> Unit)? = null
   ): CreateServiceInstanceBindingRequest {
     val serviceDefinition = catalog.services.first()
 
@@ -53,7 +53,31 @@ class TestDataBuilder(catalogPath: String, yamlHandler: YamlHandler) {
         .originatingIdentity(originatingIdentity)
         .asyncAccepted(true)
         .bindingId(bindingId)
-        .bindResource(bindResource)
+        .also {
+          customize?.invoke(it)
+        }
+        .build()
+  }
+
+  fun deleteServiceInstanceBindingRequest(
+      instanceId: String,
+      bindingId: String,
+      customize: (DeleteServiceInstanceBindingRequest.DeleteServiceInstanceBindingRequestBuilder.() -> Unit)? = null
+  ): DeleteServiceInstanceBindingRequest {
+    val serviceDefinition = catalog.services.first()
+
+    return DeleteServiceInstanceBindingRequest.builder()
+        .serviceDefinition(serviceDefinition)
+        .serviceDefinitionId(serviceDefinition.id)
+        .planId(serviceDefinition.plans.first().id)
+        .serviceInstanceId(instanceId)
+        .originatingIdentity(originatingIdentity)
+        .asyncAccepted(true)
+        .bindingId(bindingId)
+        .also {
+          customize?.invoke(it)
+        }
         .build()
   }
 }
+
