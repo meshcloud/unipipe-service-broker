@@ -17,8 +17,6 @@ class ServiceBrokerFixture(catalogPath: String) : Closeable {
     create()
   }
 
-  val yamlHandler: YamlHandler = YamlHandler()
-
   val localGitPath = tmp.newFolder("git-local").absolutePath
   val remoteGitPath = tmp.newFolder("git-remote").absolutePath
 
@@ -37,14 +35,17 @@ class ServiceBrokerFixture(catalogPath: String) : Closeable {
     initWithCatalog(catalogPath)
   }
 
+  val yamlHandler = YamlHandler()
+
   val gitHandler = GitHandlerService(gitConfig)
+
   val contextFactory = GitOperationContextFactory(gitHandler, yamlHandler)
 
-  val catalogService: GenericCatalogService = GenericCatalogService(contextFactory)
+  val catalogService = GenericCatalogService(contextFactory)
 
+  val builder = TestDataBuilder(catalogPath, yamlHandler)
 
   override fun close() {
     this.tmp.delete()
   }
 }
-

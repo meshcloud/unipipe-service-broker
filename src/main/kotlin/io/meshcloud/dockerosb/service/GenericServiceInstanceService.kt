@@ -1,9 +1,8 @@
 package io.meshcloud.dockerosb.service
 
-import io.meshcloud.dockerosb.isSynchronousService
 import io.meshcloud.dockerosb.model.ServiceInstance
-import io.meshcloud.dockerosb.model.Status
 import io.meshcloud.dockerosb.persistence.GitOperationContextFactory
+import org.springframework.cloud.servicebroker.exception.ServiceBrokerAsyncRequiredException
 import org.springframework.cloud.servicebroker.model.instance.*
 import org.springframework.cloud.servicebroker.service.ServiceInstanceService
 import org.springframework.stereotype.Service
@@ -12,22 +11,15 @@ import reactor.core.publisher.Mono
 
 @Service
 class GenericServiceInstanceService(
-    private val gitContextFactory: GitOperationContextFactory,
-    private val catalogService: GenericCatalogService
+    private val gitContextFactory: GitOperationContextFactory
 ) : ServiceInstanceService {
 
   override fun createServiceInstance(request: CreateServiceInstanceRequest): Mono<CreateServiceInstanceResponse> {
+    if (!request.isAsyncAccepted){
+      throw ServiceBrokerAsyncRequiredException("UniPipe service broker invokes async CI/CD pipelines")
+    }
+
     gitContextFactory.acquireContext().use { context ->
-
-      val catalog = catalogService.getCatalogInternal()
-      if (catalog.isSynchronousService(request.serviceDefinitionId)) {
-        return Mono.just(
-            CreateServiceInstanceResponse.builder()
-                .async(false)
-                .build()
-        )
-      }
-
       val serviceInstance = ServiceInstance(request)
 
       val repository = context.buildServiceInstanceRepository()
@@ -61,18 +53,7 @@ class GenericServiceInstanceService(
 
   override fun getLastOperation(request: GetLastServiceOperationRequest): Mono<GetLastServiceOperationResponse> {
     gitContextFactory.acquireContext().use { context ->
-
       context.attemptToRefreshRemoteChanges()
-
-      val catalog = catalogService.getCatalogInternal()
-
-      if (catalog.isSynchronousService(request.serviceDefinitionId)) {
-        return Mono.just(
-            GetLastServiceOperationResponse.builder()
-                .operationState(OperationState.SUCCEEDED)
-                .build()
-        )
-      }
 
       val repository = context.buildServiceInstanceRepository()
       val instanceStatus = repository.getServiceInstanceStatus(request.serviceInstanceId)
@@ -88,15 +69,6 @@ class GenericServiceInstanceService(
 
   override fun deleteServiceInstance(request: DeleteServiceInstanceRequest): Mono<DeleteServiceInstanceResponse> {
     gitContextFactory.acquireContext().use { context ->
-      val catalog = catalogService.getCatalogInternal()
-      if (catalog.isSynchronousService(request.serviceDefinitionId)) {
-        return Mono.just(
-            DeleteServiceInstanceResponse.builder()
-                .async(false)
-                .build()
-        )
-      }
-
       val repository = context.buildServiceInstanceRepository()
       val instance = repository.tryGetServiceInstance(request.serviceInstanceId)
 
@@ -107,8 +79,11 @@ class GenericServiceInstanceService(
                 .build()
         )
 
-      repository.deleteServiceInstance(instance)
+      if (!request.isAsyncAccepted){
+        throw ServiceBrokerAsyncRequiredException("UniPipe service broker invokes async CI/CD pipelines")
+      }
 
+      repository.deleteServiceInstance(instance)
 
       return Mono.just(
           DeleteServiceInstanceResponse.builder()

@@ -7,10 +7,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import org.springframework.cloud.servicebroker.model.PlatformContext
 import org.springframework.cloud.servicebroker.model.binding.BindResource
-import org.springframework.cloud.servicebroker.model.binding.CreateServiceInstanceBindingRequest
-import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceRequest
 import java.io.File
 import java.nio.file.Paths
 
@@ -38,20 +35,13 @@ class MeshcloudTenantAwareServiceExampleTest {
 
   @Test
   fun `createServiceInstance creates expected yaml`() {
-    val sut = GenericServiceInstanceService(fixture.contextFactory, fixture.catalogService)
+    val sut = GenericServiceInstanceService(fixture.contextFactory)
 
-    val request = CreateServiceInstanceRequest
-        .builder()
-        .serviceDefinitionId("d40133dd-8373-4c25-8014-fde98f38a728")
-        .planId("a13edcdf-eb54-44d3-8902-8f24d5acb07e")
-        .parameters(
-            "securityContact", "soc@example.com"
-        )
-        .serviceInstanceId("e4bd6a78-7e05-4d5a-97b8-f8c5d1c710ab")
-        .originatingIdentity(PlatformContext.builder().property("user", "unittester").build())
-        .asyncAccepted(true)
-        .serviceDefinition(fixture.catalogService.getCatalogInternal().serviceDefinitions.first())
-        .build()
+    val request = fixture.builder.createServiceInstanceRequest("e4bd6a78-7e05-4d5a-97b8-f8c5d1c710ab") {
+      parameters(
+          "securityContact", "soc@example.com"
+      )
+    }
 
     sut.createServiceInstance(request).block()
 
@@ -63,27 +53,22 @@ class MeshcloudTenantAwareServiceExampleTest {
 
   @Test
   fun `createServiceInstanceBinding creates expected yaml`() {
-    val sut = GenericServiceInstanceBindingService(fixture.contextFactory, fixture.catalogService)
+    val sut = GenericServiceInstanceBindingService(fixture.contextFactory)
 
-    val properties = mapOf(
-        "tenant_id" to "subscriptionid-123",
-        "platform" to "meshLocation.meshPlatform"
-    )
+    val request = fixture.builder.createServiceInstanceBindingRequest(
+        instanceId = "e4bd6a78-7e05-4d5a-97b8-f8c5d1c710ab",
+        bindingId = "77643a12-a1d1-4717-abcd-9d66448a2148"
+    ) {
 
-    val bindResource = BindResource.builder()
-        .properties(properties)
-        .build()
+      val br = BindResource.builder()
+          .properties(mapOf(
+              "tenant_id" to "subscriptionid-123",
+              "platform" to "meshLocation.meshPlatform"
+          ))
+          .build()
 
-    val request = CreateServiceInstanceBindingRequest.builder()
-        .serviceDefinitionId("d40133dd-8373-4c25-8014-fde98f38a728")
-        .planId("a13edcdf-eb54-44d3-8902-8f24d5acb07e")
-        .serviceInstanceId("e4bd6a78-7e05-4d5a-97b8-f8c5d1c710ab")
-        .originatingIdentity(PlatformContext.builder().property("user", "unittester").build())
-        .asyncAccepted(true)
-        .serviceDefinition(fixture.catalogService.getCatalogInternal().serviceDefinitions.first())
-        .bindingId("77643a12-a1d1-4717-abcd-9d66448a2148")
-        .bindResource(bindResource)
-        .build()
+      bindResource(br)
+    }
 
     sut.createServiceInstanceBinding(request)
 
@@ -92,6 +77,7 @@ class MeshcloudTenantAwareServiceExampleTest {
 
     verifyFilesEqual(expectedYml, bindingYml)
   }
+
 
   private fun testFile(filename: String): File {
     val basePath = "src/test/resources/tenant-aware"

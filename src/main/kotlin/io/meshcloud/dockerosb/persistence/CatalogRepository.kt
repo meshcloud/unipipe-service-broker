@@ -26,7 +26,7 @@ class CatalogRepository(
         .build()
   }
 
-  private class YamlCatalog(
+  class YamlCatalog(
       val services: List<ServiceDefinition>
   )
 }

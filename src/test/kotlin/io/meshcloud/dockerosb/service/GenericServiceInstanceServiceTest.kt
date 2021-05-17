@@ -9,8 +9,7 @@ import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
-import org.springframework.cloud.servicebroker.model.PlatformContext
-import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceRequest
+import org.springframework.cloud.servicebroker.exception.ServiceBrokerAsyncRequiredException
 import org.springframework.cloud.servicebroker.model.instance.DeleteServiceInstanceRequest
 import org.springframework.cloud.servicebroker.model.instance.GetLastServiceOperationRequest
 import org.springframework.cloud.servicebroker.model.instance.OperationState
@@ -31,14 +30,14 @@ class GenericServiceInstanceServiceTest {
   }
 
   private fun makeSut(): GenericServiceInstanceService {
-    return GenericServiceInstanceService(fixture.contextFactory, fixture.catalogService)
+    return GenericServiceInstanceService(fixture.contextFactory)
   }
 
   @Test
   fun `createServiceInstance creates expected yaml`() {
     val sut = makeSut()
 
-    val request = createServiceInstanceRequest()
+    val request = fixture.builder.createServiceInstanceRequest("e4bd6a78-7e05-4d5a-97b8-f8c5d1c710ab")
 
     sut.createServiceInstance(request).block()
 
@@ -58,25 +57,13 @@ class GenericServiceInstanceServiceTest {
   fun `createServiceInstance creates git commit`() {
     val sut = makeSut()
 
-    val request = createServiceInstanceRequest()
+    val request = fixture.builder.createServiceInstanceRequest("e4bd6a78-7e05-4d5a-97b8-f8c5d1c710ab")
 
     sut.createServiceInstance(request).block()
 
     val gitHandler = GitHandlerService(fixture.gitConfig)
 
     assertTrue(gitHandler.getLastCommitMessage().contains(request.serviceInstanceId))
-  }
-
-  private fun createServiceInstanceRequest(): CreateServiceInstanceRequest {
-    return CreateServiceInstanceRequest
-        .builder()
-        .serviceDefinitionId("d40133dd-8373-4c25-8014-fde98f38a728")
-        .planId("a13edcdf-eb54-44d3-8902-8f24d5acb07e")
-        .serviceInstanceId("e4bd6a78-7e05-4d5a-97b8-f8c5d1c710ab")
-        .originatingIdentity(PlatformContext.builder().property("user", "unittester").build())
-        .asyncAccepted(true)
-        .serviceDefinition(fixture.catalogService.getCatalogInternal().serviceDefinitions.first())
-        .build()
   }
 
   @Test
@@ -118,6 +105,23 @@ class GenericServiceInstanceServiceTest {
     assertEquals("preparing deployment", response.description)
   }
 
+  @Test
+  fun `deleting a service without asyncAccepted throws`() {
+    val sut = makeSut()
+
+    val serviceInstanceId = copyInstanceYmlToRepo()
+
+    val request = DeleteServiceInstanceRequest
+        .builder()
+        .serviceInstanceId(serviceInstanceId)
+        .serviceDefinitionId("my-def")
+        .asyncAccepted(false)
+        .build()
+
+    assertThrows(ServiceBrokerAsyncRequiredException::class.java) {
+      sut.deleteServiceInstance(request).block()!!
+    }
+  }
 
   @Test
   fun `instance yaml is correctly updated after delete Service Instance`() {
@@ -129,6 +133,7 @@ class GenericServiceInstanceServiceTest {
         .builder()
         .serviceInstanceId(serviceInstanceId)
         .serviceDefinitionId("my-def")
+        .asyncAccepted(true)
         .build()
 
 
@@ -153,6 +158,7 @@ class GenericServiceInstanceServiceTest {
         .builder()
         .serviceInstanceId(serviceInstanceId)
         .serviceDefinitionId("my-def")
+        .asyncAccepted(true)
         .build()
 
 
@@ -164,6 +170,7 @@ class GenericServiceInstanceServiceTest {
     assertEquals("in progress", updatedStatus.status)
     assertEquals("preparing service deletion", updatedStatus.description)
   }
+
 
   private fun copyInstanceYmlToRepo(): String {
     val serviceInstanceId = "e4bd6a78-7e05-4d5a-97b8-f8c5d1c710ab"

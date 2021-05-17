@@ -5,10 +5,10 @@ import io.meshcloud.dockerosb.persistence.ScheduledPushHandler
 import org.hamcrest.MatcherAssert
 import org.hamcrest.Matchers.greaterThan
 import org.junit.After
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import org.springframework.cloud.servicebroker.model.PlatformContext
 import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceRequest
 import org.springframework.cloud.servicebroker.model.instance.GetServiceInstanceRequest
 import java.util.concurrent.Executors
@@ -30,7 +30,7 @@ class ConcurrentGitInteractionsTest {
   }
 
   private fun makeSut(): GenericServiceInstanceService {
-    return GenericServiceInstanceService(fixture.contextFactory, fixture.catalogService)
+    return GenericServiceInstanceService(fixture.contextFactory)
   }
 
   @Test
@@ -230,14 +230,6 @@ class ConcurrentGitInteractionsTest {
   }
 
   private fun createServiceInstanceRequest(instanceId: String): CreateServiceInstanceRequest {
-    return CreateServiceInstanceRequest
-        .builder()
-        .serviceDefinitionId("d40133dd-8373-4c25-8014-fde98f38a728")
-        .planId("a13edcdf-eb54-44d3-8902-8f24d5acb07e")
-        .serviceInstanceId(instanceId)
-        .originatingIdentity(PlatformContext.builder().property("user", "unittester").build())
-        .asyncAccepted(true)
-        .serviceDefinition(fixture.catalogService.getCatalogInternal().serviceDefinitions.first())
-        .build()
+    return fixture.builder.createServiceInstanceRequest(instanceId)
   }
 }
