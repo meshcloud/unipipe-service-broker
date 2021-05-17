@@ -230,14 +230,6 @@ class ConcurrentGitInteractionsTest {
   }
 
   private fun createServiceInstanceRequest(instanceId: String): CreateServiceInstanceRequest {
-    return CreateServiceInstanceRequest
-        .builder()
-        .serviceDefinitionId("d40133dd-8373-4c25-8014-fde98f38a728")
-        .planId("a13edcdf-eb54-44d3-8902-8f24d5acb07e")
-        .serviceInstanceId(instanceId)
-        .originatingIdentity(PlatformContext.builder().property("user", "unittester").build())
-        .asyncAccepted(true)
-        .serviceDefinition(fixture.catalogService.cachedServiceDefinitions().first())
-        .build()
+    return fixture.builder.createServiceInstanceRequest(instanceId)
   }
 }
