@@ -123,13 +123,14 @@ class GenericServiceInstanceServiceTest {
   fun `instance yaml is correctly updated after delete Service Instance`() {
     val sut = makeSut()
 
+    val serviceInstanceId = copyInstanceYmlToRepo()
+
     val request = DeleteServiceInstanceRequest
         .builder()
-        .serviceInstanceId("test-567")
+        .serviceInstanceId(serviceInstanceId)
         .serviceDefinitionId("my-def")
         .build()
 
-    copyInstanceYmlToRepo(request.serviceInstanceId)
 
     val response = sut.deleteServiceInstance(request).block()!!
 
@@ -146,13 +147,14 @@ class GenericServiceInstanceServiceTest {
   fun `status is correctly updated after delete Service Instance`() {
     val sut = makeSut()
 
+    val serviceInstanceId = copyInstanceYmlToRepo()
+
     val request = DeleteServiceInstanceRequest
         .builder()
-        .serviceInstanceId("test-567")
+        .serviceInstanceId(serviceInstanceId)
         .serviceDefinitionId("my-def")
         .build()
 
-    copyInstanceYmlToRepo(request.serviceInstanceId)
 
     sut.deleteServiceInstance(request).block()
 
@@ -163,11 +165,15 @@ class GenericServiceInstanceServiceTest {
     assertEquals("preparing service deletion", updatedStatus.description)
   }
 
-  private fun copyInstanceYmlToRepo(serviceInstanceId: String) {
+  private fun copyInstanceYmlToRepo(): String {
+    val serviceInstanceId = "e4bd6a78-7e05-4d5a-97b8-f8c5d1c710ab"
     val instanceYmlPath = "${fixture.localGitPath}/instances/$serviceInstanceId/instance.yml"
 
     val existingInstanceYml = File("src/test/resources/expected_instance.yml")
     val instanceYmlInRepo = File(instanceYmlPath)
+
     FileUtils.copyFile(existingInstanceYml, instanceYmlInRepo)
+
+    return serviceInstanceId
   }
 }
