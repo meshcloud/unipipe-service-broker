@@ -39,14 +39,6 @@ class GenericCatalogService(
     }
   }
 
-  /**
-   * Used to provide Catalog object to be used by other services internally.
-   * Uses the cached catalog.
-   */
-  fun cachedServiceDefinitions(): List<ServiceDefinition> {
-    return cachedCatalog.serviceDefinitions
-  }
-
   override fun getServiceDefinition(serviceId: String?): Mono<ServiceDefinition> {
     val serviceDefinition = this.cachedCatalog.serviceDefinitions.singleOrNull { it.id == serviceId }!!
 
