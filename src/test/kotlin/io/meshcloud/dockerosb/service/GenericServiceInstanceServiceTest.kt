@@ -10,6 +10,7 @@ import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import org.springframework.cloud.servicebroker.exception.ServiceBrokerAsyncRequiredException
+import org.springframework.cloud.servicebroker.exception.ServiceInstanceDoesNotExistException
 import org.springframework.cloud.servicebroker.model.instance.DeleteServiceInstanceRequest
 import org.springframework.cloud.servicebroker.model.instance.GetLastServiceOperationRequest
 import org.springframework.cloud.servicebroker.model.instance.OperationState
@@ -178,6 +179,21 @@ class GenericServiceInstanceServiceTest {
     assertEquals("preparing service deletion", updatedStatus.description)
   }
 
+  @Test
+  fun `deleting a service instance that does not exist throws ServiceInstanceDoesNotExistException`() {
+    val sut = makeSut()
+
+    val request = DeleteServiceInstanceRequest
+        .builder()
+        .serviceInstanceId("idontexist")
+        .serviceDefinitionId("my-def")
+        .asyncAccepted(true)
+        .build()
+
+    assertThrows(ServiceInstanceDoesNotExistException::class.java) {
+      sut.deleteServiceInstance(request).block()!!
+    }
+  }
 
   private fun copyInstanceYmlToRepo(): String {
     val serviceInstanceId = "e4bd6a78-7e05-4d5a-97b8-f8c5d1c710ab"
