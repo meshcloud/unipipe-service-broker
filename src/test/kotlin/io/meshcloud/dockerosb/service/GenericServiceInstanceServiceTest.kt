@@ -68,19 +68,23 @@ class GenericServiceInstanceServiceTest {
 
   @Test
   fun `getLastOperation returns correct status from status yaml`() {
-    val serviceInstanceId = "test-123"
-    val statusYamlPath = "src/test/resources/status.yml"
-    val statusYmlFile = File(statusYamlPath)
-    val statusYmlDestinationDir = File("${fixture.gitConfig.localPath}/instances/$serviceInstanceId/")
-    FileUtils.forceMkdir(statusYmlDestinationDir)
-    FileUtils.copyFileToDirectory(statusYmlFile, statusYmlDestinationDir)
 
     val sut = makeSut()
 
+    val serviceInstance = fixture.builder.createServiceInstanceRequest("e4bd6a78-7e05-4d5a-97b8-f8c5d1c710ab")
+    sut.createServiceInstance(serviceInstance).block()
+
+    // simulate the CI/CD pipeline writing back a status file
+    val statusYamlPath = "src/test/resources/status.yml"
+    val statusYmlFile = File(statusYamlPath)
+    val statusYmlDestinationDir = File("${fixture.gitConfig.localPath}/instances/${serviceInstance.serviceInstanceId}/")
+    FileUtils.forceMkdir(statusYmlDestinationDir)
+    FileUtils.copyFileToDirectory(statusYmlFile, statusYmlDestinationDir)
+
     val request = GetLastServiceOperationRequest
         .builder()
-        .serviceInstanceId(serviceInstanceId)
-        .serviceDefinitionId("my-def")
+        .serviceInstanceId(serviceInstance.serviceInstanceId)
+        .serviceDefinitionId(serviceInstance.serviceDefinitionId)
         .build()
 
     val response = sut.getLastOperation(request).block()!!
@@ -93,10 +97,13 @@ class GenericServiceInstanceServiceTest {
   fun `getLastOperation returns IN_PROGRESS status when no status yaml exists`() {
     val sut = makeSut()
 
+    val serviceInstance = fixture.builder.createServiceInstanceRequest("e4bd6a78-7e05-4d5a-97b8-f8c5d1c710ab")
+    sut.createServiceInstance(serviceInstance).block()
+
     val request = GetLastServiceOperationRequest
         .builder()
-        .serviceInstanceId("test-567")
-        .serviceDefinitionId("my-def")
+        .serviceInstanceId(serviceInstance.serviceInstanceId)
+        .serviceDefinitionId(serviceInstance.serviceDefinitionId)
         .build()
 
     val response = sut.getLastOperation(request).block()!!

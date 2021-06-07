@@ -60,12 +60,6 @@ class ServiceInstanceRepository(private val yamlHandler: YamlHandler, private va
     gitHandler.commitAllChanges(commitMessage = "Marked Service instance $serviceInstanceId as deleted.")
   }
 
-  fun getServiceInstance(serviceInstanceId: String): ServiceInstance {
-    val instanceYml = serviceInstanceYmlFile(serviceInstanceId)
-
-    return yamlHandler.readObject(instanceYml, ServiceInstance::class.java)
-  }
-
   fun tryGetServiceInstance(serviceInstanceId: String): ServiceInstance? {
     val instanceYml = serviceInstanceYmlFile(serviceInstanceId)
 
