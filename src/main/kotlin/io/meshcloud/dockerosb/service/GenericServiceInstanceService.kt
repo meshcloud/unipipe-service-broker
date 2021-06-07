@@ -3,6 +3,7 @@ package io.meshcloud.dockerosb.service
 import io.meshcloud.dockerosb.model.ServiceInstance
 import io.meshcloud.dockerosb.persistence.GitOperationContextFactory
 import org.springframework.cloud.servicebroker.exception.ServiceBrokerAsyncRequiredException
+import org.springframework.cloud.servicebroker.exception.ServiceBrokerDeleteOperationInProgressException
 import org.springframework.cloud.servicebroker.exception.ServiceInstanceDoesNotExistException
 import org.springframework.cloud.servicebroker.model.instance.*
 import org.springframework.cloud.servicebroker.service.ServiceInstanceService
@@ -95,6 +96,7 @@ class GenericServiceInstanceService(
   }
 
   override fun deleteServiceInstance(request: DeleteServiceInstanceRequest): Mono<DeleteServiceInstanceResponse> {
+
     gitContextFactory.acquireContext().use { context ->
       val repository = context.buildServiceInstanceRepository()
       val instance = repository.tryGetServiceInstance(request.serviceInstanceId)
@@ -104,13 +106,14 @@ class GenericServiceInstanceService(
         throw ServiceBrokerAsyncRequiredException("UniPipe service broker invokes async CI/CD pipelines")
       }
 
+      val deletingOperation = "deleting service"
       val status = repository.getServiceInstanceStatus(request.serviceInstanceId).toOperationState()
 
       if (instance.deleted) {
         when (status) {
           // From the spec: Note that a re-sent DELETE request MUST return a 202 Accepted, not a 200 OK, if the delete request has not completed yet.
           OperationState.FAILED,
-          OperationState.IN_PROGRESS -> return makeServiceDeletionInProgressResult()
+          OperationState.IN_PROGRESS -> throw ServiceBrokerDeleteOperationInProgressException(deletingOperation)
           // indicate the instance does not exist anymore
           OperationState.SUCCEEDED -> throw ServiceInstanceDoesNotExistException(request.serviceInstanceId)
         }
@@ -118,16 +121,13 @@ class GenericServiceInstanceService(
 
       repository.deleteServiceInstance(instance)
 
-      return makeServiceDeletionInProgressResult()
+      return Mono.just(
+          DeleteServiceInstanceResponse.builder()
+              .async(true)
+              .operation(deletingOperation)
+              .build()
+      )
     }
   }
 
-  private fun makeServiceDeletionInProgressResult(): Mono<DeleteServiceInstanceResponse> {
-    return Mono.just(
-        DeleteServiceInstanceResponse.builder()
-            .async(true)
-            .operation("deleting service")
-            .build()
-    )
-  }
 }
