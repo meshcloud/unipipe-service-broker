@@ -20,6 +20,20 @@ class ServiceInstanceRepository(private val yamlHandler: YamlHandler, private va
     )
   }
 
+  fun updateServiceInstance(serviceInstance: ServiceInstance) {
+    val serviceInstanceId = serviceInstance.serviceInstanceId
+
+    val instanceYml = serviceInstanceYmlFile(serviceInstanceId)
+
+    yamlHandler.writeObject(
+      objectToWrite = serviceInstance,
+      file = instanceYml
+    )
+    gitHandler.commitAllChanges(
+      commitMessage = "Updated Service instance $serviceInstanceId"
+    )
+  }
+
   fun deleteServiceInstance(serviceInstance: ServiceInstance) {
     val serviceInstanceId = serviceInstance.serviceInstanceId
 
