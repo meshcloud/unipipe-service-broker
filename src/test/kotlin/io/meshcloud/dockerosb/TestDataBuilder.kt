@@ -49,7 +49,7 @@ class TestDataBuilder(catalogPath: String, yamlHandler: YamlHandler) {
             .builder()
             .serviceDefinition(serviceDefinition)
             .serviceDefinitionId(serviceDefinition.id)
-            .planId(serviceDefinition.plans.first().id)
+            .planId(serviceDefinition.plans[1].id)
             .serviceInstanceId(instanceId)
             .originatingIdentity(originatingIdentity)
             .asyncAccepted(true)
