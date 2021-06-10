@@ -1,8 +1,8 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-  id("org.springframework.boot") version "2.3.1.RELEASE"
-  id("io.spring.dependency-management") version "1.0.9.RELEASE"
+  id("org.springframework.boot") version "2.4.6"
+  id("io.spring.dependency-management") version "1.0.11.RELEASE"
 
   kotlin("jvm") version "1.5.0"
   kotlin("plugin.spring") version "1.5.0"
@@ -19,14 +19,14 @@ repositories {
 }
 
 dependencies {
-  implementation("org.springframework.boot:spring-boot-starter-actuator")
-  implementation("org.springframework.boot:spring-boot-starter-security")
   implementation("org.springframework.boot:spring-boot-starter-web")
+  implementation("org.springframework.boot:spring-boot-starter-security")
+  implementation("org.springframework.cloud:spring-cloud-starter-open-service-broker:3.3.0")
+
   implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
   implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
   implementation("org.jetbrains.kotlin:kotlin-reflect")
   implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
-  implementation("org.springframework.cloud:spring-cloud-starter-open-service-broker:3.1.1.RELEASE")
 
   implementation("org.eclipse.jgit:org.eclipse.jgit:5.11.0.202103091610-r")
   implementation("org.eclipse.jgit:org.eclipse.jgit.ssh.jsch:5.11.0.202103091610-r")
@@ -37,6 +37,7 @@ dependencies {
 
   developmentOnly("org.springframework.boot:spring-boot-devtools")
 
+  testImplementation("org.junit.vintage:junit-vintage-engine")
   testImplementation("org.springframework.boot:spring-boot-starter-test")
   testImplementation("org.springframework.security:spring-security-test")
 }
@@ -46,6 +47,10 @@ tasks.withType<KotlinCompile> {
     freeCompilerArgs = listOf("-Xjsr305=strict")
     jvmTarget = "11"
   }
+}
+
+tasks.withType<Test> {
+  useJUnit()
 }
 
 tasks.getByName<org.springframework.boot.gradle.tasks.bundling.BootJar>("bootJar") {
