@@ -254,29 +254,37 @@ class GitHandlerService(
      * that require remote access.
      */
     fun initGit(gitConfig: GitConfig): Git {
-      gitConfig.sshKey?.let {
-        SshSessionFactory.setInstance(CustomSshSessionFactory(it))
-      }
-
-      val git = Git.init().setDirectory(File(gitConfig.localPath)).call()
-
-      // setup default user info (could make this configurable)
-      setupDefaultUser(git)
-
-      gitConfig.remote?.let {
-        ensureRemoteIsAdded(git, gitConfig)
-        val pull = git.pull()
-
-        gitConfig.username?.let {
-          pull.setCredentialsProvider(UsernamePasswordCredentialsProvider(gitConfig.username, gitConfig.password))
+      try {
+        gitConfig.sshKey?.let {
+          SshSessionFactory.setInstance(CustomSshSessionFactory(it))
         }
 
-        pull.call()
+        val git = Git.init().setDirectory(File(gitConfig.localPath)).call()
 
-        switchToBranchAndCreateIfMissing(git, gitConfig.remoteBranch)
+        // setup default user info (could make this configurable)
+        setupDefaultUser(git)
+
+        gitConfig.remote?.let {
+          ensureRemoteIsAdded(git, gitConfig)
+          val pull = git.pull()
+
+          gitConfig.username?.let {
+            pull.setCredentialsProvider(UsernamePasswordCredentialsProvider(gitConfig.username, gitConfig.password))
+          }
+
+          pull.call()
+
+          switchToBranchAndCreateIfMissing(git, gitConfig.remoteBranch)
+
+        }
+
+        return git
+
+      } catch (ex: org.eclipse.jgit.api.errors.InvalidRemoteException) {
+        // Log an explicit error for the operator, so it does not get lost deep inside a spring stacktrace
+        log.error(ex) { "Could not pull from the origin repository: ${gitConfig.remote}. Review the configured repository URL is correct and the credential settings are authorized on the remote repository(e.g. the deploy key, username-pass)." }
+        throw ex
       }
-
-      return git
     }
 
     private fun setupDefaultUser(git: Git) {
