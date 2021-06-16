@@ -6,6 +6,7 @@ import org.springframework.cloud.servicebroker.model.PlatformContext
 import org.springframework.cloud.servicebroker.model.binding.CreateServiceInstanceBindingRequest
 import org.springframework.cloud.servicebroker.model.binding.DeleteServiceInstanceBindingRequest
 import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceRequest
+import org.springframework.cloud.servicebroker.model.instance.UpdateServiceInstanceRequest
 import java.io.File
 
 class TestDataBuilder(catalogPath: String, yamlHandler: YamlHandler) {
@@ -38,7 +39,28 @@ class TestDataBuilder(catalogPath: String, yamlHandler: YamlHandler) {
         .build()
   }
 
-  fun createServiceInstanceBindingRequest(
+    fun updateServiceInstanceRequest(
+        instanceId: String,
+        customize: (UpdateServiceInstanceRequest.UpdateServiceInstanceRequestBuilder.() -> Unit)? = null
+    ): UpdateServiceInstanceRequest {
+        val serviceDefinition = catalog.services.first()
+
+        return UpdateServiceInstanceRequest
+            .builder()
+            .serviceDefinition(serviceDefinition)
+            .serviceDefinitionId(serviceDefinition.id)
+            .planId(serviceDefinition.plans[1].id)
+            .serviceInstanceId(instanceId)
+            .originatingIdentity(originatingIdentity)
+            .asyncAccepted(true)
+            .also {
+                customize?.invoke(it)
+            }
+            .build()
+    }
+
+
+    fun createServiceInstanceBindingRequest(
       instanceId: String,
       bindingId: String,
       customize: (CreateServiceInstanceBindingRequest.CreateServiceInstanceBindingRequestBuilder.() -> Unit)? = null

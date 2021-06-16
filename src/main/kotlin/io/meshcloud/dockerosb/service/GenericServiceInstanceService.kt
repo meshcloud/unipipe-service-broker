@@ -34,6 +34,26 @@ class GenericServiceInstanceService(
     }
   }
 
+  override fun updateServiceInstance(request: UpdateServiceInstanceRequest): Mono<UpdateServiceInstanceResponse> {
+    if (!request.isAsyncAccepted) {
+        throw ServiceBrokerAsyncRequiredException("UniPipe service broker invokes async CI/CD pipelines")
+    }
+
+    gitContextFactory.acquireContext().use { context ->
+      val serviceInstance = ServiceInstance(request)
+
+      val repository = context.buildServiceInstanceRepository()
+      repository.updateServiceInstance(serviceInstance)
+
+      return Mono.just(
+          UpdateServiceInstanceResponse.builder()
+              .async(true)
+              .operation("updating service")
+              .build()
+      )
+    }
+  }
+
   override fun getServiceInstance(request: GetServiceInstanceRequest): Mono<GetServiceInstanceResponse> {
     gitContextFactory.acquireContext().use { context ->
 
@@ -92,15 +112,5 @@ class GenericServiceInstanceService(
               .build()
       )
     }
-  }
-
-  override fun updateServiceInstance(request: UpdateServiceInstanceRequest): Mono<UpdateServiceInstanceResponse> {
-    // TODO: not supported
-
-    return Mono.just(
-        UpdateServiceInstanceResponse.builder()
-            .async(false)
-            .build()
-    )
   }
 }

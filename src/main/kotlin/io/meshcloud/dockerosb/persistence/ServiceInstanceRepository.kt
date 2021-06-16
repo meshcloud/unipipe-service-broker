@@ -20,6 +20,26 @@ class ServiceInstanceRepository(private val yamlHandler: YamlHandler, private va
     )
   }
 
+  // TODO Check if an update request is allowed. See https://github.com/meshcloud/unipipe-service-broker/pull/35/files#r651527916
+  //
+  //  There are several actions that can be [triggered via an update request](https://github.com/openservicebrokerapi/servicebroker/blob/master/spec.md#updating-a-service-instance):
+  //- updating the plan a service instance is using, if `plan_updateable` is true
+  //- updating the context object of a service instance, if `allow_context_updates` is true
+  //- applying a maintenance update, if the service broker previously provided `maintenance_info` to the platform.
+  fun updateServiceInstance(serviceInstance: ServiceInstance) {
+    val serviceInstanceId = serviceInstance.serviceInstanceId
+
+    val instanceYml = serviceInstanceYmlFile(serviceInstanceId)
+
+    yamlHandler.writeObject(
+      objectToWrite = serviceInstance,
+      file = instanceYml
+    )
+    gitHandler.commitAllChanges(
+      commitMessage = "Updated Service instance $serviceInstanceId"
+    )
+  }
+
   fun deleteServiceInstance(serviceInstance: ServiceInstance) {
     val serviceInstanceId = serviceInstance.serviceInstanceId
 

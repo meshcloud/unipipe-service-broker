@@ -183,4 +183,27 @@ class GenericServiceInstanceServiceTest {
 
     return serviceInstanceId
   }
+
+  @Test
+  fun `updateServiceInstance creates expected yaml`() {
+
+    `createServiceInstance creates expected yaml`()
+
+    val sut = makeSut()
+
+    val request = fixture.builder.updateServiceInstanceRequest("e4bd6a78-7e05-4d5a-97b8-f8c5d1c710ab")
+
+    sut.updateServiceInstance(request).block()
+
+    val yamlPath = "${fixture.localGitPath}/instances/${request.serviceInstanceId}/instance.yml"
+    val instanceYml = File(yamlPath)
+
+    val expectedYamlPath = "src/test/resources/expected_instance_after_update.yml"
+    val expectedInstanceYml = File(expectedYamlPath)
+
+    assertTrue("instance.yml does not exist in $yamlPath", instanceYml.exists())
+    assertTrue("expected_instance_after_update.yml does not exist in $expectedYamlPath", expectedInstanceYml.exists())
+
+    assertTrue(FileUtils.contentEquals(expectedInstanceYml, instanceYml))
+  }
 }

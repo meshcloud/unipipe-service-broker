@@ -2,6 +2,7 @@ package io.meshcloud.dockerosb.model
 
 import org.springframework.cloud.servicebroker.model.Context
 import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceRequest
+import org.springframework.cloud.servicebroker.model.instance.UpdateServiceInstanceRequest
 import javax.validation.constraints.NotEmpty
 
 data class ServiceInstance(
@@ -32,4 +33,15 @@ data class ServiceInstance(
       serviceDefinition = ServiceDefinition(request.serviceDefinition),
       serviceDefinitionId = request.serviceDefinitionId
   )
+
+    constructor(request: UpdateServiceInstanceRequest) : this(
+        serviceInstanceId = request.serviceInstanceId,
+        asyncAccepted = request.isAsyncAccepted,
+        context = request.context,
+        originatingIdentity = request.originatingIdentity,
+        parameters = request.parameters ?: mutableMapOf(),
+        planId = request.planId,
+        serviceDefinition = ServiceDefinition(request.serviceDefinition),
+        serviceDefinitionId = request.serviceDefinitionId
+    )
 }
