@@ -3,6 +3,8 @@ package io.meshcloud.dockerosb.service
 import io.meshcloud.dockerosb.model.ServiceInstance
 import io.meshcloud.dockerosb.persistence.GitOperationContextFactory
 import org.springframework.cloud.servicebroker.exception.ServiceBrokerAsyncRequiredException
+import org.springframework.cloud.servicebroker.exception.ServiceBrokerDeleteOperationInProgressException
+import org.springframework.cloud.servicebroker.exception.ServiceInstanceDoesNotExistException
 import org.springframework.cloud.servicebroker.model.instance.*
 import org.springframework.cloud.servicebroker.service.ServiceInstanceService
 import org.springframework.stereotype.Service
@@ -15,7 +17,7 @@ class GenericServiceInstanceService(
 ) : ServiceInstanceService {
 
   override fun createServiceInstance(request: CreateServiceInstanceRequest): Mono<CreateServiceInstanceResponse> {
-    if (!request.isAsyncAccepted){
+    if (!request.isAsyncAccepted) {
       throw ServiceBrokerAsyncRequiredException("UniPipe service broker invokes async CI/CD pipelines")
     }
 
@@ -58,7 +60,8 @@ class GenericServiceInstanceService(
     gitContextFactory.acquireContext().use { context ->
 
       val repository = context.buildServiceInstanceRepository()
-      val instance = repository.getServiceInstance(request.serviceInstanceId)
+      val instance = repository.tryGetServiceInstance(request.serviceInstanceId)
+          ?: throw ServiceInstanceDoesNotExistException(request.serviceInstanceId)
 
       return Mono.just(
           GetServiceInstanceResponse.builder()
@@ -76,31 +79,44 @@ class GenericServiceInstanceService(
       context.attemptToRefreshRemoteChanges()
 
       val repository = context.buildServiceInstanceRepository()
-      val instanceStatus = repository.getServiceInstanceStatus(request.serviceInstanceId)
+
+      val instance = repository.tryGetServiceInstance(request.serviceInstanceId)
+          ?: throw ServiceInstanceDoesNotExistException(request.serviceInstanceId)
+
+      val instanceStatus = repository.getServiceInstanceStatus(serviceInstanceId = request.serviceInstanceId)
 
       return Mono.just(
           GetLastServiceOperationResponse.builder()
               .operationState(instanceStatus.toOperationState())
               .description(instanceStatus.description)
+              .deleteOperation(instance.deleted)
               .build()
       )
     }
   }
 
   override fun deleteServiceInstance(request: DeleteServiceInstanceRequest): Mono<DeleteServiceInstanceResponse> {
+
     gitContextFactory.acquireContext().use { context ->
       val repository = context.buildServiceInstanceRepository()
       val instance = repository.tryGetServiceInstance(request.serviceInstanceId)
+          ?: throw ServiceInstanceDoesNotExistException(request.serviceInstanceId)
 
-      if (instance == null || instance.deleted)
-        return Mono.just(
-            DeleteServiceInstanceResponse.builder()
-                .async(false)
-                .build()
-        )
-
-      if (!request.isAsyncAccepted){
+      if (!request.isAsyncAccepted) {
         throw ServiceBrokerAsyncRequiredException("UniPipe service broker invokes async CI/CD pipelines")
+      }
+
+      val deletingOperation = "deleting service"
+      val status = repository.getServiceInstanceStatus(request.serviceInstanceId).toOperationState()
+
+      if (instance.deleted) {
+        when (status) {
+          // From the spec: Note that a re-sent DELETE request MUST return a 202 Accepted, not a 200 OK, if the delete request has not completed yet.
+          OperationState.FAILED,
+          OperationState.IN_PROGRESS -> throw ServiceBrokerDeleteOperationInProgressException(deletingOperation)
+          // indicate the instance does not exist anymore
+          OperationState.SUCCEEDED -> throw ServiceInstanceDoesNotExistException(request.serviceInstanceId)
+        }
       }
 
       repository.deleteServiceInstance(instance)
@@ -108,9 +124,10 @@ class GenericServiceInstanceService(
       return Mono.just(
           DeleteServiceInstanceResponse.builder()
               .async(true)
-              .operation("deleting service")
+              .operation(deletingOperation)
               .build()
       )
     }
   }
+
 }

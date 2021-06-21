@@ -10,6 +10,7 @@ import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import org.springframework.cloud.servicebroker.exception.ServiceBrokerAsyncRequiredException
+import org.springframework.cloud.servicebroker.exception.ServiceInstanceDoesNotExistException
 import org.springframework.cloud.servicebroker.model.instance.DeleteServiceInstanceRequest
 import org.springframework.cloud.servicebroker.model.instance.GetLastServiceOperationRequest
 import org.springframework.cloud.servicebroker.model.instance.OperationState
@@ -68,19 +69,23 @@ class GenericServiceInstanceServiceTest {
 
   @Test
   fun `getLastOperation returns correct status from status yaml`() {
-    val serviceInstanceId = "test-123"
-    val statusYamlPath = "src/test/resources/status.yml"
-    val statusYmlFile = File(statusYamlPath)
-    val statusYmlDestinationDir = File("${fixture.gitConfig.localPath}/instances/$serviceInstanceId/")
-    FileUtils.forceMkdir(statusYmlDestinationDir)
-    FileUtils.copyFileToDirectory(statusYmlFile, statusYmlDestinationDir)
 
     val sut = makeSut()
 
+    val serviceInstance = fixture.builder.createServiceInstanceRequest("e4bd6a78-7e05-4d5a-97b8-f8c5d1c710ab")
+    sut.createServiceInstance(serviceInstance).block()
+
+    // simulate the CI/CD pipeline writing back a status file
+    val statusYamlPath = "src/test/resources/status.yml"
+    val statusYmlFile = File(statusYamlPath)
+    val statusYmlDestinationDir = File("${fixture.gitConfig.localPath}/instances/${serviceInstance.serviceInstanceId}/")
+    FileUtils.forceMkdir(statusYmlDestinationDir)
+    FileUtils.copyFileToDirectory(statusYmlFile, statusYmlDestinationDir)
+
     val request = GetLastServiceOperationRequest
         .builder()
-        .serviceInstanceId(serviceInstanceId)
-        .serviceDefinitionId("my-def")
+        .serviceInstanceId(serviceInstance.serviceInstanceId)
+        .serviceDefinitionId(serviceInstance.serviceDefinitionId)
         .build()
 
     val response = sut.getLastOperation(request).block()!!
@@ -93,10 +98,13 @@ class GenericServiceInstanceServiceTest {
   fun `getLastOperation returns IN_PROGRESS status when no status yaml exists`() {
     val sut = makeSut()
 
+    val serviceInstance = fixture.builder.createServiceInstanceRequest("e4bd6a78-7e05-4d5a-97b8-f8c5d1c710ab")
+    sut.createServiceInstance(serviceInstance).block()
+
     val request = GetLastServiceOperationRequest
         .builder()
-        .serviceInstanceId("test-567")
-        .serviceDefinitionId("my-def")
+        .serviceInstanceId(serviceInstance.serviceInstanceId)
+        .serviceDefinitionId(serviceInstance.serviceDefinitionId)
         .build()
 
     val response = sut.getLastOperation(request).block()!!
@@ -171,6 +179,21 @@ class GenericServiceInstanceServiceTest {
     assertEquals("preparing service deletion", updatedStatus.description)
   }
 
+  @Test
+  fun `deleting a service instance that does not exist throws ServiceInstanceDoesNotExistException`() {
+    val sut = makeSut()
+
+    val request = DeleteServiceInstanceRequest
+        .builder()
+        .serviceInstanceId("idontexist")
+        .serviceDefinitionId("my-def")
+        .asyncAccepted(true)
+        .build()
+
+    assertThrows(ServiceInstanceDoesNotExistException::class.java) {
+      sut.deleteServiceInstance(request).block()!!
+    }
+  }
 
   private fun copyInstanceYmlToRepo(): String {
     val serviceInstanceId = "e4bd6a78-7e05-4d5a-97b8-f8c5d1c710ab"

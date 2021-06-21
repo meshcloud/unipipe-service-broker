@@ -126,13 +126,15 @@ class ConcurrentGitInteractionsTest {
     val log = fixture.gitHandler
         .getLog()
         .map { "${it.shortMessage} :: ${it.parentCount}" }
+        .sorted() // we have to sort because our commit graph is a "diamond" A :: 0 -> (B :: 1, C :: 1) -> D :: 2 and it's not deterministic if git will represent the merge commit as B,C or C, B
         .toList()
 
+    // this is not the actual order, see the commend on sorting above, however the number of parents is a giveaway for the actual order of commits
     val expected = listOf(
-        "OSB API: auto-merging remote changes :: 2",
         "OSB API: Created Service instance 00000000-7e05-4d5a-97b8-f8c5d1c710ab :: 1",
+        "OSB API: auto-merging remote changes :: 2",
+        "initial commit on remote :: 0",
         "non-conflicting change on remote :: 1",
-        "initial commit on remote :: 0"
     )
     assertEquals(expected, log)
   }
