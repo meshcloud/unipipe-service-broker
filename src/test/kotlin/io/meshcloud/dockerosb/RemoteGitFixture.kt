@@ -6,11 +6,13 @@ import java.io.File
 import java.nio.file.Path
 
 class RemoteGitFixture(
-    private val repositoryRootPath: String
+    private val repositoryRootPath: String,
+    branch: String = "master"
 ) {
   // init remote git
   private val git = Git.init()
       .setDirectory(File(repositoryRootPath))
+      .setInitialBranch(branch)
       .call()
 
 

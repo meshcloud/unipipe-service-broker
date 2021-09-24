@@ -6,6 +6,7 @@ import mu.KotlinLogging
 import org.eclipse.jgit.api.*
 import org.eclipse.jgit.merge.MergeStrategy
 import org.eclipse.jgit.revwalk.RevCommit
+import org.eclipse.jgit.transport.RefSpec
 import org.eclipse.jgit.transport.SshSessionFactory
 import org.eclipse.jgit.transport.URIish
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
@@ -266,16 +267,22 @@ class GitHandlerService(
 
         gitConfig.remote?.let {
           ensureRemoteIsAdded(git, gitConfig)
-          val pull = git.pull()
 
-          gitConfig.username?.let {
-            pull.setCredentialsProvider(UsernamePasswordCredentialsProvider(gitConfig.username, gitConfig.password))
-          }
+          // fetch remote
+          git.fetch()
+              .apply {
+                refSpecs = listOf(
+                    RefSpec("refs/heads/${gitConfig.remoteBranch}:refs/remotes/origin/${gitConfig.remoteBranch}")
+                )
 
-          pull.call()
+                gitConfig.username?.let {
+                  setCredentialsProvider(UsernamePasswordCredentialsProvider(gitConfig.username, gitConfig.password))
+                }
+              }
+              .call()
 
+          // checkout a branch
           switchToBranchAndCreateIfMissing(git, gitConfig.remoteBranch)
-
         }
 
         return git
@@ -296,12 +303,16 @@ class GitHandlerService(
     }
 
     private fun ensureRemoteIsAdded(git: Git, gitConfig: GitConfig) {
-      if (git.remoteList().call().isEmpty()) {
-        val remoteAddCommand = git.remoteAdd()
-        remoteAddCommand.setName("origin")
-        remoteAddCommand.setUri(URIish(gitConfig.remote))
-        remoteAddCommand.call()
+      if (git.remoteList().call().isNotEmpty()) {
+        return
       }
+
+      git.remoteAdd()
+          .apply {
+            setName("origin")
+            setUri(URIish(gitConfig.remote))
+          }
+          .call()
     }
 
     private fun switchToBranchAndCreateIfMissing(git: Git, branchName: String) {
