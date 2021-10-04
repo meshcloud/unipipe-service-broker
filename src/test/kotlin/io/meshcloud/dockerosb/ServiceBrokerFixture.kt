@@ -5,7 +5,6 @@ import io.meshcloud.dockerosb.config.GitConfig
 import io.meshcloud.dockerosb.persistence.GitOperationContextFactory
 import io.meshcloud.dockerosb.persistence.GitHandlerService
 import io.meshcloud.dockerosb.persistence.YamlHandler
-import io.meshcloud.dockerosb.service.GenericCatalogService
 import org.junit.rules.TemporaryFolder
 import java.io.Closeable
 
@@ -31,7 +30,7 @@ class ServiceBrokerFixture(catalogPath: String) : Closeable {
 
   // note: it's important we place the initializer before the constructors below since we need to seed the repo with a
   // catalog before we access it internally
-  val remote = RemoteGitFixture(remoteGitPath).apply {
+  val remote = RemoteGitFixture(remoteGitPath, ).apply {
     initWithCatalog(catalogPath)
   }
 
@@ -40,8 +39,6 @@ class ServiceBrokerFixture(catalogPath: String) : Closeable {
   val gitHandler = GitHandlerService(gitConfig)
 
   val contextFactory = GitOperationContextFactory(gitHandler, yamlHandler)
-
-  val catalogService = GenericCatalogService(contextFactory)
 
   val builder = TestDataBuilder(catalogPath, yamlHandler)
 
