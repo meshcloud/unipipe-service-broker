@@ -1,0 +1,64 @@
+services:
+  # a example for a network tenant service
+  - id: 49f7d4f4-a00b-483a-9cc9-2519f9a7c6da # this uuid was randomly generated using "unipipe generate uuid"
+    name: Azure VNet
+    description: Provides a configurable default VNET in your Azure subscription.
+    bindable: false
+    plan_updateable: false
+    instances_retrievable: true
+    bindings_retrievable: false
+    metadata:
+      displayName: "Azure VNet Service"
+      imageUrl: "https://symbols.getvecta.com/stencil_28/71_virtual-network.4fe1e0cdfa.svg"
+    plans:
+      - id: f58f1e3b-902f-48c5-af57-63d5c4f88a28 # this uuid was randomly generated using "unipipe generate uuid"
+        name: Standard
+        description: Standard vNet generates 1 Private and 1 Public Subnet
+        free: true
+        schemas:
+          service_instance:
+            create:
+              parameters:
+                "$schema": http://json-schema.org/draft-04/schema#
+                properties:
+                  VNetIP:
+                    title: vNet IP
+                    type: string
+                    widget:
+                      id: string
+                    default: "10.X.X.X"
+                  CidrBlock:
+                    title: CIDR Block
+                    type: string
+                    widget:
+                      id: select
+                    default: "28"
+                    oneOf:
+                      - description: /28 vNet with 6 addresses (+5 addresses reserved by Azure per each subnet)
+                        enum:
+                          - "28"
+                      - description: /27 vNet with 22 addresses (+5 addresses reserved by Azure per each subnet)
+                        enum:
+                          - "27"
+                      - description: /26 vNet with 56 addresses (+5 addresses reserved by Azure per each subnet)
+                        enum:
+                          - "26"
+                      - description: /25 vNet with 118 addresses (+5 addresses reserved by Azure per each subnet)
+                        enum:
+                          - "25"
+                      - description: /24 vNet with 246 addresses (+5 addresses reserved by Azure per each subnet)
+                        enum:
+                          - "24"
+                  VNetRegion:
+                    title: vNet Region
+                    type: string
+                    widget:
+                      id: select
+                    default: "GermanyWestCentral"
+                    oneOf:
+                      - description: GermanyWestCentral (default choice)
+                        enum:
+                          - "GermanyWestCentral"
+                      - description: WestEurope
+                        enum:
+                          - "WestEurope"
