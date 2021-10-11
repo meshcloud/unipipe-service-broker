@@ -153,7 +153,7 @@ cf push -f cf-manifest.yml # deploy it to CF
 UniPipe Service broker translates OSB API communication into committed files in a git repo.
 To automate CRUD operations on Service Instances and Bindings, you can to build a CI/CD pipeline that acts upon commits to this git repo.
 
-Example implementations of pipelines are found in the `example/` directory.
+Example implementations of pipelines are found in the `example/` directory. A complete instance repository of a running UniPipe Service Broker instance can be found under (meshcloud/unipipe-demo)[https://github.com/meshcloud/unipipe-demo].
 
 Below is the reference documentation for ways to interact with UniPipe Service Broker.
 
