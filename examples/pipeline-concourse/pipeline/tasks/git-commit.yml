@@ -1,0 +1,27 @@
+---
+platform: linux
+
+image_resource:
+  type: docker-image
+  source:
+    repository: stomm/alpine-bash-ssh-git
+
+inputs:
+- name: git-ci
+- name: updated-instances-repo
+
+outputs:
+- name: committed-instances-repo
+
+params:
+  COMMIT_MESSAGE: UNSPECIFIED
+
+run:
+  path: bash
+  args:
+  - -exc
+  - |
+    cd updated-instances-repo
+    ./../git-ci/pipeline/scripts/git-commit.sh "Pipeline: $COMMIT_MESSAGE"
+    cd ..
+    git clone updated-instances-repo committed-instances-repo

@@ -1,0 +1,8 @@
+- hosts: mc_host
+  tasks:
+    - name: Create a binding user
+      user:
+        name: "{{ lookup('env', 'mc_username') }}"
+        password: "{{ lookup('env', 'mc_password') | password_hash('sha512', 'zTv6bjknk') }}"
+        state: present
+        shell: /bin/bash

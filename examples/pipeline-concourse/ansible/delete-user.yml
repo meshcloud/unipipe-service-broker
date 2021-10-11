@@ -1,0 +1,7 @@
+- hosts: mc_host
+  tasks:
+    - name: Delete a binding user
+      user:
+        name: "{{ lookup('env', 'mc_username') }}"
+        state: absent
+        remove: yes
