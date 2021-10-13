@@ -11,8 +11,6 @@ actual provisioning.
 
 ![A marketplace that integrates with a Service Broker](assets/OSB-Graphic-03.png "Service Broker interactions")
 
-UniPipe Service Broker was formerly known as generic OSB API.
-
 ## Configuration
 
 The easiest way to deploy `Unipipe Service Broker` infrastructure and create
