@@ -1,0 +1,186 @@
+services:
+  - id: "22e1bbf3-b425-46cd-a03e-927f73abcaaf"
+    name: "Azure DevOps"
+    description: "Onboard your team to Azure DevOps services"
+    bindable: false
+    plan_updateable: true
+    instances_retrievable: true
+    bindings_retrievable: false
+    metadata:
+      displayName: "Azure DevOps"
+      imageUrl: "https://docs.microsoft.com/en-us/azure/devops/media/index/devopsiconpipelines96.svg?view=azure-devops"
+      longDescription: "Azure DevOps services"
+      providerDisplayName: "Azure"
+      documentationUrl: "https://docs.microsoft.com/en-us/azure/devops/?view=azure-devops"
+      supportUrl: "https://azure.microsoft.com/en-us/services/devops/"
+    tags:
+      - "azure"
+      - "devops"
+    plans:
+      - id: "1c5c4f4d-bde5-4030-9874-b096fd3f78c5"
+        name: "Full Team Onboarding plan"
+        description: "Enable all user in your meshProject on Azure DevOps."
+        free: false
+        metadata:
+          bullets:
+            - bulletpoint 1
+            - bulletpoint 2
+          costs:
+            - amount:
+                eur: 99.99
+              unit: MONTHLY
+            - amount:
+                eur: 100.00
+              unit: SETUP FEE
+          displayName: Fullteam plan
+        schemas:
+          service_instance:
+            create:
+              parameters:
+                $schema: http://json-schema.org/draft-04/schema#
+                properties:
+                  projectname:
+                    description: "Project name"
+                    type: "string"
+                  projectdescription:
+                    description: "Project describtion"
+                    type: "string"
+                    items:
+                      oneOf:
+                        - description: test 1
+                        - description: test 2
+                  msteamsad:
+                    description: "MS Teams AD group"
+                    type: "string"
+                  email:
+                    description: "E-mail address"
+                    type: "string"
+                type: object
+            update:
+              parameters:
+                $schema: http://json-schema.org/draft-04/schema#
+                properties:
+                  projectname:
+                    description: "Project name"
+                    type: "string"
+                  projectdescription:
+                    description: "Project describtion"
+                    type: "string"
+                  msteamsad:
+                    description: "MS Teams AD group"
+                    type: "string"
+                  email:
+                    description: "E-mail address"
+                    type: "string"
+                type: object
+  - id: "d90c2b20-1d24-4592-88e7-6ab5eb147925"
+    name: "Azure VPC a Service (Teant Aware)"
+    description: "Order a VPC for your Project"
+    bindable: true
+    plan_updateable: false
+    instances_retrievable: true
+    bindings_retrievable: true
+    metadata:
+      tenantAware: true
+      displayName: "Azure VPS Functions"
+      imageUrl: "https://azure.microsoft.com/svghandler/functions?width=600&height=315"
+      longDescription: "Azure VPC services"
+      providerDisplayName: "Azure"
+      documentationUrl: "https://docs.microsoft.com/en-us/azure/azure-functions/"
+      supportUrl: "https://docs.microsoft.com/en-us/azure/azure-functions/"
+    tags:
+      - "azure"
+      - "vpc"
+    plans:
+      - id: "322909fb-4309-423b-ae7f-23a97587a89e"
+        name: "Azure VPC"
+        description: "Description what the Azure VPC does"
+        free: false
+        metadata:
+          bullets:
+            - Makes your project better
+          costs:
+            - amount:
+                eur: 10.00
+              unit: SETUP FEE
+          displayName: Azure default VPC
+        schemas:
+          service_instance:
+            create:
+              parameters:
+                $schema: http://json-schema.org/draft-04/schema#
+                properties:
+                  cidr:
+                    description: "CIDR"
+                    type: "string"
+                  region:
+                    description: "Azure Region"
+                    type: "string"
+                type: object
+            update:
+              parameters:
+                $schema: http://json-schema.org/draft-04/schema#
+                properties:
+                  cidr:
+                    description: "CIDR"
+                    type: "string"
+                  region:
+                    description: "Azure Region"
+                    type: "string"
+                type: object
+  - id: "f9361e54-174c-4d49-9f2e-1415b09e1513"
+    name: "Azure Cloud Functions as a Service"
+    description: "Order Azure Cloud Function for your Project"
+    bindable: false
+    plan_updateable: false
+    instances_retrievable: true
+    bindings_retrievable: false
+    metadata:
+      tenantAware: true
+      displayName: "Azure Cloud Functions"
+      imageUrl: "https://azure.microsoft.com/svghandler/functions?width=600&height=315"
+      longDescription: "Azure Cloud Functions services"
+      providerDisplayName: "Azure"
+      documentationUrl: "https://docs.microsoft.com/en-us/azure/azure-functions/"
+      supportUrl: "https://docs.microsoft.com/en-us/azure/azure-functions/"
+    tags:
+      - "azure"
+      - "cloudfunction"
+    plans:
+      - id: "8b3a2f6a-1d1c-4813-a779-0c90c304bc6c"
+        name: "Azure cloud function 1"
+        description: "Description what the Azure Cloud function does"
+        free: false
+        metadata:
+          bullets:
+            - Azure function Magic
+            - Makes your project better
+          costs:
+            - amount:
+                eur: 10.00
+              unit: SETUP FEE
+          displayName: Azure Function 1
+        schemas:
+          service_instance:
+            create:
+              parameters:
+                $schema: http://json-schema.org/draft-04/schema#
+                properties:
+                  projectname:
+                    description: "Parameter 1"
+                    type: "string"
+                  projectdescription:
+                    description: "Parameter 2"
+                    type: "string"
+                type: object
+            update:
+              parameters:
+                $schema: http://json-schema.org/draft-04/schema#
+                properties:
+                  projectname:
+                    description: "Parameter 1"
+                    type: "string"
+                  projectdescription:
+                    description: "Parameter 2"
+                    type: "string"
+                type: object
