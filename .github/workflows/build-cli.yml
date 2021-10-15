@@ -24,7 +24,8 @@ jobs:
       - run: |
           deno --version
           deno info
-
+          
+          cd cli
           ./build.sh
 
           cd test
@@ -34,4 +35,4 @@ jobs:
         with:
           name: unipipe
           path: |
-            bin/unipipe-*
+            cli/bin/unipipe-*
