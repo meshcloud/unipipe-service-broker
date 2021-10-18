@@ -1,0 +1,45 @@
+---
+platform: linux
+
+image_resource:
+  type: docker-image
+  source:
+    repository: stomm/alpine-terraform-ansible-bash
+
+inputs:
+- name: git-ci
+- name: git-service-instances-deploy
+
+outputs:
+- name: updated-instances-repo
+
+params:
+  os_user_name: UNSPECIFIED
+  os_project_name: UNSPECIFIED
+  os_password: UNSPECIFIED
+  os_auth_url: UNSPECIFIED
+  os_domain_id: UNSPECIFIED
+  mc_http_proxy: UNSPECIFIED
+  mc_https_proxy: UNSPECIFIED
+  mc_no_proxy: UNSPECIFIED
+
+run:
+  path: bash
+  args:
+  - -c
+  - |
+    echo "## Deploying with Terraform"
+    git clone git-service-instances-deploy updated-instances-repo
+
+    export OS_USERNAME=$os_user_name
+    export OS_PROJECT_NAME=$os_project_name
+    export OS_PASSWORD=$os_password
+    export OS_AUTH_URL=$os_auth_url
+    export OS_PROJECT_DOMAIN_ID=$os_domain_id
+    export OS_USER_DOMAIN_ID=$os_domain_id
+    export OS_INSECURE=true
+    export mc_http_proxy=$mc_http_proxy
+    export mc_https_proxy=$mc_https_proxy
+    export mc_no_proxy=$mc_no_proxy
+
+    ./git-ci/pipeline/scripts/deploy.sh git-ci updated-instances-repo

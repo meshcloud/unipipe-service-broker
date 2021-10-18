@@ -1,0 +1,61 @@
+- hosts: mc_host
+  vars:
+    http_proxy: "{{ lookup('env', 'mc_http_proxy') }}"
+    https_proxy: "{{ lookup('env', 'mc_https_proxy') }}"
+    no_proxy: "{{ lookup('env', 'mc_no_proxy') }}"
+  environment:
+    http_proxy: "{{ http_proxy }}"
+    https_proxy: "{{ https_proxy }}"
+    no_proxy: "{{ no_proxy }}"
+    DEBIAN_FRONTEND: "noninteractive"
+  gather_facts: no
+  tasks:
+    - name: Wait until instance is up and running
+      wait_for_connection:
+        timeout: 300
+    - name: Allow password auth
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^PasswordAuthentication'
+        line: 'PasswordAuthentication yes'
+    - name: Configure http proxy, if a proxy is provided
+      when: http_proxy != ""
+      lineinfile:
+        path: /etc/environment
+        line: '{{ item }}'
+      loop:
+       - 'http_proxy="{{ http_proxy }}"'
+       - 'https_proxy="{{ https_proxy }}"'
+       - 'no_proxy="{{ no_proxy }}"'
+    - name: Restart service sshd
+      service:
+        name: sshd
+        state: restarted
+    - name: add cf package repo apt key
+      apt_key:
+        url: https://packages.cloudfoundry.org/debian/cli.cloudfoundry.org.key
+        state: present
+    - name: add cf package repository
+      apt_repository:
+        repo: deb https://packages.cloudfoundry.org/debian stable main
+        state: present
+        update_cache: no
+    - name: add ubuntu package repository
+      apt_repository:
+        repo: deb http://archive.ubuntu.com/ubuntu/ xenial main universe
+        state: present
+        update_cache: no
+    # CF CLI must be installed without a specific http proxy defined in apt, so we cannot use the ansible install task
+    - name: update apt from public repo
+      command: apt-get -o Acquire::http::proxy="" update
+    - name: install software
+      command: apt-get -o Acquire::http::proxy="" -yq install cf-cli python3-pip python3-setuptools
+    - name: remove old python libs (they will be installed via pip)
+      command: apt-get -o Acquire::http::proxy="" -yq remove python3-yaml
+    - name: update pip
+      pip:
+        name: pip
+        state: latest
+    - name: install openstack cli via pip
+      pip:
+        name: python-openstackclient

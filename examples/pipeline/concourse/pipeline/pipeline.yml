@@ -1,0 +1,130 @@
+resources:
+
+## Repositories
+- name: git-ci
+  type: git
+  source:
+    uri: {{ci-repo-uri}}
+    username: {{ci-repo-username}}
+    password: {{ci-repo-password}}
+    branch: {{ci-repo-branch}}
+    private_key: {{private-key-ci-repo}}
+
+- name: git-service-instances
+  type: git
+  source:
+    uri: {{instances-repo-uri}}
+    username: {{instances-repo-username}}
+    password: {{instances-repo-password}}
+    branch: {{instances-repo-branch}}
+    paths: ["instances/*/instance.yml"]
+    private_key: {{private-key-instances-repo}}
+
+- name: git-service-instances-deploy
+  type: git
+  source:
+    uri: {{instances-repo-uri}}
+    username: {{instances-repo-username}}
+    password: {{instances-repo-password}}
+    branch: {{instances-repo-branch}}
+    paths: ["instances/*/instance.tfvars"]
+    private_key: {{private-key-instances-repo}}
+
+- name: git-service-bindings
+  type: git
+  source:
+    uri: {{instances-repo-uri}}
+    username: {{instances-repo-username}}
+    password: {{instances-repo-password}}
+    branch: {{instances-repo-branch}}
+    paths: ["instances/*/bindings/*/binding.yml"]
+    private_key: {{private-key-instances-repo}}
+
+## Jobs
+jobs:
+
+- name: "prepare"
+  serial: true
+  plan:
+  - get: git-ci
+    resource: git-ci
+    version: latest
+  - get: git-service-instances
+    resource: git-service-instances
+    version: latest
+    trigger: true
+  - task: prepare
+    file: git-ci/pipeline/tasks/prepare.yml
+    timeout: 3m # generating multiple SSH keys might take some time
+    params:
+      os_external_network_id: {{os_external_network_id}}
+      os_image_id: {{os_image_id}}
+      small_flavor: {{small_flavor}}
+      medium_flavor: {{medium_flavor}}
+      external_ip_pool: {{external_ip_pool}}
+      os_dns_nameservers: {{os_dns_nameservers}}
+  - task: git-commit
+    file: git-ci/pipeline/tasks/git-commit.yml
+    params:
+      COMMIT_MESSAGE: Generated SSH Keys and tfvars for new instances
+  - put: git-service-instances-deploy
+    params:
+      repository: committed-instances-repo
+      rebase: true
+
+- name: "deploy"
+  serial: true
+  plan:
+  - get: git-ci
+    resource: git-ci
+    version: latest
+  - get: git-service-instances-deploy
+    resource: git-service-instances-deploy
+    trigger: true
+    version: latest
+  - task: deploy
+    file: git-ci/pipeline/tasks/deploy.yml
+    timeout: 10m # Setting up all resources in the cloud may take some time under load
+    params:
+      os_user_name : {{os_user_name}}
+      os_project_name : {{os_project_name}}
+      os_password: {{os_password}}
+      os_auth_url: {{os_auth_url}}
+      os_domain_id: {{os_domain_id}}
+      mc_http_proxy: {{http_proxy}}
+      mc_https_proxy: {{https_proxy}}
+      mc_no_proxy: {{no_proxy}}
+  ensure:
+    do:
+    - task: git-commit
+      file: git-ci/pipeline/tasks/git-commit.yml
+      params:
+        COMMIT_MESSAGE: Added/Updated Terraform state
+    - put: git-service-instances-deploy
+      params:
+        repository: committed-instances-repo
+        rebase: true
+
+- name: "bindings"
+  serial: true
+  plan:
+  - get: git-ci
+    resource: git-ci
+    version: latest
+  - get: git-service-bindings
+    resource: git-service-bindings
+    trigger: true
+    version: latest
+  - task: bindings
+    file: git-ci/pipeline/tasks/bindings.yml
+    timeout: 10m # Setting up all bindings in the cloud may take some time under load
+  ensure:
+    do:
+    - task: git-commit
+      file: git-ci/pipeline/tasks/git-commit.yml
+      params:
+        COMMIT_MESSAGE: Added/Removed bindings
+    - put: git-service-bindings
+      params:
+        repository: committed-instances-repo
+        rebase: true

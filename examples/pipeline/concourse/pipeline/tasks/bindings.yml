@@ -1,0 +1,24 @@
+---
+platform: linux
+
+image_resource:
+  type: docker-image
+  source:
+    repository: stomm/alpine-terraform-ansible-bash
+
+inputs:
+- name: git-ci
+- name: git-service-bindings
+
+outputs:
+- name: updated-instances-repo
+
+run:
+  path: bash
+  args:
+  - -c
+  - |
+    echo "## Creating/Deleting Service Bindings"
+    git clone git-service-bindings updated-instances-repo
+
+    ./git-ci/pipeline/scripts/bindings.sh git-ci updated-instances-repo

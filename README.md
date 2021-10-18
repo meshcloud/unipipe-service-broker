@@ -148,12 +148,12 @@ cf push -f cf-manifest.yml # deploy it to CF
 
 ## Communication with the CI/CD pipeline
 
-As the OSB API is completely provided by UniPipe Service Broker, what you as a
-developer of a service broker have to focus on is to build your CI/CD pipeline.
-In the following, all files that are used for communication and how the git
-repository for exchanging information between UniPipe Service Broker and the
-pipeline are described. An example pipeline can be found
-[here](https://github.com/Meshcloud/example-osb-ci).
+UniPipe Service broker translates OSB API communication into committed files in a git repo.
+To automate CRUD operations on Service Instances and Bindings, you can to build a CI/CD pipeline that acts upon commits to this git repo.
+
+Example implementations of pipelines are found in the `example/` directory. A complete instance repository of a running UniPipe Service Broker instance can be found under (meshcloud/unipipe-demo)[https://github.com/meshcloud/unipipe-demo].
+
+Below is the reference documentation for ways to interact with UniPipe Service Broker.
 
 ### OSB commit messages
 
