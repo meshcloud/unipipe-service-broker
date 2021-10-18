@@ -104,7 +104,7 @@ source.
 
 ## Deployment using Docker
 
-We publish generic-osb-api container images to GitHub Container Registry
+We publish unipipe-service-broker container images to GitHub Container Registry
 [here](https://github.com/orgs/meshcloud/packages/container/unipipe-service-broker/versions).
 These images are built on GitHub actions and are available publicly
 
@@ -112,7 +112,7 @@ These images are built on GitHub actions and are available publicly
 docker pull ghcr.io/meshcloud/unipipe-service-broker:v1.0.6
 ```
 
-> Note: We used to publish old versions of generic-osb-api as GitHub packages
+> Note: We used to publish old versions of unipipe-service-broker as GitHub packages
 > (not GHCR) which unfortunately can't be deleted from GitHub. Please make sure
 > to use `ghcr.io` to pull the latest versions and not the legacy
 > `docker.pkg.github.com` URLs.
@@ -128,9 +128,9 @@ Manifest file like this:
 
 ```yaml
 applications:
-- name: generic-osb-api
+- name: unipipe-service-broker
   memory: 1024M
-  path: build/libs/generic-osb-api-0.9.0.jar
+  path: build/libs/unipipe-service-broker-0.9.0.jar
   env:
     GIT_REMOTE: <https or ssh url for remote git repo>
     GIT_USERNAME: <if you use https, enter username here>
