@@ -5,9 +5,31 @@ on:
     tags: [ v* ]
 
 jobs:
+  # We run the create-release action in a separate job to make the output available to the service broker and cli release jobs.
+  # This means upon running the create-release job, no tests have been executed.
+  create-release:
+    runs-on: ubuntu-latest
+    outputs:
+      upload-url: ${{ steps.create_release.outputs.upload_url}}
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        draft: false
+        prerelease: false
+    - name: upload-url
+      run: echo "::set-output name=upload-url::${{ steps.create_release.outputs.upload_url }}" # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
+
   # note: while repeated gradle builds may seem wasteful, the local docker build workflow is very handy so we do 
   # want to retain it. Unfortunately there's no easy way to extract the built jar from the image and publish that instead
-  docker: # build and push docker image (this includes a gradle build running in docker)
+  release-service-broker-docker-image: # build and push docker image (this includes a gradle build running in docker)
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -23,8 +45,9 @@ jobs:
         tag_with_ref: true
         push: ${{ startsWith(github.ref, 'refs/tags/') }}
         add_git_labels: true
-  release: # build self executable jar (another gradle build, this time locally)
+  release-service-broker-jar: # build self executable jar (another gradle build, this time locally)
     runs-on: ubuntu-latest
+    needs: create-release
     steps:
     - uses: actions/checkout@v2
     - uses: actions/cache@v2
@@ -41,23 +64,82 @@ jobs:
       run: chmod +x gradlew
     - name: Build with Gradle
       run: ./gradlew :bootJar -x test
-    - name: Create Release
-      id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: ${{ github.ref }}
-        release_name: Release ${{ github.ref }}
-        draft: false
-        prerelease: false
-    - name: Upload Release Asset
+    - name: Upload Service Broker Release Asset
       id: upload-release-asset 
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
+        upload_url:  ${needs.create-release.outputs.upload-url}
         asset_path: ./build/libs/generic-osb-api-1.0.0.jar
         asset_name: generic-osb-api.jar
         asset_content_type: application/zip
+  release-cli:
+    # sadly, triggering on a successful build workflow and then downloading the artifacts from there is not yet
+    # possible with github actions, see https://github.com/actions/download-artifact/issues/3
+    # if it was, we could avoid the rebuild and this step could look like this
+    # on:
+    #   workflow_run:
+    #     workflows: ["build"]
+    #     branches: [refs/tags/v*]
+    #     types:
+    #       - completed
+
+    # instead, we now simply rebuild the whole thing in a single workflow and a single job
+    # not pretty but gets the job done
+
+
+    # if condition becomes relevant when cross workflow artifact downloads will be available
+    # if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    timeout-minutes: 3 # Generally our pipeline takes 1 minute to build everything. 
+    runs-on: ubuntu-latest
+    needs: create-release
+    steps:
+      - uses: actions/checkout@v2
+      - uses: denoland/setup-deno@main
+        with:
+          deno-version: "~1.14"
+      - uses: actions/cache@v2
+        with:
+          path: ~/.cache/deno # see https://deno.land/manual/linking_to_external_code
+          key: ${{ runner.os }}-deno # it seems there's no particular cache keying required
+          restore-keys: |
+            ${{ runner.os }}-deno
+      - name: Build and Test 
+        run: |
+          deno --version
+          deno info
+
+          cd cli
+          ./build.sh
+
+          cd test
+          ./all.sh ../bin/unipipe
+      # upload steps
+      - name: Upload unipipe-x86_64-apple-darwin
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url:  ${needs.create-release.outputs.upload-url}
+          asset_path: ./cli/bin/unipipe-cli-x86_64-apple-darwin
+          asset_name: unipipe-x86_64-apple-darwin
+          asset_content_type: application/octet-stream
+      - name: Upload unipipe-x86_64-unknown-linux-gnu
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url:  ${needs.create-release.outputs.upload-url}
+          asset_path: ./cli/bin/unipipe-cli-x86_64-unknown-linux-gnu
+          asset_name: unipipe-x86_64-unknown-linux-gnu
+          asset_content_type: application/octet-stream
+      - name: Upload unipipe-x86_64-pc-windows-msvc.exe
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url:  ${needs.create-release.outputs.upload-url}
+          asset_path: ./cli/bin/unipipe-cli-x86_64-pc-windows-msvc.exe
+          asset_name: unipipe-x86_64-pc-windows-msvc.exe
+          asset_content_type: application/octet-stream
