@@ -35,4 +35,4 @@ jobs:
         with:
           name: unipipe
           path: |
-            cli/bin/unipipe-*
+            cli/bin/unipipe-cli-*

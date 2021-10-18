@@ -9,7 +9,7 @@ mkdir -p bin
 compile(){
   target="$1"
 
-  deno compile $deno_flags --target "$target" --output "./bin/unipipe-$target" unipipe/main.ts
+  deno compile $deno_flags --target "$target" --output "./bin/unipipe-cli-$target" unipipe/main.ts
 }
 
 deno test $deno_flags
@@ -25,5 +25,5 @@ compile "x86_64-pc-windows-msvc"
 arch=$(deno --version | grep deno | grep -o "[a-z0-9_-]*)" | sed 's/.$//')
 
 echo "currently running on $arch, creating symlink at ./bin/unipipe"
-ln -fs "./unipipe-$arch" ./bin/unipipe
+ln -fs "./unipipe-cli-$arch" ./bin/unipipe
 chmod +x ./bin/unipipe
