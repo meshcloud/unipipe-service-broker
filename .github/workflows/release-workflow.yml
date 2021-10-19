@@ -71,8 +71,8 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url:  ${needs.create-release.outputs.upload-url}
-        asset_path: ./build/libs/generic-osb-api-1.0.0.jar
-        asset_name: generic-osb-api.jar
+        asset_path: ./build/libs/unipipe-service-broker-1.0.0.jar
+        asset_name: unipipe-service-broker.jar
         asset_content_type: application/zip
   release-cli:
     # sadly, triggering on a successful build workflow and then downloading the artifacts from there is not yet
