@@ -1,1 +1,1 @@
-rootProject.name = "generic-osb-api"
+rootProject.name = "unipipe-service-broker"
