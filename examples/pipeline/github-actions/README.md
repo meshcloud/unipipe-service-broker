@@ -2,7 +2,7 @@
 
 A Github Actions pipeline makes sense, if the repository that stores the service instances and bindings lives on Github.
 
-This example inclues a catalog with an Azure vnet service and implements the full lifecycle for this Service. The pipeline uses UniPipe CLI for working with instance yaml files.
+This example includes a catalog with an Azure VNet service and implements the full lifecycle for this Service. The pipeline uses UniPipe CLI for working with instance yaml files.
 
 ## How to set up the pipeline
 You need a Github repository that is r+w accessible for a UniPipe service broker instance.
