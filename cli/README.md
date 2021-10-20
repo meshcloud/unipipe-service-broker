@@ -69,6 +69,8 @@ git -C osb-repo commit
 git -C osb-repo push origin master
 ```
 
+A more sophisticated example for using unipipe cli in a pipeline can be found in ../example/pipeline/github-actions.
+
 ## Writing a Transform Handler
 
 The `unipipe transform` allows you to transform service instances (stored as
