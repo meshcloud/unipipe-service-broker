@@ -1,0 +1,98 @@
+---
+serviceInstanceId: "eed1df43-e63c-40ad-995e-e21068254ef9"
+serviceDefinitionId: "22e1bbf3-b425-46cd-a03e-927f73abcaaf"
+planId: "1c5c4f4d-bde5-4030-9874-b096fd3f78c5"
+serviceDefinition:
+  id: "22e1bbf3-b425-46cd-a03e-927f73abcaaf"
+  name: "Azure DevOps"
+  description: "Onboard your team to Azure DevOps services"
+  plans:
+  - id: "1c5c4f4d-bde5-4030-9874-b096fd3f78c5"
+    name: "Full Team Onboarding plan"
+    description: "Enable all user in your meshProject on Azure DevOps."
+    metadata:
+      bullets:
+      - "bulletpoint 1"
+      - "bulletpoint 2"
+      costs:
+      - amount:
+          eur: 99.99
+        unit: "MONTHLY"
+      - amount:
+          eur: 100.0
+        unit: "SETUP FEE"
+      displayName: "Fullteam plan"
+    schemas:
+      service_instance:
+        create:
+          parameters:
+            $schema: "http://json-schema.org/draft-04/schema#"
+            properties:
+              projectname:
+                description: "Project name"
+                type: "string"
+              projectdescription:
+                description: "Project describtion"
+                type: "string"
+              msteamsad:
+                type: "string"
+                title: "MS Teams AD"
+                description: "Select the correct ms teams ad"
+                enum:
+                - "DEV"
+                - "TEST"
+                - "PROD"
+                widget: "select"
+              email:
+                description: "E-mail address"
+                type: "string"
+            type: "object"
+        update:
+          parameters:
+            $schema: "http://json-schema.org/draft-04/schema#"
+            properties:
+              projectname:
+                description: "Project name"
+                type: "string"
+              projectdescription:
+                description: "Project describtion"
+                type: "string"
+              msteamsad:
+                description: "MS Teams AD group"
+                type: "string"
+              email:
+                description: "E-mail address"
+                type: "string"
+            type: "object"
+    free: false
+  bindable: false
+  planUpdateable: true
+  tags:
+  - "azure"
+  - "devops"
+  metadata:
+    displayName: "Azure DevOps"
+    imageUrl: "https://docs.microsoft.com/en-us/azure/devops/media/index/devopsiconpipelines96.svg?view=azure-devops"
+    longDescription: "Azure DevOps services"
+    providerDisplayName: "Azure"
+    documentationUrl: "https://docs.microsoft.com/en-us/azure/devops/?view=azure-devops"
+    supportUrl: "https://azure.microsoft.com/en-us/services/devops/"
+  requires: []
+  dashboardClient: null
+originatingIdentity: !<PlatformContext>
+  platform: "meshmarketplace"
+  user_id: "502c9d14-db19-4e20-b71a-e3a0717bc0db"
+  user_euid: "partner@meshcloud.io"
+asyncAccepted: true
+parameters:
+  projectname: "test"
+  projectdescription: "test"
+  msteamsad: "TEST"
+context: !<PlatformContext>
+  platform: "meshmarketplace"
+  permission_url: null
+  project_id: "osb-dev"
+  auth_url: null
+  customer_id: "unipipe-osb-dev"
+  token_url: null
+deleted: true

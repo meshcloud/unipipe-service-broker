@@ -1,0 +1,76 @@
+---
+serviceInstanceId: "159440dd-652a-4e2b-916e-9cd4dde33c33"
+serviceDefinitionId: "d90c2b20-1d24-4592-88e7-6ab5eb147925"
+planId: "322909fb-4309-423b-ae7f-23a97587a89e"
+serviceDefinition:
+  id: "d90c2b20-1d24-4592-88e7-6ab5eb147925"
+  name: "Azure VPC a Service (Teant Aware)"
+  description: "Order a VPC for your Project"
+  bindable: true
+  plan_updateable: false
+  instances_retrievable: true
+  bindings_retrievable: true
+  metadata:
+    tenantAware: true
+    displayName: "Azure VPS Functions"
+    imageUrl: "https://azure.microsoft.com/svghandler/functions?width=600&height=315"
+    longDescription: "Azure VPC services"
+    providerDisplayName: "Azure"
+    documentationUrl: "https://docs.microsoft.com/en-us/azure/azure-functions/"
+    supportUrl: "https://docs.microsoft.com/en-us/azure/azure-functions/"
+  tags:
+    - "azure"
+    - "vpc"
+  plans:
+    - id: "322909fb-4309-423b-ae7f-23a97587a89e"
+      name: "Azure VPC"
+      description: "Description what the Azure VPC does"
+      free: false
+      metadata:
+        bullets:
+          - Makes your project better
+        costs:
+          - amount:
+              eur: 10.00
+            unit: SETUP FEE
+        displayName: Azure default VPC
+      schemas:
+        service_instance:
+          create:
+            parameters:
+              $schema: http://json-schema.org/draft-04/schema#
+              properties:
+                cidr:
+                  description: "CIDR"
+                  type: "string"
+                region:
+                  description: "Azure Region"
+                  type: "string"
+              type: object
+          update:
+            parameters:
+              $schema: http://json-schema.org/draft-04/schema#
+              properties:
+                cidr:
+                  description: "CIDR"
+                  type: "string"
+                region:
+                  description: "Azure Region"
+                  type: "string"
+              type: object
+originatingIdentity: !<PlatformContext>
+  platform: "meshmarketplace"
+  user_id: "502c9d14-db19-4e20-b71a-e3a0717bc0db"
+  user_euid: "partner@meshcloud.io"
+asyncAccepted: true
+parameters:
+  cidr: "10.0.0.0/24"
+  region: "eu-west"
+context: !<PlatformContext>
+  platform: "meshmarketplace"
+  permission_url: null
+  project_id: "osb-dev"
+  auth_url: null
+  customer_id: "unipipe-osb-dev"
+  token_url: null
+deleted: false
