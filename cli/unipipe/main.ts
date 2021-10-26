@@ -7,7 +7,7 @@ import { Command, CompletionsCommand } from './deps.ts';
 
 const program = new Command()
   .name("unipipe")
-  .version("0.6.4")
+  .version("1.2.2")
   .description("UniPipe CLI - supercharge your GitOps OSB service pipelines");
 
 program
