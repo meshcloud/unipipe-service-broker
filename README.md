@@ -11,6 +11,39 @@ actual provisioning.
 
 ![A marketplace that integrates with a Service Broker](assets/OSB-Graphic-03.png "Service Broker interactions")
 
+## How to deploy a "Hello World" UniPipe Service Broker 
+
+First we need the unipipe-cli binary on our local machine. Head over to [unipipe-cli releases](https://github.com/meshcloud/unipipe-cli/releases/latest) and pick the right binary for your system.
+
+```sh
+# Create a new directory for working with unipipe cli
+mkdir unipipe-demo
+cd unipipe-demo
+# Download the binary; In this example I download the os x binaries of unipipe version v0.6.2
+wget https://github.com/meshcloud/unipipe-cli/releases/download/v0.6.2/unipipe-x86_64-apple-darwin
+# Rename binary to unipipe
+mv unipipe-x86_64-* unipipe
+# Make the binary executable
+chmod +x unipipe
+# Create an alias for unipipe
+alias unipipe=$(pwd)/unipipe
+```
+
+Now we are all set for getting started with our unipipe journey!
+
+Let's start by deploying [UniPipe Service Broker](https://github.com/meshcloud/unipipe-service-broker) to Azure.
+
+```sh
+unipipe generate unipipe-service-broker-deployment -f "main.tf"
+# The cli will ask for a couple of parameter.
+# After you entered all of them, the file main.tf is generated and ready to be applied.
+terraform apply
+```
+
+We need to add the public SSH key of the service broker as a "Deploy Key" to our GitHub Repository. Follow the [official GitHub Docs](https://docs.github.com/en/developers/overview/managing-deploy-keys#setup-2) for this.
+
+Now let's add a catalog to our repository. Navigate to the  working directory
+
 ## Configuration
 
 The easiest way to deploy `Unipipe Service Broker` infrastructure and create
