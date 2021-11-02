@@ -24,8 +24,8 @@ jobs:
         release_name: Release ${{ github.ref }}
         draft: false
         prerelease: false
-    - name: upload-url
-      run: echo "::set-output name=upload-url::${{ steps.create_release.outputs.upload_url }}" # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
+    - name: Set upload-url
+      run: echo "::set-output name=upload-url::${{ steps.create_release.outputs.upload_url }}"
 
   # note: while repeated gradle builds may seem wasteful, the local docker build workflow is very handy so we do 
   # want to retain it. Unfortunately there's no easy way to extract the built jar from the image and publish that instead
@@ -70,7 +70,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        upload_url:  ${needs.create-release.outputs.upload-url}
+        upload_url:  ${{ needs.create-release.outputs.upload-url }}
         asset_path: ./build/libs/unipipe-service-broker-1.0.0.jar
         asset_name: unipipe-service-broker.jar
         asset_content_type: application/zip
@@ -121,7 +121,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url:  ${needs.create-release.outputs.upload-url}
+          upload_url:  ${{ needs.create-release.outputs.upload-url }}
           asset_path: ./cli/bin/unipipe-cli-x86_64-apple-darwin
           asset_name: unipipe-x86_64-apple-darwin
           asset_content_type: application/octet-stream
@@ -130,7 +130,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url:  ${needs.create-release.outputs.upload-url}
+          upload_url:  ${{ needs.create-release.outputs.upload-url }}
           asset_path: ./cli/bin/unipipe-cli-x86_64-unknown-linux-gnu
           asset_name: unipipe-x86_64-unknown-linux-gnu
           asset_content_type: application/octet-stream
@@ -139,7 +139,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url:  ${needs.create-release.outputs.upload-url}
+          upload_url:  ${{ needs.create-release.outputs.upload-url }}
           asset_path: ./cli/bin/unipipe-cli-x86_64-pc-windows-msvc.exe
           asset_name: unipipe-x86_64-pc-windows-msvc.exe
           asset_content_type: application/octet-stream
