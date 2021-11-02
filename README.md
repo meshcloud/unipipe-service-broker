@@ -11,6 +11,22 @@ actual provisioning.
 
 ![A marketplace that integrates with a Service Broker](assets/OSB-Graphic-03.png "Service Broker interactions")
 
+# How to install unipipe cli
+
+Run the command below depending on your operating system. Additionally, check the content of the file to be sure that the install script is safe.
+
+**Linux**
+
+```
+curl -sf -L https://raw.githubusercontent.com/meshcloud/unipipe-service-broker/main/install.sh | sudo bash
+```
+
+**Mac OS X**
+
+```
+curl -sf -L https://raw.githubusercontent.com/meshcloud/collie-cli/main/install.sh | sh
+```
+
 ## How to deploy a "Hello World" UniPipe Service Broker 
 
 First we need the unipipe-cli binary on our local machine. Head over to [unipipe-cli releases](https://github.com/meshcloud/unipipe-cli/releases/latest) and pick the right binary for your system.
