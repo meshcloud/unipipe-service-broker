@@ -87,17 +87,14 @@ function generateUuid() {
 }
 
 async function generateCatalog(options: CatalogOpts) {
-  console.log(catalog);
   writeDirectoryWithUserInput("catalog.yml", catalog, "Pick a destination directory for the generated catalog file:", (options.destination?options.destination:undefined))
 }
 
 async function generateExecutionScript(options: CatalogOpts) {
-  console.log(executionScript);
   writeDirectoryWithUserInput("execute-terraform-templates.sh", executionScript, "Pick a destination directory for the generated execution script file:", (options.destination?options.destination:undefined))
 }
 
 async function generateGithubWorkflow(options: CatalogOpts) {
-  console.log(githubWorkflow);
   writeDirectoryWithUserInput("github-workflow.yml", githubWorkflow, "Pick a destination directory for the generated github-workflow file:", (options.destination?options.destination:undefined))
 }
 
