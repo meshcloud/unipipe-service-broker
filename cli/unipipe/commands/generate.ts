@@ -126,7 +126,7 @@ async function generateTransformHandler(options: CatalogOpts) {
         outputContent = basicTransformHandler.replaceAll('$SERVICEID', options.uuid )
       }
       console.log(outputContent);
-      writeDirectoryWithUserInput("handler.js", outputContent, "Pick a destination directory for the generated transform file:", (options.destination?options.destination:undefined))
+      writeDirectoryWithUserInput("handlers.js", outputContent, "Pick a destination directory for the generated transform file:", (options.destination?options.destination:undefined))
       break;
     }
     case "handler_tf": {
@@ -137,7 +137,7 @@ async function generateTransformHandler(options: CatalogOpts) {
         outputContent = terraformTransformHandler.replaceAll('$SERVICEID', options.uuid )
       }
       console.log(outputContent);
-      writeDirectoryWithUserInput("handler.js", outputContent, "Pick a destination directory for the generated transform file:", (options.destination?options.destination:undefined))
+      writeDirectoryWithUserInput("handlers.js", outputContent, "Pick a destination directory for the generated transform file:", (options.destination?options.destination:undefined))
       break;
     }
     default:
