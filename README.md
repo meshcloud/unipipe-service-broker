@@ -22,13 +22,13 @@ Run the command below depending on your operating system. Check the content of t
 **Linux**
 
 ```
-curl -sf -L https://raw.githubusercontent.com/meshcloud/unipipe-service-broker/main/install.sh | sudo bash
+curl -sf -L https://raw.githubusercontent.com/meshcloud/unipipe-service-broker/master/install.sh | sudo bash
 ```
 
 **Mac OS X**
 
 ```
-curl -sf -L https://raw.githubusercontent.com/meshcloud/collie-cli/main/install.sh | sh
+curl -sf -L https://raw.githubusercontent.com/meshcloud/unipipe-service-broker/master/install.sh | sh
 ```
 
 # How to deploy UniPipe Service Broker on Azure with terraform
