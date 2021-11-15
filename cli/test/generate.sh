@@ -24,7 +24,7 @@ it_can_generate_transform-handler() {
   unipipe generate transform-handler --handler handler_b --uuid `unipipe generate uuid` --destination ./output
 
   # test the generated handler is valid js
-  deno run --no-check - <<< "// deno-lint-ignore-file\n "`cat ./output/handler.js`
+  deno run --no-check - <<< "// deno-lint-ignore-file\n "`cat ./output/handlers.js`
 }
 
 run it_can_show_generate_help

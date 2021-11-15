@@ -11,7 +11,7 @@ export const basicTransformHandler = `
               \`-- params.json
 
   For more information about handlers please review the official unipipe-cli documentation
-  at https://github.com/meshcloud/unipipe-cli
+  at https://github.com/meshcloud/unipipe-service-broker/tree/master/cli
 */
 
 class MyHandler {

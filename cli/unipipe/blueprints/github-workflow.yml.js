@@ -3,7 +3,7 @@ name: Update Instances
 concurrency: osb-instances # signal that we're modifying instances
 
 env:
-  unipipe-version: v0.6.4
+  unipipe-version: v1.2.4
   # Use Github Repository Secrets to set your credentials.
   MY_SECRET_KEY: \${{ secrets.MY_SECRET_KEY }}
 
@@ -34,7 +34,7 @@ jobs:
         if: steps.unipipe-cli-cache.outputs.cache-hit != 'true'
         run: |
           cd ~/.local/bin
-          wget --no-verbose https://github.com/meshcloud/unipipe-cli/releases/download/\${{env.unipipe-version}}/unipipe-x86_64-unknown-linux-gnu
+          wget --no-verbose https://github.com/meshcloud/unipipe-service-broker/releases/download/\${{env.unipipe-version}}/unipipe-cli-x86_64-unknown-linux-gnu
           mv unipipe-x86_64-unknown-linux-gnu unipipe
           chmod +x unipipe
       - name: checkout # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
