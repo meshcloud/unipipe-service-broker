@@ -2,12 +2,12 @@
 
 > There are certain parts about the process that could be automated better, pull requests are welcome.
 
-1. Pick a new version number according to [semver](https://semver.org/). 
+1. Pick a new version number according to [semver](https://semver.org/).
    Note that we consider the configuration parameters part of unipipe service broker's "API".
    Note that we consider the commands and output part of unipipe cli's "API".
   
 2. Update the version number in these places:
-    - `cli/main.ts`
+    - `cli/info.ts`
 
 3. Update `CHANGELOG.md`. We follow the guidelines from
    [Keep a Changelog][keep-a-changelog]. It's recommended to add changes for the next version in a vNext section already together with pull requests, as this will make releasing a lot easier.

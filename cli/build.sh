@@ -2,7 +2,7 @@
 
 set -e
 
-deno_flags="--unstable --allow-read --allow-write --allow-env"
+deno_flags=$(deno run flags.ts --quiet)
 
 mkdir -p bin
 
