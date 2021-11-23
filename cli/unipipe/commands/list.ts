@@ -49,44 +49,53 @@ export function registerListCmd(program: Command) {
     )
     .option(
       "--status [status:status]",
-      "Filters instances by status. Allowed values are 'in progress', 'succeeded', 'failed' and 'EMPTY' (no status file present for this instance)."
+      "Filters instances by status. Allowed values are 'in progress', 'succeeded', 'failed' and 'EMPTY' (no status file present for this instance).",
     )
     .option(
       "--deleted [deleted:boolean]",
-      "Filters instances by deleted. Allowed values are 'true' and 'false'"
+      "Filters instances by deleted. Allowed values are 'true' and 'false'",
     )
     .description(
       "Lists service instances status stored in a UniPipe OSB git repo.",
     )
     .action(async (options: ListOpts, repo: string) => {
-      await list(repo, options);
+      const out = await list(repo, options);
+      console.log(out);
     });
 }
 
-export async function list(osbRepoPath: string, opts: ListOpts) {
-
-  const filterFn = buildFilterFn(opts)
+export async function list(
+  osbRepoPath: string,
+  opts: ListOpts,
+): Promise<string> {
+  const filterFn = buildFilterFn(opts);
 
   switch (opts.outputFormat) {
     case "json":
-      await listJson(osbRepoPath, filterFn);
-      break;
+      return await listJson(osbRepoPath, filterFn);
     case "text":
-      await listTable(osbRepoPath, filterFn, opts.profile);
-      break;
+      return await listTable(osbRepoPath, filterFn, opts.profile);
   }
 }
 
-async function listJson(osbRepoPath: string, filterFn : (instance: ServiceInstance) => boolean) {
+async function listJson(
+  osbRepoPath: string,
+  filterFn: (instance: ServiceInstance) => boolean,
+): Promise<string> {
   const results = await mapInstances(
     osbRepoPath,
     async (instance) => await instance,
-    filterFn
+    filterFn,
   );
-  console.log(JSON.stringify(results));
+
+  return JSON.stringify(results);
 }
 
-async function listTable(osbRepoPath: string, filterFn : (instance: ServiceInstance) => boolean, profile?: Profile) {
+async function listTable(
+  osbRepoPath: string,
+  filterFn: (instance: ServiceInstance) => boolean,
+  profile?: Profile,
+): Promise<string> {
   const results = await mapInstances(osbRepoPath, async (instance) => {
     const i = instance.instance;
 
@@ -114,10 +123,10 @@ async function listTable(osbRepoPath: string, filterFn : (instance: ServiceInsta
     "deleted",
   ];
 
-  new Table()
+  return new Table()
     .header(header)
     .body(results)
-    .render();
+    .toString();
 }
 
 function profileColHeaders(profile?: Profile): string[] {
@@ -155,17 +164,15 @@ function profileColValues(
   }
 }
 
-function buildFilterFn(opts: ListOpts ): (instance: ServiceInstance) => boolean {
-  return ( (instance: ServiceInstance) => {
-
+function buildFilterFn(opts: ListOpts): (instance: ServiceInstance) => boolean {
+  return ((instance: ServiceInstance) => {
     const statusFilterMatches = !opts.status ||
       opts.status === instance.status?.status ||
-      ((opts.status === "EMPTY" )&&(instance.status === null));
+      ((opts.status === "EMPTY") && (instance.status === null));
 
-    const deletedFilterMatches =
-      (!opts.deleted && opts.deleted !== false) ||
+    const deletedFilterMatches = (!opts.deleted && opts.deleted !== false) ||
       opts.deleted === instance.instance.deleted;
 
     return deletedFilterMatches && statusFilterMatches;
-    });
+  });
 }
