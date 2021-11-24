@@ -25,4 +25,4 @@ export {
 export type { ITypeInfo } from "https://deno.land/x/cliffy@v0.20.1/command/mod.ts";
 export { UpgradeCommand, GithubProvider } from "https://deno.land/x/cliffy@v0.20.1/command/upgrade/mod.ts";
 export { Table } from "https://deno.land/x/cliffy@v0.20.1/table/mod.ts";
-export { Input, Select } from "https://deno.land/x/cliffy@v0.20.1/prompt/mod.ts";
+export { prompt as prompt, Input, Select } from "https://deno.land/x/cliffy@v0.20.1/prompt/mod.ts";
