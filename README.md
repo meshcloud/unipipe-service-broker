@@ -17,7 +17,11 @@ The `unipipe` cli is the swiss army knife in the UniPipe universe. Use it to:
 
 # How to install unipipe cli
 
-Run the command below depending on your operating system. Check the content of the file to be sure that the install script is safe.
+Run the command below depending on your operating system.
+
+## Binary distribution
+
+Check the content of the file to be sure that the install script is safe.
 
 **Linux**
 
@@ -30,6 +34,17 @@ curl -sf -L https://raw.githubusercontent.com/meshcloud/unipipe-service-broker/m
 ```
 curl -sf -L https://raw.githubusercontent.com/meshcloud/unipipe-service-broker/master/cli/install.sh | sh
 ```
+
+## Deno install
+
+If you already have a [deno runtime](https://deno.land/#installation) installed on your system, you can install and upgrade unipipe cli comfortably via:
+
+```bash
+deno install --unstable --allow-read --allow-write --allow-env --allow-net --allow-run https://raw.githubusercontent.com/meshcloud/unipipe-service-broker/master/cli/unipipe/main.ts
+```
+
+Use the builtin `unipipe upgrade` command to switch to a particular official version of the cli.
+
 
 # How to deploy UniPipe Service Broker on Azure with terraform
 
