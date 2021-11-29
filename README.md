@@ -31,6 +31,8 @@ UniPipe service broker is a tool for offering services on [OSB API](https://www.
 
 # 🎬 Getting Started
 
+Pretty much everything in the UniPipe universe can be done with unipipe CLI. [🕹️ How to install unipipe cli](https://github.com/meshcloud/unipipe-service-broker/wiki/How-To-Guides#%EF%B8%8F-how-to-install-unipipe-cli).
+
 For getting started hands-on follow the [Tutorials](https://github.com/meshcloud/unipipe-service-broker/wiki/Tutorials).
 
 For understanding how everything fits together check out [Understanding the UniPipe universe](https://github.com/meshcloud/unipipe-service-broker/wiki/Understanding#understanding-the-unipipe-universe).
