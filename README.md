@@ -23,9 +23,7 @@
   </a>
 </p> 
 
-UniPipe service broker is a tool for offering services on [OSB API](https://www.openservicebrokerapi.org/) compliant marketplaces.
-
-The key features of UniPipe service broker are:
+UniPipe service broker is a tool for offering services on [OSB API](https://www.openservicebrokerapi.org/) compliant marketplaces. It's key features are:
 - **Fast deployment using terraform:** [Get up and running with your first service broker in < 30 Minutes](https://github.com/meshcloud/unipipe-service-broker/wiki/How-To-Guides#deploy-unipipe-service-broker-with-terraform)
 - **Easy operations:** The service broker container is stateless. Service Instances and bindings are stored in a git repository. The container is broken? Just `terraform apply` again!
 - **GitOps workflow:** Don't have all the automation yet? Just read out service requests from the git repository and provision the service manually, then update the status via `unipipe` cli.
