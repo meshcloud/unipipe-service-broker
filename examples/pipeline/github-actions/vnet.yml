@@ -2,7 +2,7 @@ name: Update Instances
 concurrency: osb-instances # signal that we're modifying instances (status/gemerated tf=)
 
 env:
-  unipipe-version: v1.2.4
+  unipipe-version: v1.3.0
   # Use Github Repository Secrets to set your credentials.
   ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
   ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
