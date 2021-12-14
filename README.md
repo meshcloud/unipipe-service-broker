@@ -51,7 +51,7 @@ After building the first 100% automated service (say on-prem connectivity), team
 
 This way, UniPipe service broker becomes the starting point for the transition from IT services to a cloud foundation.
 
-If you want to understand where your are on your cloud journey, try out our [Cloud Foundation Maturity Model](https://www.meshcloud.io/cloud-assessment-free-poster/). It is a tool that you can use to identify gaps in your cloud setup, define a roadmap and understand where you can save cost by improving efficiency.
+If you want to understand where your are on your cloud journey, try out our [Cloud Foundation Maturity Model](https://cloudfoundation.meshcloud.io/). It is a tool that you can use to identify gaps in your cloud setup, define a roadmap and understand where you can save cost by improving efficiency.
 
 <img align="center" src=".github/cfmm.png">
 
