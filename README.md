@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <i>Offering services the GitOps way</i>
+  <i>Offering Services the GitOps Way</i>
 </p>
 
 <p align="center">
