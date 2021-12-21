@@ -35,12 +35,32 @@ class GitHandlerService(
 
   private val git = initGit(gitConfig)
 
+  override fun instancesDirectory(): File {
+    return fileInRepo("instances")
+  }
+
   override fun fileInRepo(path: String): File {
     return File(gitConfig.localPath, path)
   }
 
   override fun getLastCommitMessage(): String {
     return git.log().setMaxCount(1).call().single().fullMessage
+  }
+
+  override fun instanceYmlRelativePath(instanceId: String): String {
+    return "${instanceDirectoryRelativePath(instanceId)}/instance.yml"
+  }
+
+  override fun instanceDirectoryRelativePath(instanceId: String): String {
+    return "instances/$instanceId"
+  }
+
+  override fun bindingDirectoryRelativePath(instanceId: String, bindingId: String): String {
+    return "instances/$instanceId/bindings/$bindingId"
+  }
+
+  override fun bindingYmlRelativePathInRepo(instanceId: String, bindingId: String): String {
+    return "${bindingDirectoryRelativePath(instanceId, bindingId)}/binding.yml"
   }
 
   /**

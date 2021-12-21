@@ -1,10 +1,18 @@
 package io.meshcloud.dockerosb.persistence
 
+import com.fasterxml.jackson.core.type.TypeReference
+import io.meshcloud.dockerosb.metrics.ServiceInstanceDatapoints
+import io.meshcloud.dockerosb.metrics.inplace.InplaceMetricModel
 import io.meshcloud.dockerosb.model.ServiceInstance
 import io.meshcloud.dockerosb.model.Status
+import mu.KotlinLogging
 import org.springframework.cloud.servicebroker.model.instance.OperationState
+import org.springframework.stereotype.Component
 import java.io.File
 
+private val log = KotlinLogging.logger {}
+
+@Component
 class ServiceInstanceRepository(private val yamlHandler: YamlHandler, private val gitHandler: GitHandler) {
   fun createServiceInstance(serviceInstance: ServiceInstance) {
     val serviceInstanceId = serviceInstance.serviceInstanceId
@@ -70,6 +78,37 @@ class ServiceInstanceRepository(private val yamlHandler: YamlHandler, private va
     return yamlHandler.readObject(instanceYml, ServiceInstance::class.java)
   }
 
+  /*fun tryGetServiceInstanceMetrics(serviceInstanceId: String): ServiceInstanceDatapoints<T>? {
+    val instanceMetricsYml = serviceInstanceYmlFile(serviceInstanceId)
+
+    if (!instanceMetricsYml.exists()) {
+      return null
+    }
+
+    return yamlHandler.readObject(instanceMetricsYml, ServiceInstanceDatapoints::class.java)
+  }*/
+
+  fun findInstancesByServiceId(serviceDefinitionId: String): List<ServiceInstance> {
+    return gitHandler.instancesDirectory().listFiles()
+        .map { gitHandler.fileInRepo(gitHandler.instanceYmlRelativePath(it.name)) }
+        .filter { it.exists() }
+        .sortedBy { it.lastModified() }
+        .map { yamlHandler.readObject(it, ServiceInstance::class.java) }
+        .filter { it.serviceDefinitionId == serviceDefinitionId }
+  }
+
+  fun getServiceInstanceMetricsInplace(serviceInstanceId: String): ServiceInstanceDatapoints<InplaceMetricModel>? {
+    val metricsYml = serviceInstanceMetricsYmlFile(serviceInstanceId)
+
+    return if (metricsYml.exists())
+    {
+      when {}
+       yamlHandler.readObject(metricsYml, ServiceInstanceDatapoints<InplaceMetricModel>::class.java)
+    }
+      else {
+         null
+      }
+  }
 
   fun getServiceInstanceStatus(serviceInstanceId: String): Status {
     val statusYml = serviceInstanceStatusYmlFile(serviceInstanceId)
@@ -81,6 +120,12 @@ class ServiceInstanceRepository(private val yamlHandler: YamlHandler, private va
           description = "preparing deployment"
       )
     }
+  }
+
+  private fun serviceInstanceMetricsYmlFile(serviceInstanceId: String): File {
+    val instanceMetricPath = instanceFolderPath(serviceInstanceId) + "/metrics.yml"
+
+    return gitHandler.fileInRepo(instanceMetricPath)
   }
 
   private fun serviceInstanceYmlFile(serviceInstanceId: String): File {
