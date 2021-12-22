@@ -13,7 +13,9 @@ import java.io.File
 private val log = KotlinLogging.logger {}
 
 @Component
-class ServiceInstanceRepository(private val yamlHandler: YamlHandler, private val metricYamlHandler: GenericYamlHandler, private val gitHandler: GitHandler) {
+class ServiceInstanceRepository(private val yamlHandler: YamlHandler, private val gitHandler: GitHandler) {
+  private val metricYamlHandler = GenericYamlHandler()
+
   fun createServiceInstance(serviceInstance: ServiceInstance) {
     val serviceInstanceId = serviceInstance.serviceInstanceId
 
@@ -87,7 +89,7 @@ class ServiceInstanceRepository(private val yamlHandler: YamlHandler, private va
       "gauge" -> metricYamlHandler.readGeneric<ServiceInstanceDatapoints<GaugeMetricModel>>(instanceMetricsYml)
       "inplace" -> metricYamlHandler.readGeneric<ServiceInstanceDatapoints<InplaceMetricModel>>(instanceMetricsYml)
       // ..
-      else -> null
+      else -> return null // {ServiceInstanceDatapoints<String>(resource = "", serviceInstanceId = "", values = listOf())}
     }
   }
 
@@ -109,19 +111,6 @@ class ServiceInstanceRepository(private val yamlHandler: YamlHandler, private va
         .sortedBy { it.lastModified() }
         .map { yamlHandler.readObject(it, ServiceInstance::class.java) }
         .filter { it.serviceDefinitionId == serviceDefinitionId }
-  }
-
-  fun getServiceInstanceMetricsInplace(serviceInstanceId: String): ServiceInstanceDatapoints<InplaceMetricModel>? {
-    val metricsYml = serviceInstanceMetricsYmlFile(serviceInstanceId)
-
-    return if (metricsYml.exists())
-    {
-      when {}
-       yamlHandler.readObject(metricsYml, ServiceInstanceDatapoints<InplaceMetricModel>::class.java)
-    }
-      else {
-         null
-      }
   }
 
   fun getServiceInstanceStatus(serviceInstanceId: String): Status {

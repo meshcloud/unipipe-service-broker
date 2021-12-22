@@ -27,7 +27,7 @@ class InplaceMetricProvider(
   override fun getMetrics(serviceDefinitionId: String, from: Instant, to: Instant, index: Int): List<ServiceInstanceDatapoints<InplaceMetricModel>> {
     //val service = catalog.findServiceByName(serviceName)
     val instances = serviceInstanceRepository.findInstancesByServiceId(serviceDefinitionId)
-    val metrics = serviceInstanceRepository.getServiceInstanceMetrics(instances[0].serviceInstanceId)
+    val metrics = serviceInstanceRepository.tryGetServiceInstanceMetrics(instances[0].serviceInstanceId,"inplace")
 
     return if (instances.size > index) {
       val firstTimestamp = LocalDateTime.ofInstant(from, utcZoneId).truncatedTo(ChronoUnit.HOURS)
