@@ -13,7 +13,7 @@ import java.io.File
 private val log = KotlinLogging.logger {}
 
 @Component
-class ServiceInstanceRepository(private val yamlHandler: YamlHandler, private val gitHandler: GitHandler) {
+class ServiceInstanceRepository(private val yamlHandler: YamlHandler, private val metricYamlHandler: MetricYamlHandler, private val gitHandler: GitHandler) {
   fun createServiceInstance(serviceInstance: ServiceInstance) {
     val serviceInstanceId = serviceInstance.serviceInstanceId
 
@@ -77,6 +77,21 @@ class ServiceInstanceRepository(private val yamlHandler: YamlHandler, private va
 
     return yamlHandler.readObject(instanceYml, ServiceInstance::class.java)
   }
+
+  // TODO make metricType an enum
+  // TODO consider introducing an common base type (interface) for all metric types,
+  //      so we can get rid of ServiceInstanceDatapoints<*> and can use e.g. ServiceInstanceDatapoints<MetricModel>
+  fun tryGetServiceInstanceMetrics(serviceInstanceId: String, metricType: String): ServiceInstanceDatapoints<*>? {
+    val instanceMetricsYml = serviceInstanceYmlFile(serviceInstanceId)
+    return when(metricType) {
+      "gauge" -> metricYamlHandler.readGaugeServiceInstanceDatapoints(instanceMetricsYml)
+      "inplace" -> metricYamlHandler.readInplaceServiceInstanceDatapoints(instanceMetricsYml)
+      // ..
+      else -> null
+    }
+
+  }
+
 
   /*fun tryGetServiceInstanceMetrics(serviceInstanceId: String): ServiceInstanceDatapoints<T>? {
     val instanceMetricsYml = serviceInstanceYmlFile(serviceInstanceId)
