@@ -1,6 +1,5 @@
 package io.meshcloud.dockerosb.persistence
 
-import com.fasterxml.jackson.core.type.TypeReference
 import io.meshcloud.dockerosb.metrics.ServiceInstanceDatapoints
 import io.meshcloud.dockerosb.metrics.gauge.GaugeMetricModel
 import io.meshcloud.dockerosb.metrics.inplace.InplaceMetricModel
@@ -14,7 +13,7 @@ import java.io.File
 private val log = KotlinLogging.logger {}
 
 @Component
-class ServiceInstanceRepository(private val yamlHandler: YamlHandler, private val metricYamlHandler: MetricYamlHandler, private val gitHandler: GitHandler) {
+class ServiceInstanceRepository(private val yamlHandler: YamlHandler, private val metricYamlHandler: GenericYamlHandler, private val gitHandler: GitHandler) {
   fun createServiceInstance(serviceInstance: ServiceInstance) {
     val serviceInstanceId = serviceInstance.serviceInstanceId
 
@@ -85,8 +84,8 @@ class ServiceInstanceRepository(private val yamlHandler: YamlHandler, private va
   fun tryGetServiceInstanceMetrics(serviceInstanceId: String, metricType: String): ServiceInstanceDatapoints<*>? {
     val instanceMetricsYml = serviceInstanceYmlFile(serviceInstanceId)
     return when(metricType) {
-      "gauge" -> metricYamlHandler.readGenericServiceInstanceDatapoints<ServiceInstanceDatapoints<GaugeMetricModel>>(instanceMetricsYml)
-      "inplace" -> metricYamlHandler.readGenericServiceInstanceDatapoints<ServiceInstanceDatapoints<InplaceMetricModel>>(instanceMetricsYml)
+      "gauge" -> metricYamlHandler.readGeneric<ServiceInstanceDatapoints<GaugeMetricModel>>(instanceMetricsYml)
+      "inplace" -> metricYamlHandler.readGeneric<ServiceInstanceDatapoints<InplaceMetricModel>>(instanceMetricsYml)
       // ..
       else -> null
     }

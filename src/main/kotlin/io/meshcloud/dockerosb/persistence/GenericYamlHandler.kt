@@ -10,14 +10,14 @@ import java.io.File
 import com.fasterxml.jackson.module.kotlin.*
 
 @Service
-class MetricYamlHandler {
+class GenericYamlHandler {
 
   val metricYamlMapper = ObjectMapper(YAMLFactory())
     .registerKotlinModule()
     .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
     .registerModule(JavaTimeModule())
 
-  final inline fun <reified T>readGenericServiceInstanceDatapoints(file: File): T {
+  final inline fun <reified T>readGeneric(file: File): T {
     return metricYamlMapper.readValue(file)
   }
 }
