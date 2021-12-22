@@ -2,6 +2,7 @@ package io.meshcloud.dockerosb.persistence
 
 import com.fasterxml.jackson.core.type.TypeReference
 import io.meshcloud.dockerosb.metrics.ServiceInstanceDatapoints
+import io.meshcloud.dockerosb.metrics.gauge.GaugeMetricModel
 import io.meshcloud.dockerosb.metrics.inplace.InplaceMetricModel
 import io.meshcloud.dockerosb.model.ServiceInstance
 import io.meshcloud.dockerosb.model.Status
@@ -84,12 +85,11 @@ class ServiceInstanceRepository(private val yamlHandler: YamlHandler, private va
   fun tryGetServiceInstanceMetrics(serviceInstanceId: String, metricType: String): ServiceInstanceDatapoints<*>? {
     val instanceMetricsYml = serviceInstanceYmlFile(serviceInstanceId)
     return when(metricType) {
-      "gauge" -> metricYamlHandler.readGaugeServiceInstanceDatapoints(instanceMetricsYml)
-      "inplace" -> metricYamlHandler.readInplaceServiceInstanceDatapoints(instanceMetricsYml)
+      "gauge" -> metricYamlHandler.readGenericServiceInstanceDatapoints<ServiceInstanceDatapoints<GaugeMetricModel>>(instanceMetricsYml)
+      "inplace" -> metricYamlHandler.readGenericServiceInstanceDatapoints<ServiceInstanceDatapoints<InplaceMetricModel>>(instanceMetricsYml)
       // ..
       else -> null
     }
-
   }
 
 
