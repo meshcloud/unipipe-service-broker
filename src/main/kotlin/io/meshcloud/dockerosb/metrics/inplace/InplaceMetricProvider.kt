@@ -31,11 +31,10 @@ class InplaceMetricProvider(
     return if (instances.size > index) {
       val firstTimestamp = LocalDateTime.ofInstant(from, utcZoneId).truncatedTo(ChronoUnit.HOURS)
       val lastTimestamp = LocalDateTime.ofInstant(to, utcZoneId).truncatedTo(ChronoUnit.HOURS)
-      // at max go back 5 days in providing metrics, as meshstack will request from 1970 on for the first call
 
       listOf(
           @Suppress("UNCHECKED_CAST")
-          serviceInstanceRepository.tryGetServiceInstanceMetrics(instances[index].serviceInstanceId, MetricType.INPLACE) as ServiceInstanceDatapoints<InplaceMetricModel>
+          serviceInstanceRepository.tryGetServiceInstanceMetrics(instances[index].serviceInstanceId, MetricType.INPLACE, from, to) as ServiceInstanceDatapoints<InplaceMetricModel>
       )
     } else {
       listOf()

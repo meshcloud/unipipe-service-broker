@@ -12,6 +12,7 @@ import mu.KotlinLogging
 import org.springframework.cloud.servicebroker.model.instance.OperationState
 import org.springframework.stereotype.Component
 import java.io.File
+import java.time.Instant
 
 private val log = KotlinLogging.logger {}
 
@@ -84,11 +85,16 @@ class ServiceInstanceRepository(private val yamlHandler: YamlHandler, private va
 
   // TODO consider introducing an common base type (interface) for all metric types,
   //      so we can get rid of ServiceInstanceDatapoints<*> and can use e.g. ServiceInstanceDatapoints<MetricModel>
-  fun tryGetServiceInstanceMetrics(serviceInstanceId: String, metricType: MetricType): ServiceInstanceDatapoints<*>? {
+  fun tryGetServiceInstanceMetrics(serviceInstanceId: String, metricType: MetricType, from: Instant, to: Instant): ServiceInstanceDatapoints<*>? {
     val instanceMetricsYml = serviceInstanceMetricsYmlFile(serviceInstanceId)
     return when(metricType) {
       MetricType.GAUGE -> yamlHandler.readGeneric<ServiceInstanceDatapoints<GaugeMetricModel>>(instanceMetricsYml)
-      MetricType.INPLACE -> yamlHandler.readGeneric<ServiceInstanceDatapoints<InplaceMetricModel>>(instanceMetricsYml)
+      MetricType.INPLACE -> {
+        val instanceMetrics = yamlHandler.readGeneric<ServiceInstanceDatapoints<InplaceMetricModel>>(instanceMetricsYml)
+        val filteredInstanceMetricValues = instanceMetrics.values.dropWhile { x -> ( x.observedAt < from || x.observedAt > to ) }
+        instanceMetrics.values = filteredInstanceMetricValues
+        return instanceMetrics
+      }
       MetricType.PERIODIC -> yamlHandler.readGeneric<ServiceInstanceDatapoints<PeriodicCounterMetricModel>>(instanceMetricsYml)
       MetricType.SAMPLING -> yamlHandler.readGeneric<ServiceInstanceDatapoints<SamplingCounterMetricModel>>(instanceMetricsYml)
     }
