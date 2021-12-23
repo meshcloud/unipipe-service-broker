@@ -1,6 +1,7 @@
 package io.meshcloud.dockerosb.metrics.inplace
 
 import io.meshcloud.dockerosb.findServiceByName
+import io.meshcloud.dockerosb.metrics.MetricType
 import io.meshcloud.dockerosb.metrics.MetricsProvider.Companion.utcZoneId
 import io.meshcloud.dockerosb.metrics.ServiceInstanceDatapoints
 import io.meshcloud.dockerosb.persistence.ServiceInstanceRepository
@@ -27,7 +28,7 @@ class InplaceMetricProvider(
   override fun getMetrics(serviceDefinitionId: String, from: Instant, to: Instant, index: Int): List<ServiceInstanceDatapoints<InplaceMetricModel>> {
     //val service = catalog.findServiceByName(serviceName)
     val instances = serviceInstanceRepository.findInstancesByServiceId(serviceDefinitionId)
-    val metrics = serviceInstanceRepository.tryGetServiceInstanceMetrics(instances[0].serviceInstanceId,"inplace")
+    val metrics = serviceInstanceRepository.tryGetServiceInstanceMetrics(instances[0].serviceInstanceId,MetricType.INPLACE)
 
     return if (instances.size > index) {
       val firstTimestamp = LocalDateTime.ofInstant(from, utcZoneId).truncatedTo(ChronoUnit.HOURS)

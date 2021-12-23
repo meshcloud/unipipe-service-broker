@@ -1,8 +1,11 @@
 package io.meshcloud.dockerosb.persistence
 
+import io.meshcloud.dockerosb.metrics.MetricType
 import io.meshcloud.dockerosb.metrics.ServiceInstanceDatapoints
 import io.meshcloud.dockerosb.metrics.gauge.GaugeMetricModel
 import io.meshcloud.dockerosb.metrics.inplace.InplaceMetricModel
+import io.meshcloud.dockerosb.metrics.periodiccounter.PeriodicCounterMetricModel
+import io.meshcloud.dockerosb.metrics.samplingcounter.SamplingCounterMetricModel
 import io.meshcloud.dockerosb.model.ServiceInstance
 import io.meshcloud.dockerosb.model.Status
 import mu.KotlinLogging
@@ -14,7 +17,6 @@ private val log = KotlinLogging.logger {}
 
 @Component
 class ServiceInstanceRepository(private val yamlHandler: YamlHandler, private val gitHandler: GitHandler) {
-  private val metricYamlHandler = GenericYamlHandler()
 
   fun createServiceInstance(serviceInstance: ServiceInstance) {
     val serviceInstanceId = serviceInstance.serviceInstanceId
@@ -80,29 +82,17 @@ class ServiceInstanceRepository(private val yamlHandler: YamlHandler, private va
     return yamlHandler.readObject(instanceYml, ServiceInstance::class.java)
   }
 
-  // TODO make metricType an enum
   // TODO consider introducing an common base type (interface) for all metric types,
   //      so we can get rid of ServiceInstanceDatapoints<*> and can use e.g. ServiceInstanceDatapoints<MetricModel>
-  fun tryGetServiceInstanceMetrics(serviceInstanceId: String, metricType: String): ServiceInstanceDatapoints<*>? {
+  fun tryGetServiceInstanceMetrics(serviceInstanceId: String, metricType: MetricType): ServiceInstanceDatapoints<*>? {
     val instanceMetricsYml = serviceInstanceYmlFile(serviceInstanceId)
     return when(metricType) {
-      "gauge" -> metricYamlHandler.readGeneric<ServiceInstanceDatapoints<GaugeMetricModel>>(instanceMetricsYml)
-      "inplace" -> metricYamlHandler.readGeneric<ServiceInstanceDatapoints<InplaceMetricModel>>(instanceMetricsYml)
-      // ..
-      else -> return null // {ServiceInstanceDatapoints<String>(resource = "", serviceInstanceId = "", values = listOf())}
+      MetricType.GAUGE -> yamlHandler.readGeneric<ServiceInstanceDatapoints<GaugeMetricModel>>(instanceMetricsYml)
+      MetricType.INPLACE -> yamlHandler.readGeneric<ServiceInstanceDatapoints<InplaceMetricModel>>(instanceMetricsYml)
+      MetricType.PERIODIC -> yamlHandler.readGeneric<ServiceInstanceDatapoints<PeriodicCounterMetricModel>>(instanceMetricsYml)
+      MetricType.SAMPLING -> yamlHandler.readGeneric<ServiceInstanceDatapoints<SamplingCounterMetricModel>>(instanceMetricsYml)
     }
   }
-
-
-  /*fun tryGetServiceInstanceMetrics(serviceInstanceId: String): ServiceInstanceDatapoints<T>? {
-    val instanceMetricsYml = serviceInstanceYmlFile(serviceInstanceId)
-
-    if (!instanceMetricsYml.exists()) {
-      return null
-    }
-
-    return yamlHandler.readObject(instanceMetricsYml, ServiceInstanceDatapoints::class.java)
-  }*/
 
   fun findInstancesByServiceId(serviceDefinitionId: String): List<ServiceInstance> {
     return gitHandler.instancesDirectory().listFiles()
