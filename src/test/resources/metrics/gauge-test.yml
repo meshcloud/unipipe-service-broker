@@ -1,0 +1,9 @@
+serviceInstanceId: test
+resource: test-resource
+values:
+  - writtenAt: 2021-12-01T16:37:23Z
+    observedAt: 2021-12-01T16:37:23Z
+    value: 1.0
+  - writtenAt: 2021-12-02T16:37:23Z
+    observedAt: 2021-12-02T16:37:23Z
+    value: 2.0
