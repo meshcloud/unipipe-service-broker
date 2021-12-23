@@ -39,7 +39,7 @@ class PagedGaugeController(
   private fun getResponse(serviceDefinitionId: String, from: Instant, to: Instant, instanceIndex: Int): ResponseEntity<MetricsResponse<GaugeMetricModel>> {
     val provider = metricsProviders.firstOrNull { it.canHandle(serviceDefinitionId) }
         ?: throw IllegalArgumentException("Could not find a matching provider for service id $serviceDefinitionId!")
-    val dataPoints = provider.getMetrics(from, to, instanceIndex)
+    val dataPoints = provider.getMetrics(serviceDefinitionId, from, to, instanceIndex)
     val response = MetricsResponse(dataPoints)
     val hasMorePages = instanceIndex < provider.totalInstanceCount() - 1
     if (hasMorePages) {

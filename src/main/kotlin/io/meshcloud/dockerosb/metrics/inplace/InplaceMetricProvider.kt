@@ -26,9 +26,7 @@ class InplaceMetricProvider(
   }
 
   override fun getMetrics(serviceDefinitionId: String, from: Instant, to: Instant, index: Int): List<ServiceInstanceDatapoints<InplaceMetricModel>> {
-    //val service = catalog.findServiceByName(serviceName)
     val instances = serviceInstanceRepository.findInstancesByServiceId(serviceDefinitionId)
-    val metrics = serviceInstanceRepository.tryGetServiceInstanceMetrics(instances[0].serviceInstanceId,MetricType.INPLACE)
 
     return if (instances.size > index) {
       val firstTimestamp = LocalDateTime.ofInstant(from, utcZoneId).truncatedTo(ChronoUnit.HOURS)
@@ -36,7 +34,8 @@ class InplaceMetricProvider(
       // at max go back 5 days in providing metrics, as meshstack will request from 1970 on for the first call
 
       listOf(
-         // serviceInstanceRepository.getServiceInstanceMetrics(instances[index].serviceInstanceId, ServiceInstanceDatapoints<InplaceMetricModel>)
+          @Suppress("UNCHECKED_CAST")
+          serviceInstanceRepository.tryGetServiceInstanceMetrics(instances[index].serviceInstanceId, MetricType.INPLACE) as ServiceInstanceDatapoints<InplaceMetricModel>
       )
     } else {
       listOf()

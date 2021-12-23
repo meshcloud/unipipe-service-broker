@@ -11,7 +11,7 @@ interface PaginatedGaugeMetricsProvider : MetricsProvider<PaginatedGaugeMetricsP
   /**
    * index: the index of the service instance that the metrics is request is for, after sorting by last modified time
    */
-  fun getMetrics(from: Instant, to: Instant, index: Int): List<ServiceInstanceDatapoints<GaugeMetricModel>>
+  fun getMetrics(serviceInstanceId: String, from: Instant, to: Instant, index: Int): List<ServiceInstanceDatapoints<GaugeMetricModel>>
 
   /**
    * Total count of instances for which this provider provides metrics

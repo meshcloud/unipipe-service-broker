@@ -1,6 +1,7 @@
 package io.meshcloud.dockerosb.metrics.gauge
 
 import io.meshcloud.dockerosb.findServiceByName
+import io.meshcloud.dockerosb.metrics.MetricType
 import io.meshcloud.dockerosb.metrics.MetricsProvider.Companion.utcZoneId
 import io.meshcloud.dockerosb.metrics.ServiceInstanceDatapoints
 import io.meshcloud.dockerosb.persistence.ServiceInstanceRepository
@@ -25,9 +26,9 @@ class RunningVmsMetricProvider(
     return serviceInstanceRepository.findInstancesByServiceId(service.id).count()
   }
 
-  override fun getMetrics(from: Instant, to: Instant, index: Int): List<ServiceInstanceDatapoints<GaugeMetricModel>> {
-    val service = catalog.findServiceByName(serviceName)
-    val instances = serviceInstanceRepository.findInstancesByServiceId(service.id)
+  override fun getMetrics(serviceDefinitionId: String, from: Instant, to: Instant, index: Int): List<ServiceInstanceDatapoints<GaugeMetricModel>> {
+    val instances = serviceInstanceRepository.findInstancesByServiceId(serviceDefinitionId)
+
     return if (instances.size > index) {
       val firstTimestamp = LocalDateTime.ofInstant(from, utcZoneId).truncatedTo(ChronoUnit.HOURS)
       val lastTimestamp = LocalDateTime.ofInstant(to, utcZoneId).truncatedTo(ChronoUnit.HOURS)

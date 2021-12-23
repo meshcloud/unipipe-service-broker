@@ -85,7 +85,7 @@ class ServiceInstanceRepository(private val yamlHandler: YamlHandler, private va
   // TODO consider introducing an common base type (interface) for all metric types,
   //      so we can get rid of ServiceInstanceDatapoints<*> and can use e.g. ServiceInstanceDatapoints<MetricModel>
   fun tryGetServiceInstanceMetrics(serviceInstanceId: String, metricType: MetricType): ServiceInstanceDatapoints<*>? {
-    val instanceMetricsYml = serviceInstanceYmlFile(serviceInstanceId)
+    val instanceMetricsYml = serviceInstanceMetricsYmlFile(serviceInstanceId)
     return when(metricType) {
       MetricType.GAUGE -> yamlHandler.readGeneric<ServiceInstanceDatapoints<GaugeMetricModel>>(instanceMetricsYml)
       MetricType.INPLACE -> yamlHandler.readGeneric<ServiceInstanceDatapoints<InplaceMetricModel>>(instanceMetricsYml)

@@ -2,7 +2,7 @@ package io.meshcloud.dockerosb.integrationtests
 
 import io.meshcloud.dockerosb.metrics.MetricsResponse
 import io.meshcloud.dockerosb.metrics.periodiccounter.ApiRequestCountMetricsProvider
-import io.meshcloud.dockerosb.metrics.perodiccounter.FakeThirdPartyServiceMetricsProvider
+import io.meshcloud.dockerosb.metrics.periodiccounter.FakeThirdPartyServiceMetricsProvider
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import java.time.Instant
