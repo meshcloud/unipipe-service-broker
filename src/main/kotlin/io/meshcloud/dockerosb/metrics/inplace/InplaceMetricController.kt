@@ -42,7 +42,7 @@ class PagedInplaceMetricController(
         ?: throw IllegalArgumentException("Could not find a matching provider for service id $serviceDefinitionId!")
     val dataPoints = provider.getMetrics(serviceDefinitionId, from, to, instanceIndex)
     val response = MetricsResponse(dataPoints)
-    val hasMorePages = instanceIndex < provider.totalInstanceCount() - 1
+    val hasMorePages = instanceIndex < provider.totalInstanceCount(serviceDefinitionId) - 1
     if (hasMorePages) {
       val nextLink = linkTo(methodOn(PagedInplaceMetricController::class.java).getInplaceMetricValues(
           serviceDefinitionId, instanceIndex + 1, from, to))

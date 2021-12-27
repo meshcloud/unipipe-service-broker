@@ -6,7 +6,6 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import io.meshcloud.dockerosb.metrics.MetricsResponse
-import io.meshcloud.dockerosb.metrics.gauge.RunningVmsMetricProvider
 import org.junit.Assert
 import org.junit.Assert.assertNull
 import org.junit.Test

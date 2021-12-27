@@ -12,3 +12,7 @@ fun Catalog.findServiceByName(serviceName: String): ServiceDefinition {
   return serviceDefinitions.single { it.name == serviceName }
 }
 
+fun Catalog.findServiceByDefinitionId(definitionId: String): ServiceDefinition? {
+  return serviceDefinitions.singleOrNull { it.id == definitionId }
+}
+

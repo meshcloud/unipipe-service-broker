@@ -16,5 +16,5 @@ interface PaginatedGaugeMetricsProvider : MetricsProvider<PaginatedGaugeMetricsP
   /**
    * Total count of instances for which this provider provides metrics
    */
-  fun totalInstanceCount(): Int
+  fun totalInstanceCount(serviceDefinitionId: String): Int
 }
