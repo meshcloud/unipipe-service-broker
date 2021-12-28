@@ -28,7 +28,7 @@ class PeriodicCounterMetricProvider(
   }
 
   override fun canHandle(serviceDefinitionId: String): Boolean {
-    return (catalog.findServiceByDefinitionId(serviceDefinitionId) != null)
+    return catalog.findServiceByDefinitionId(serviceDefinitionId) != null
   }
 
   override fun totalInstanceCount(serviceDefinitionId: String): Int {

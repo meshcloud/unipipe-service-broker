@@ -16,7 +16,7 @@ class PeriodicCounterController(
     private val metricsProviders: List<PeriodicCounterMetricProviderInterface>
 ) {
 
-  @GetMapping("/metrics/periodiccounters/{serviceDefinitionId}")
+  @GetMapping("/metrics/periodicCounters/{serviceDefinitionId}")
   fun getPeriodicCounterMetricValues(
       @PathVariable("serviceDefinitionId") serviceDefinitionId: String,
       @RequestParam from: Instant,
@@ -25,7 +25,7 @@ class PeriodicCounterController(
     return getResponse(serviceDefinitionId, from, to, 0)
   }
 
-  @GetMapping("/metrics/periodiccounters/{serviceDefinitionId}/{index}")
+  @GetMapping("/metrics/periodicCounters/{serviceDefinitionId}/{index}")
   fun getPeriodicCounterMetricValues(
       @PathVariable("serviceDefinitionId") serviceDefinitionId: String,
       @PathVariable(name = "index", required = false) index: Int,
