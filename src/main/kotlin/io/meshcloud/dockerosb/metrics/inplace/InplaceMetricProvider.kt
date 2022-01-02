@@ -28,10 +28,8 @@ class InplaceMetricProvider(
     val instances = serviceInstanceRepository.findInstancesByServiceId(serviceDefinitionId)
 
     return if (instances.size > index) {
-      listOf(
           @Suppress("UNCHECKED_CAST")
-          serviceInstanceRepository.tryGetServiceInstanceMetrics(instances[index].serviceInstanceId, MetricType.INPLACE, from, to) as ServiceInstanceDatapoints<InplaceMetricModel>
-      )
+          serviceInstanceRepository.tryGetServiceInstanceMetrics(instances[index].serviceInstanceId, MetricType.INPLACE, from, to) as List<ServiceInstanceDatapoints<InplaceMetricModel>>
     } else {
       listOf()
     }

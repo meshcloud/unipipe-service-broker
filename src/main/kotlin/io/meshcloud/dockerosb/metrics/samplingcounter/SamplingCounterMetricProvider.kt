@@ -5,6 +5,7 @@ import io.meshcloud.dockerosb.findServiceByName
 import io.meshcloud.dockerosb.metrics.MetricType
 import io.meshcloud.dockerosb.metrics.MetricsProvider
 import io.meshcloud.dockerosb.metrics.ServiceInstanceDatapoints
+import io.meshcloud.dockerosb.metrics.inplace.InplaceMetricModel
 import io.meshcloud.dockerosb.metrics.periodiccounter.PeriodicCounterMetricModel
 import io.meshcloud.dockerosb.persistence.ServiceInstanceRepository
 import org.springframework.cloud.servicebroker.model.catalog.Catalog
@@ -26,10 +27,8 @@ class SamplingCounterMetricProvider(
     val instances = serviceInstanceRepository.findInstancesByServiceId(serviceDefinitionId)
 
     return if (instances.size > index) {
-      listOf(
-          @Suppress("UNCHECKED_CAST")
-          serviceInstanceRepository.tryGetServiceInstanceMetrics(instances[index].serviceInstanceId, MetricType.SAMPLING, from, to) as ServiceInstanceDatapoints<SamplingCounterMetricModel>
-      )
+      @Suppress("UNCHECKED_CAST")
+      serviceInstanceRepository.tryGetServiceInstanceMetrics(instances[index].serviceInstanceId, MetricType.SAMPLING, from, to) as List<ServiceInstanceDatapoints<SamplingCounterMetricModel>>
     } else {
       listOf()
     }
@@ -41,12 +40,5 @@ class SamplingCounterMetricProvider(
 
   override fun totalInstanceCount(serviceDefinitionId: String): Int {
     return serviceInstanceRepository.findInstancesByServiceId(serviceDefinitionId).count()
-  }
-
-
-  companion object {
-    const val serviceName = "Amazon S3"
-    const val serviceId = "k4013377-8373-4c25-8014-fde98f38a728"
-    const val planId = "k13edce8-eb54-44d3-8902-8f24d5acb07e"
   }
 }

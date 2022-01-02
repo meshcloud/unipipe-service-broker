@@ -85,39 +85,74 @@ class ServiceInstanceRepository(private val yamlHandler: YamlHandler, private va
 
   // TODO consider introducing an common base type (interface) for all metric types,
   // so we can get rid of ServiceInstanceDatapoints<*> and can use e.g. ServiceInstanceDatapoints<MetricModel>
-  fun tryGetServiceInstanceMetrics(serviceInstanceId: String, metricType: MetricType, from: Instant, to: Instant): ServiceInstanceDatapoints<*>? {
-    val instanceMetricsYml = serviceInstanceMetricsYmlFile(serviceInstanceId)
+  fun tryGetServiceInstanceMetrics(serviceInstanceId: String, metricType: MetricType, from: Instant, to: Instant): List<ServiceInstanceDatapoints<*>>? {
     val instanceMetricsYmlFiles = serviceInstanceMetricsYmlFiles(serviceInstanceId)
     return when(metricType) {
       MetricType.GAUGE -> {
-        val instanceMetricsList =  instanceMetricsYmlFiles.map{yamlHandler.readGeneric<ServiceInstanceDatapoints<GaugeMetricModel>>(it)}
-        val filteredFlatValues = instanceMetricsList
-            .flatMap { serviceInstanceDatapoints: ServiceInstanceDatapoints<GaugeMetricModel> -> serviceInstanceDatapoints.values }
-            .dropWhile { x -> ( x.observedAt < from || x.observedAt > to ) }
-        return ServiceInstanceDatapoints(instanceMetricsList[0].serviceInstanceId, instanceMetricsList[0].resource, filteredFlatValues)
+        var serviceInstanceDatapointsList: List<ServiceInstanceDatapoints<GaugeMetricModel>> = listOf()
+        val combinedInstanceMetricsList =  instanceMetricsYmlFiles.map{yamlHandler.readGeneric<ServiceInstanceDatapoints<GaugeMetricModel>>(it)}
+        var serviceInstanceIdGroup = combinedInstanceMetricsList.groupBy { it.serviceInstanceId }
+        for (uniqueServiceInstance in serviceInstanceIdGroup){
+          var resourceGroup = uniqueServiceInstance.value.groupBy { it.resource }
+          for (uniqueResource in resourceGroup ){
+            val filteredValues = uniqueResource.value
+                .flatMap { serviceInstanceDatapoints: ServiceInstanceDatapoints<GaugeMetricModel> -> serviceInstanceDatapoints.values }
+                .dropWhile { x -> ( x.observedAt < from || x.observedAt > to ) }
+            if (filteredValues.count() > 0)
+              serviceInstanceDatapointsList += ServiceInstanceDatapoints(uniqueServiceInstance.key,uniqueResource.key,filteredValues)
+          }
+        }
+        return serviceInstanceDatapointsList
       }
       MetricType.INPLACE -> {
-        val instanceMetricsList =  instanceMetricsYmlFiles.map{yamlHandler.readGeneric<ServiceInstanceDatapoints<InplaceMetricModel>>(it)}
-        val filteredFlatValues = instanceMetricsList
-            .flatMap { serviceInstanceDatapoints: ServiceInstanceDatapoints<InplaceMetricModel> -> serviceInstanceDatapoints.values }
-            .dropWhile { x -> ( x.observedAt < from || x.observedAt > to ) }
-        return ServiceInstanceDatapoints(instanceMetricsList[0].serviceInstanceId, instanceMetricsList[0].resource, filteredFlatValues)
+        var serviceInstanceDatapointsList: List<ServiceInstanceDatapoints<InplaceMetricModel>> = listOf()
+        val combinedInstanceMetricsList =  instanceMetricsYmlFiles.map{yamlHandler.readGeneric<ServiceInstanceDatapoints<InplaceMetricModel>>(it)}
+        var serviceInstanceIdGroup = combinedInstanceMetricsList.groupBy { it.serviceInstanceId }
+        for (uniqueServiceInstance in serviceInstanceIdGroup){
+          var resourceGroup = uniqueServiceInstance.value.groupBy { it.resource }
+          for (uniqueResource in resourceGroup ){
+            val filteredValues = uniqueResource.value
+                .flatMap { serviceInstanceDatapoints: ServiceInstanceDatapoints<InplaceMetricModel> -> serviceInstanceDatapoints.values }
+                .dropWhile { x -> ( x.observedAt < from || x.observedAt > to ) }
+            if (filteredValues.count() > 0)
+              serviceInstanceDatapointsList += ServiceInstanceDatapoints(uniqueServiceInstance.key,uniqueResource.key,filteredValues)
+          }
+        }
+        return serviceInstanceDatapointsList
       }
       MetricType.PERIODIC ->{
         // PERIODIC METRIC TYPE HAS DIFFERENT PARAMETER TO DECIDE TIME-FILTERING
-        val instanceMetricsList =  instanceMetricsYmlFiles.map{yamlHandler.readGeneric<ServiceInstanceDatapoints<PeriodicCounterMetricModel>>(it)}
-        val filteredFlatValues = instanceMetricsList
-            .flatMap { serviceInstanceDatapoints: ServiceInstanceDatapoints<PeriodicCounterMetricModel> -> serviceInstanceDatapoints.values }
-            .dropWhile { x -> ( x.periodStart < from || x.periodEnd > to ) }
-        return ServiceInstanceDatapoints(instanceMetricsList[0].serviceInstanceId, instanceMetricsList[0].resource, filteredFlatValues)
+        var serviceInstanceDatapointsList: List<ServiceInstanceDatapoints<PeriodicCounterMetricModel>> = listOf()
+        val combinedInstanceMetricsList =  instanceMetricsYmlFiles.map{yamlHandler.readGeneric<ServiceInstanceDatapoints<PeriodicCounterMetricModel>>(it)}
+        var serviceInstanceIdGroup = combinedInstanceMetricsList.groupBy { it.serviceInstanceId }
+        for (uniqueServiceInstance in serviceInstanceIdGroup){
+          var resourceGroup = uniqueServiceInstance.value.groupBy { it.resource }
+          for (uniqueResource in resourceGroup ){
+            val filteredValues = uniqueResource.value
+                .flatMap { serviceInstanceDatapoints: ServiceInstanceDatapoints<PeriodicCounterMetricModel> -> serviceInstanceDatapoints.values }
+                .dropWhile { x -> ( x.periodStart < from || x.periodEnd > to ) }
+            if (filteredValues.count() > 0)
+              serviceInstanceDatapointsList += ServiceInstanceDatapoints(uniqueServiceInstance.key,uniqueResource.key,filteredValues)
+          }
+        }
+        return serviceInstanceDatapointsList
       }
       MetricType.SAMPLING ->
       {
-        val instanceMetricsList =  instanceMetricsYmlFiles.map{yamlHandler.readGeneric<ServiceInstanceDatapoints<SamplingCounterMetricModel>>(it)}
-        val filteredFlatValues = instanceMetricsList
-            .flatMap { serviceInstanceDatapoints: ServiceInstanceDatapoints<SamplingCounterMetricModel> -> serviceInstanceDatapoints.values }
-            .dropWhile { x -> ( x.observedAt < from || x.observedAt > to ) }
-        return ServiceInstanceDatapoints(instanceMetricsList[0].serviceInstanceId, instanceMetricsList[0].resource, filteredFlatValues)
+        var serviceInstanceDatapointsList: List<ServiceInstanceDatapoints<SamplingCounterMetricModel>> = listOf()
+        val combinedInstanceMetricsList =  instanceMetricsYmlFiles.map{yamlHandler.readGeneric<ServiceInstanceDatapoints<SamplingCounterMetricModel>>(it)}
+        var serviceInstanceIdGroup = combinedInstanceMetricsList.groupBy { it.serviceInstanceId }
+        for (uniqueServiceInstance in serviceInstanceIdGroup){
+          var resourceGroup = uniqueServiceInstance.value.groupBy { it.resource }
+          for (uniqueResource in resourceGroup ){
+            val filteredValues = uniqueResource.value
+                .flatMap { serviceInstanceDatapoints: ServiceInstanceDatapoints<SamplingCounterMetricModel> -> serviceInstanceDatapoints.values }
+                .dropWhile { x -> ( x.observedAt < from || x.observedAt > to ) }
+            if (filteredValues.count() > 0)
+              serviceInstanceDatapointsList += ServiceInstanceDatapoints(uniqueServiceInstance.key,uniqueResource.key,filteredValues)
+          }
+        }
+        return serviceInstanceDatapointsList
       }
     }
   }

@@ -3,6 +3,7 @@ package io.meshcloud.dockerosb.metrics.periodiccounter
 import io.meshcloud.dockerosb.findServiceByDefinitionId
 import io.meshcloud.dockerosb.metrics.MetricType
 import io.meshcloud.dockerosb.metrics.ServiceInstanceDatapoints
+import io.meshcloud.dockerosb.metrics.inplace.InplaceMetricModel
 import io.meshcloud.dockerosb.persistence.ServiceInstanceRepository
 import org.springframework.cloud.servicebroker.model.catalog.Catalog
 import org.springframework.stereotype.Service
@@ -18,10 +19,8 @@ class PeriodicCounterMetricProvider(
     val instances = serviceInstanceRepository.findInstancesByServiceId(serviceDefinitionId)
 
     return if (instances.size > index) {
-      listOf(
-          @Suppress("UNCHECKED_CAST")
-          serviceInstanceRepository.tryGetServiceInstanceMetrics(instances[index].serviceInstanceId, MetricType.PERIODIC, from, to) as ServiceInstanceDatapoints<PeriodicCounterMetricModel>
-      )
+      @Suppress("UNCHECKED_CAST")
+      serviceInstanceRepository.tryGetServiceInstanceMetrics(instances[index].serviceInstanceId, MetricType.PERIODIC, from, to) as List<ServiceInstanceDatapoints<PeriodicCounterMetricModel>>
     } else {
       listOf()
     }
