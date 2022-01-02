@@ -43,6 +43,10 @@ class GitHandlerService(
     return File(gitConfig.localPath, path)
   }
 
+  override fun filesInRepo(path: String): List<File> {
+    return File(gitConfig.localPath, path).walk().toList()
+  }
+
   override fun getLastCommitMessage(): String {
     return git.log().setMaxCount(1).call().single().fullMessage
   }

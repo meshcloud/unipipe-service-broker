@@ -26,4 +26,6 @@ interface GitHandler {
   fun bindingDirectoryRelativePath(instanceId: String, bindingId: String): String
 
   fun bindingYmlRelativePathInRepo(instanceId: String, bindingId: String): String
+
+  fun filesInRepo(instanceFolderPath: String): List<File>
 }
