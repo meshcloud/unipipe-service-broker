@@ -86,7 +86,7 @@ class ServiceInstanceRepository(private val yamlHandler: YamlHandler, private va
   // TODO consider introducing an common base type (interface) for all metric types,
   // so we can get rid of ServiceInstanceDatapoints<*> and can use e.g. ServiceInstanceDatapoints<MetricModel>
   fun tryGetServiceInstanceMetrics(serviceInstanceId: String, metricType: MetricType, from: Instant, to: Instant): List<ServiceInstanceDatapoints<*>>? {
-    val instanceMetricsYmlFiles = serviceInstanceMetricsYmlFiles(serviceInstanceId)
+    val instanceMetricsYmlFiles = serviceInstanceMetricsYmlFiles(serviceInstanceId, metricType)
     return when(metricType) {
       MetricType.GAUGE -> {
         var serviceInstanceDatapointsList: List<ServiceInstanceDatapoints<GaugeMetricModel>> = listOf()
@@ -186,6 +186,11 @@ class ServiceInstanceRepository(private val yamlHandler: YamlHandler, private va
 
   private fun serviceInstanceMetricsYmlFiles(serviceInstanceId: String): List<File> {
     return gitHandler.filesInRepo(instanceFolderPath(serviceInstanceId)).filter { it.name.startsWith("metrics") &&
+        it.name.endsWith(".yml") }.toList()
+  }
+
+  private fun serviceInstanceMetricsYmlFiles(serviceInstanceId: String, metricType: MetricType): List<File> {
+    return gitHandler.filesInRepo(instanceFolderPath(serviceInstanceId)).filter { it.name.startsWith(metricType.name.first().lowercase() + "-metrics") &&
         it.name.endsWith(".yml") }.toList()
   }
 

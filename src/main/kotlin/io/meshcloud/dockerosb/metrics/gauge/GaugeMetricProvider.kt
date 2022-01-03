@@ -1,17 +1,12 @@
 package io.meshcloud.dockerosb.metrics.gauge
 
 import io.meshcloud.dockerosb.findServiceByDefinitionId
-import io.meshcloud.dockerosb.findServiceByName
 import io.meshcloud.dockerosb.metrics.MetricType
-import io.meshcloud.dockerosb.metrics.MetricsProvider.Companion.utcZoneId
 import io.meshcloud.dockerosb.metrics.ServiceInstanceDatapoints
-import io.meshcloud.dockerosb.metrics.inplace.InplaceMetricModel
 import io.meshcloud.dockerosb.persistence.ServiceInstanceRepository
 import org.springframework.cloud.servicebroker.model.catalog.Catalog
 import org.springframework.stereotype.Service
 import java.time.Instant
-import java.time.LocalDateTime
-import java.time.temporal.ChronoUnit
 
 /**
  * Sends the metrics of each instance in a paged fashion

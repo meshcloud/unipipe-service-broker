@@ -3,7 +3,6 @@ package io.meshcloud.dockerosb.metrics.periodiccounter
 import io.meshcloud.dockerosb.findServiceByDefinitionId
 import io.meshcloud.dockerosb.metrics.MetricType
 import io.meshcloud.dockerosb.metrics.ServiceInstanceDatapoints
-import io.meshcloud.dockerosb.metrics.inplace.InplaceMetricModel
 import io.meshcloud.dockerosb.persistence.ServiceInstanceRepository
 import org.springframework.cloud.servicebroker.model.catalog.Catalog
 import org.springframework.stereotype.Service

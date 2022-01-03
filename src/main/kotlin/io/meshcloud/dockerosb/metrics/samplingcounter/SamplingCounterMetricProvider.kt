@@ -1,21 +1,12 @@
 package io.meshcloud.dockerosb.metrics.samplingcounter
 
 import io.meshcloud.dockerosb.findServiceByDefinitionId
-import io.meshcloud.dockerosb.findServiceByName
 import io.meshcloud.dockerosb.metrics.MetricType
-import io.meshcloud.dockerosb.metrics.MetricsProvider
 import io.meshcloud.dockerosb.metrics.ServiceInstanceDatapoints
-import io.meshcloud.dockerosb.metrics.inplace.InplaceMetricModel
-import io.meshcloud.dockerosb.metrics.periodiccounter.PeriodicCounterMetricModel
 import io.meshcloud.dockerosb.persistence.ServiceInstanceRepository
 import org.springframework.cloud.servicebroker.model.catalog.Catalog
 import org.springframework.stereotype.Service
-import java.math.BigDecimal
 import java.time.Instant
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.temporal.ChronoUnit
-import java.time.temporal.ChronoUnit.MINUTES
 
 @Service
 class SamplingCounterMetricProvider(
