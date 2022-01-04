@@ -1,85 +1,18 @@
-# The service names and ids and METRIC types here are used to create test metrics so make sure your modifications are inline with the metrics functionality
-# any text that matches '${application-url}' will be replaced by the app.url property from application.yml
-
 services:
   - id: "d40133dd-8373-4c25-8014-fde98f38a728"
-    name: "Datadog"
-    description: "This service does nothing, but exposes a periodic counter metric that simulates a third party invoice"
-    bindable: false
-    metrics:
-      periodicCounters: ${application-url}/metrics/periodicCounters/d40133dd-8373-4c25-8014-fde98f38a728
+    name: "example-osb"
+    description: "This service spins up a host with OpenStack and Cloud Foundry CLI installed."
+    bindable: true
     tags:
       - "example"
     plans:
       - id: "a13edcdf-eb54-44d3-8902-8f24d5acb07e"
         name: "S"
-        description: "A small plan"
-        free: false
-        bindable: false
-        metadata:
-          costs:
-            amount:
-              eur: 1
-            unit: METRIC third_party_invoice
-            description: The cost of usage for third party service
-  - id: "g40133dd-8373-4c25-8014-f3398f38a728"
-    name: "API Gateway Service"
-    description: "This service does nothing, but exposes a periodic counter metric that simulates couting the number of API requests made"
-    bindable: false
-    metrics:
-      periodicCounters: ${application-url}/metrics/periodicCounters/g40133dd-8373-4c25-8014-f3398f38a728
-    tags:
-      - "example"
-    plans:
-      - id: "g13edcdf-eb54-44d3-8902-8fe6d5acb07e"
-        name: "S"
-        description: "A small plan"
-        free: false
-        bindable: false
-        metadata:
-          costs:
-            amount:
-              eur: 0.0001
-            unit: METRIC api_request_count
-            description: The cost per request made
-
-  - id: "j40133dd-8373-4c25-8014-fc298f38a728"
-    name: "DBaaS"
-    description: "This service does nothing, but exposes a gauge metric to simulate the GBs of storage in use"
-    bindable: false
-    metrics:
-      gauges: ${application-url}/metrics/gauges/j40133dd-8373-4c25-8014-fde98f38a728
-    tags:
-      - "example"
-    plans:
-      - id: "j13ed56f-eb54-44d3-8902-8f24d5acb07e"
-        name: "S"
-        description: "A small plan"
-        free: false
-        bindable: false
-        metadata:
-          costs:
-            amount:
-              eur: 0.0005
-            unit: METRIC small_vm_count
-            description: The cost per hour per small vm
-  - id: "k4013377-8373-4c25-8014-fde98f38a728"
-    name: "Amazon S3"
-    description: "This service does nothing, but exposes a sampling counter that exposes a network usage in GB counter"
-    bindable: false
-    metrics:
-      periodicCounters: ${application-url}/metrics/samplingCounters/k40133dd-8373-4c25-8014-fde98f38a728
-    tags:
-      - "example"
-    plans:
-      - id: "k13edce8-eb54-44d3-8902-8f24d5acb07e"
-        name: "S"
-        description: "A small plan"
-        free: false
-        bindable: false
-        metadata:
-          costs:
-            amount:
-              eur: 0.002
-            unit: METRIC gigabytes_transferred
-            description: 0.002 EUR per GB transferred
+        description: "A small host with OpenStack and CloudFoundry CLI installed"
+        free: true
+        bindable: true
+      - id: "b387b010-c002-4eab-8902-3851694ef7ba"
+        name: "M"
+        description: "A medium host with OpenStack and CloudFoundry CLI installed"
+        free: true
+        bindable: true

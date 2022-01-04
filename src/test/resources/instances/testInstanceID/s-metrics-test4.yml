@@ -16,3 +16,6 @@ values:
   - writtenAt: '2021-12-15T12:34:33.616Z'
     observedAt: '2021-12-10T16:00:00Z'
     value: 2
+  - writtenAt: '2021-12-16T12:34:33.616Z'
+    observedAt: '2021-12-16T16:00:00Z'
+    value: 2
