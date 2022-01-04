@@ -95,9 +95,9 @@ class ServiceInstanceRepository(private val yamlHandler: YamlHandler, private va
         for (uniqueServiceInstance in serviceInstanceIdGroup){
           var resourceGroup = uniqueServiceInstance.value.groupBy { it.resource }
           for (uniqueResource in resourceGroup ){
-            val filteredValues = uniqueResource.value
+            var filteredValues = uniqueResource.value
                 .flatMap { serviceInstanceDatapoints: ServiceInstanceDatapoints<GaugeMetricModel> -> serviceInstanceDatapoints.values }
-                .dropWhile { x -> ( x.observedAt < from || x.observedAt > to ) }
+                .filterNot { gaugeMetricModel: GaugeMetricModel -> gaugeMetricModel.observedAt < from || gaugeMetricModel.observedAt > to }
             if (filteredValues.count() > 0)
               serviceInstanceDatapointsList += ServiceInstanceDatapoints(uniqueServiceInstance.key,uniqueResource.key,filteredValues)
           }
@@ -130,7 +130,7 @@ class ServiceInstanceRepository(private val yamlHandler: YamlHandler, private va
           for (uniqueResource in resourceGroup ){
             val filteredValues = uniqueResource.value
                 .flatMap { serviceInstanceDatapoints: ServiceInstanceDatapoints<PeriodicCounterMetricModel> -> serviceInstanceDatapoints.values }
-                .dropWhile { x -> ( x.periodStart < from || x.periodEnd > to ) }
+                .filterNot { periodicCounterMetricModel: PeriodicCounterMetricModel -> periodicCounterMetricModel.periodStart < from || periodicCounterMetricModel.periodEnd > to }
             if (filteredValues.count() > 0)
               serviceInstanceDatapointsList += ServiceInstanceDatapoints(uniqueServiceInstance.key,uniqueResource.key,filteredValues)
           }
@@ -147,7 +147,7 @@ class ServiceInstanceRepository(private val yamlHandler: YamlHandler, private va
           for (uniqueResource in resourceGroup ){
             val filteredValues = uniqueResource.value
                 .flatMap { serviceInstanceDatapoints: ServiceInstanceDatapoints<SamplingCounterMetricModel> -> serviceInstanceDatapoints.values }
-                .dropWhile { x -> ( x.observedAt < from || x.observedAt > to ) }
+                .filterNot { samplingCounterMetricModel: SamplingCounterMetricModel -> samplingCounterMetricModel.observedAt < from || samplingCounterMetricModel.observedAt > to }
             if (filteredValues.count() > 0)
               serviceInstanceDatapointsList += ServiceInstanceDatapoints(uniqueServiceInstance.key,uniqueResource.key,filteredValues)
           }
