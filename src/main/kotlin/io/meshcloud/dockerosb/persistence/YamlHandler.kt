@@ -46,8 +46,4 @@ class YamlHandler {
   final inline fun <reified T>readGeneric(file: File): T {
     return yamlMapper.readValue(file)
   }
-
-  final inline fun <reified T>readGeneric(string: String): T {
-    return yamlMapper.readValue(string)
-  }
 }

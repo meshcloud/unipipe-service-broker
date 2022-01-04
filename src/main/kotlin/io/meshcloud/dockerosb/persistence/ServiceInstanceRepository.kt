@@ -3,7 +3,6 @@ package io.meshcloud.dockerosb.persistence
 import io.meshcloud.dockerosb.metrics.MetricType
 import io.meshcloud.dockerosb.metrics.ServiceInstanceDatapoints
 import io.meshcloud.dockerosb.metrics.gauge.GaugeMetricModel
-import io.meshcloud.dockerosb.metrics.inplace.InplaceMetricModel
 import io.meshcloud.dockerosb.metrics.periodiccounter.PeriodicCounterMetricModel
 import io.meshcloud.dockerosb.metrics.samplingcounter.SamplingCounterMetricModel
 import io.meshcloud.dockerosb.model.ServiceInstance
@@ -104,22 +103,6 @@ class ServiceInstanceRepository(private val yamlHandler: YamlHandler, private va
         }
         return serviceInstanceDatapointsList
       }
-      MetricType.INPLACE -> {
-        var serviceInstanceDatapointsList: List<ServiceInstanceDatapoints<InplaceMetricModel>> = listOf()
-        val combinedInstanceMetricsList =  instanceMetricsYmlFiles.map{yamlHandler.readGeneric<ServiceInstanceDatapoints<InplaceMetricModel>>(it)}
-        var serviceInstanceIdGroup = combinedInstanceMetricsList.groupBy { it.serviceInstanceId }
-        for (uniqueServiceInstance in serviceInstanceIdGroup){
-          var resourceGroup = uniqueServiceInstance.value.groupBy { it.resource }
-          for (uniqueResource in resourceGroup ){
-            val filteredValues = uniqueResource.value
-                .flatMap { serviceInstanceDatapoints: ServiceInstanceDatapoints<InplaceMetricModel> -> serviceInstanceDatapoints.values }
-                .dropWhile { x -> ( x.observedAt < from || x.observedAt > to ) }
-            if (filteredValues.count() > 0)
-              serviceInstanceDatapointsList += ServiceInstanceDatapoints(uniqueServiceInstance.key,uniqueResource.key,filteredValues)
-          }
-        }
-        return serviceInstanceDatapointsList
-      }
       MetricType.PERIODIC ->{
         // PERIODIC METRIC TYPE HAS DIFFERENT PARAMETER TO DECIDE TIME-FILTERING
         var serviceInstanceDatapointsList: List<ServiceInstanceDatapoints<PeriodicCounterMetricModel>> = listOf()
@@ -176,12 +159,6 @@ class ServiceInstanceRepository(private val yamlHandler: YamlHandler, private va
           description = "preparing deployment"
       )
     }
-  }
-
-  private fun serviceInstanceMetricsYmlFile(serviceInstanceId: String): File {
-    val instanceMetricPath = instanceFolderPath(serviceInstanceId) + "/metrics.yml"
-
-    return gitHandler.fileInRepo(instanceMetricPath)
   }
 
   private fun serviceInstanceMetricsYmlFiles(serviceInstanceId: String): List<File> {
