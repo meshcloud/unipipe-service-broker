@@ -9,9 +9,12 @@ import java.time.Instant
  */
 interface PaginatedGaugeMetricsProvider : MetricsProvider<PaginatedGaugeMetricsProvider> {
   /**
-   * index: the index of the service instance that the metrics is request is for, after sorting by last modified time
+   * serviceDefinitionId: defines which serviceDefinition metrics you want to get
+   * from: the time filter start date for observedAt parameter
+   * end: the time filter end date for observedAt parameter
+   * index: selects the service instance for the serviceDefinitionId and ordering them with observedAt parameter
    */
-  fun getMetrics(serviceInstanceId: String, from: Instant, to: Instant, index: Int): List<ServiceInstanceDatapoints<GaugeMetricModel>>
+  fun getMetrics(serviceDefinitionId: String, from: Instant, to: Instant, index: Int): List<ServiceInstanceDatapoints<GaugeMetricModel>>
 
   /**
    * Total count of instances for which this provider provides metrics

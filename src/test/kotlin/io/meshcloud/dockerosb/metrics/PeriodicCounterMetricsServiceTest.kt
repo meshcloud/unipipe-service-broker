@@ -1,8 +1,11 @@
 package io.meshcloud.dockerosb.metrics
 
+import io.meshcloud.dockerosb.metrics.gauge.GaugeMetricProvider
+import io.meshcloud.dockerosb.metrics.gauge.PagedGaugeController
 import io.meshcloud.dockerosb.metrics.periodiccounter.PeriodicCounterController
 import io.meshcloud.dockerosb.metrics.periodiccounter.PeriodicCounterMetricProvider
 import org.junit.Assert
+import org.junit.Before
 import org.junit.Test
 import org.springframework.cloud.servicebroker.model.catalog.Catalog
 import java.time.Instant
@@ -18,40 +21,59 @@ class PeriodicCounterMetricsServiceTest : BaseMetricsServiceTest() {
   private val secondStartDate = Instant.parse("2020-01-01T12:00:00Z")
   private val endDate = Instant.parse("2022-12-01T12:00:00Z")
 
-  @Test
-  fun testPaginatedPeriodicCounterMetrics() {
-    val periodicCounterController = PeriodicCounterController(listOf(PeriodicCounterMetricProvider(catalogService.catalog.block() as Catalog, serviceInstanceRepository)))
+  private lateinit var periodicCounterController: PeriodicCounterController
 
+  @Before
+  fun init() {
+    periodicCounterController = PeriodicCounterController(listOf(PeriodicCounterMetricProvider(catalogService.catalog.block() as Catalog, serviceInstanceRepository)))
+  }
+
+  @Test
+  fun canReadMultipleFiles(){
     // can read multiple files for the same serviceInstanceId
-    val test1 = periodicCounterController.getPeriodicCounterMetricValues(serviceDefinitionId, firstStartDate, endDate).body?.dataPoints?.find { serviceInstanceDatapoints -> (serviceInstanceDatapoints.serviceInstanceId == serviceInstanceId && serviceInstanceDatapoints.resource==resource1 ) }
+    val test1 = periodicCounterController.getPeriodicCounterMetricValues(serviceDefinitionId, firstStartDate, endDate).body?.dataPoints?.find { serviceInstanceDatapoints -> (serviceInstanceDatapoints.serviceInstanceId == serviceInstanceId && serviceInstanceDatapoints.resource==resource1 )}
     Assert.assertEquals(serviceInstanceId,test1?.serviceInstanceId)
     Assert.assertEquals(resource1, test1?.resource)
     Assert.assertEquals(6, test1?.values?.count())
+  }
 
-    // can read multiple files for the same serviceInstanceId and time filter works
+  @Test
+  fun canReadMultipleFilesWithTimeFilter(){
     val test2 = periodicCounterController.getPeriodicCounterMetricValues(serviceDefinitionId, secondStartDate, endDate).body?.dataPoints?.find { serviceInstanceDatapoints -> (serviceInstanceDatapoints.serviceInstanceId == serviceInstanceId && serviceInstanceDatapoints.resource==resource1 ) }
     Assert.assertEquals(serviceInstanceId,test2?.serviceInstanceId)
     Assert.assertEquals(resource1, test2?.resource)
     Assert.assertEquals(2, test2?.values?.count())
+  }
 
+  @Test
+  fun canSeparateOtherServiceInstanceIds(){
     // can separate other serviceInstanceIds
     val test3 = periodicCounterController.getPeriodicCounterMetricValues(serviceDefinitionId, firstStartDate, endDate).body?.dataPoints?.find { serviceInstanceDatapoints -> (serviceInstanceDatapoints.serviceInstanceId == serviceInstanceId2 && serviceInstanceDatapoints.resource==resource1 ) }
     Assert.assertEquals(serviceInstanceId2,test3?.serviceInstanceId)
     Assert.assertEquals(resource1, test3?.resource)
     Assert.assertEquals(3, test3?.values?.count())
+  }
 
+  @Test
+  fun canSeparateOtherServiceInstanceIdsWithTimeFilter(){
     // can separate other serviceInstanceIds and time filter works
     val test4 = periodicCounterController.getPeriodicCounterMetricValues(serviceDefinitionId, secondStartDate, endDate).body?.dataPoints?.find { serviceInstanceDatapoints -> (serviceInstanceDatapoints.serviceInstanceId == serviceInstanceId2 && serviceInstanceDatapoints.resource==resource1 ) }
     Assert.assertEquals(serviceInstanceId2,test4?.serviceInstanceId)
     Assert.assertEquals(resource1, test4?.resource)
     Assert.assertEquals(1, test4?.values?.count())
+  }
 
+  @Test
+  fun canSeparateDifferentResources(){
     // can separate different resources for the serviceInstanceId
     val test5 = periodicCounterController.getPeriodicCounterMetricValues(serviceDefinitionId, firstStartDate, endDate).body?.dataPoints?.find { serviceInstanceDatapoints -> (serviceInstanceDatapoints.serviceInstanceId == serviceInstanceId && serviceInstanceDatapoints.resource==resource2 ) }
     Assert.assertEquals(serviceInstanceId,test5?.serviceInstanceId)
     Assert.assertEquals(resource2, test5?.resource)
     Assert.assertEquals(4, test5?.values?.count())
+  }
 
+  @Test
+  fun canSeparateDifferentResourcesWithTimeFilter(){
     // can separate different resources for the serviceInstanceId and time filter works
     val test6 = periodicCounterController.getPeriodicCounterMetricValues(serviceDefinitionId, secondStartDate, endDate).body?.dataPoints?.find { serviceInstanceDatapoints -> (serviceInstanceDatapoints.serviceInstanceId == serviceInstanceId && serviceInstanceDatapoints.resource==resource2 ) }
     Assert.assertEquals(serviceInstanceId,test6?.serviceInstanceId)

@@ -30,5 +30,6 @@ abstract class BaseMetricsServiceTest {
   @After
   fun cleanUp() {
     fixture.close()
+    FileUtils.deleteDirectory(File(fixture.localGitPath))
   }
 }

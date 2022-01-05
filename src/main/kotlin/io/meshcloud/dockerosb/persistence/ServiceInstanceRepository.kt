@@ -7,13 +7,10 @@ import io.meshcloud.dockerosb.metrics.periodiccounter.PeriodicCounterMetricModel
 import io.meshcloud.dockerosb.metrics.samplingcounter.SamplingCounterMetricModel
 import io.meshcloud.dockerosb.model.ServiceInstance
 import io.meshcloud.dockerosb.model.Status
-import mu.KotlinLogging
 import org.springframework.cloud.servicebroker.model.instance.OperationState
 import org.springframework.stereotype.Component
 import java.io.File
 import java.time.Instant
-
-private val log = KotlinLogging.logger {}
 
 @Component
 class ServiceInstanceRepository(private val yamlHandler: YamlHandler, private val gitHandler: GitHandler) {
@@ -86,7 +83,7 @@ class ServiceInstanceRepository(private val yamlHandler: YamlHandler, private va
   // so we can get rid of ServiceInstanceDatapoints<*> and can use e.g. ServiceInstanceDatapoints<MetricModel>
   fun tryGetServiceInstanceMetrics(serviceInstanceId: String, metricType: MetricType, from: Instant, to: Instant): List<ServiceInstanceDatapoints<*>>? {
     val instanceMetricsYmlFiles = serviceInstanceMetricsYmlFiles(serviceInstanceId, metricType)
-    return when(metricType) {
+    when(metricType) {
       MetricType.GAUGE -> {
         var serviceInstanceDatapointsList: List<ServiceInstanceDatapoints<GaugeMetricModel>> = listOf()
         val combinedInstanceMetricsList =  instanceMetricsYmlFiles.map{yamlHandler.readGeneric<ServiceInstanceDatapoints<GaugeMetricModel>>(it)}
@@ -97,7 +94,8 @@ class ServiceInstanceRepository(private val yamlHandler: YamlHandler, private va
             var filteredValues = uniqueResource.value
                 .flatMap { serviceInstanceDatapoints: ServiceInstanceDatapoints<GaugeMetricModel> -> serviceInstanceDatapoints.values }
                 .filterNot { gaugeMetricModel: GaugeMetricModel -> gaugeMetricModel.observedAt < from || gaugeMetricModel.observedAt > to }
-            if (filteredValues.count() > 0)
+                .sortedBy { gaugeMetricModel: GaugeMetricModel -> gaugeMetricModel.observedAt   }
+            if (filteredValues.isNotEmpty())
               serviceInstanceDatapointsList += ServiceInstanceDatapoints(uniqueServiceInstance.key,uniqueResource.key,filteredValues)
           }
         }
@@ -114,7 +112,8 @@ class ServiceInstanceRepository(private val yamlHandler: YamlHandler, private va
             val filteredValues = uniqueResource.value
                 .flatMap { serviceInstanceDatapoints: ServiceInstanceDatapoints<PeriodicCounterMetricModel> -> serviceInstanceDatapoints.values }
                 .filterNot { periodicCounterMetricModel: PeriodicCounterMetricModel -> periodicCounterMetricModel.periodStart < from || periodicCounterMetricModel.periodEnd > to }
-            if (filteredValues.count() > 0)
+                .sortedBy { periodicCounterMetricModel: PeriodicCounterMetricModel -> periodicCounterMetricModel.periodStart  }
+            if (filteredValues.isNotEmpty())
               serviceInstanceDatapointsList += ServiceInstanceDatapoints(uniqueServiceInstance.key,uniqueResource.key,filteredValues)
           }
         }
@@ -131,7 +130,8 @@ class ServiceInstanceRepository(private val yamlHandler: YamlHandler, private va
             val filteredValues = uniqueResource.value
                 .flatMap { serviceInstanceDatapoints: ServiceInstanceDatapoints<SamplingCounterMetricModel> -> serviceInstanceDatapoints.values }
                 .filterNot { samplingCounterMetricModel: SamplingCounterMetricModel -> samplingCounterMetricModel.observedAt < from || samplingCounterMetricModel.observedAt > to }
-            if (filteredValues.count() > 0)
+                .sortedBy { samplingCounterMetricModel: SamplingCounterMetricModel -> samplingCounterMetricModel.observedAt  }
+            if (filteredValues.isNotEmpty())
               serviceInstanceDatapointsList += ServiceInstanceDatapoints(uniqueServiceInstance.key,uniqueResource.key,filteredValues)
           }
         }
