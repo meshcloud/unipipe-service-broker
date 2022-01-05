@@ -161,11 +161,6 @@ class ServiceInstanceRepository(private val yamlHandler: YamlHandler, private va
     }
   }
 
-  private fun serviceInstanceMetricsYmlFiles(serviceInstanceId: String): List<File> {
-    return gitHandler.filesInRepo(instanceFolderPath(serviceInstanceId)).filter { it.name.startsWith("metrics") &&
-        it.name.endsWith(".yml") }.toList()
-  }
-
   private fun serviceInstanceMetricsYmlFiles(serviceInstanceId: String, metricType: MetricType): List<File> {
     return gitHandler.filesInRepo(instanceFolderPath(serviceInstanceId)).filter { it.name.startsWith(metricType.name.first().lowercase() + "-metrics") &&
         it.name.endsWith(".yml") }.toList()
