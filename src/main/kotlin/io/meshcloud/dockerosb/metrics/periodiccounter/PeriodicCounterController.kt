@@ -13,7 +13,7 @@ import java.time.Instant
 
 @RestController
 class PeriodicCounterController(
-    private val metricsProviders: List<PeriodicCounterMetricProviderInterface>
+    private val metricsProviders: List<PeriodicCounterMetricProvider>
 ) {
 
   @GetMapping("/metrics/periodicCounters/{serviceDefinitionId}")

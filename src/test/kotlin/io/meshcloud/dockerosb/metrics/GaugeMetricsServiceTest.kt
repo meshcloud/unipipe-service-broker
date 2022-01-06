@@ -1,16 +1,11 @@
 package io.meshcloud.dockerosb.metrics
 
-import io.meshcloud.dockerosb.ServiceBrokerFixture
 import io.meshcloud.dockerosb.metrics.gauge.GaugeMetricProvider
 import io.meshcloud.dockerosb.metrics.gauge.PagedGaugeController
-import io.meshcloud.dockerosb.persistence.ServiceInstanceRepository
-import io.meshcloud.dockerosb.service.GenericCatalogService
-import org.apache.commons.io.FileUtils
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 import org.springframework.cloud.servicebroker.model.catalog.Catalog
-import java.io.File
 import java.time.Instant
 
 class GaugeMetricsServiceTest : BaseMetricsServiceTest() {

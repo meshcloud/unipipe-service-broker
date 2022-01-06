@@ -1,12 +1,25 @@
 package io.meshcloud.dockerosb.metrics
 
-import java.time.ZoneId
+import io.meshcloud.dockerosb.findServiceByDefinitionId
+import io.meshcloud.dockerosb.persistence.ServiceInstanceRepository
+import org.springframework.cloud.servicebroker.model.catalog.Catalog
+import java.time.Instant
 
-interface MetricsProvider<T> {
+abstract class MetricsProvider<T>(
+  val catalog: Catalog,
+  val serviceInstanceRepository: ServiceInstanceRepository
+) {
 
-  fun canHandle(serviceDefinitionId: String): Boolean
+  abstract fun getMetrics(serviceDefinitionId: String, from: Instant, to: Instant, index: Int): List<ServiceInstanceDatapoints<T>>
 
-  companion object {
-    val utcZoneId: ZoneId = ZoneId.of("UTC")
+  fun canHandle(serviceDefinitionId: String): Boolean {
+    return catalog.findServiceByDefinitionId(serviceDefinitionId) != null
+  }
+
+  /**
+   * Total count of instances for which this provider provides metrics
+   */
+  fun totalInstanceCount(serviceDefinitionId: String): Int {
+    return serviceInstanceRepository.findInstancesByServiceId(serviceDefinitionId).count()
   }
 }

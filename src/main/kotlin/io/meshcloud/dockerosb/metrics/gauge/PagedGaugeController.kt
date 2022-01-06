@@ -1,5 +1,6 @@
 package io.meshcloud.dockerosb.metrics.gauge
 
+import io.meshcloud.dockerosb.metrics.MetricsProvider
 import io.meshcloud.dockerosb.metrics.MetricsResponse
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn
@@ -14,7 +15,7 @@ import java.time.Instant
 
 @RestController
 class PagedGaugeController(
-    private val metricsProviders: List<PaginatedGaugeMetricsProvider>
+    private val metricsProviders: List<MetricsProvider<GaugeMetricModel>>
 ) {
 
   @GetMapping("/metrics/gauges/{serviceDefinitionId}")
