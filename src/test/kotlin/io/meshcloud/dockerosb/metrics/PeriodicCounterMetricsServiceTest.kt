@@ -1,17 +1,17 @@
 package io.meshcloud.dockerosb.metrics
 
-import io.meshcloud.dockerosb.metrics.gauge.GaugeMetricProvider
-import io.meshcloud.dockerosb.metrics.gauge.PagedGaugeController
+import io.meshcloud.dockerosb.ServiceBrokerFixture
 import io.meshcloud.dockerosb.metrics.periodiccounter.PeriodicCounterController
 import io.meshcloud.dockerosb.metrics.periodiccounter.PeriodicCounterMetricProvider
-import org.junit.Assert
-import org.junit.Before
-import org.junit.Test
+import io.meshcloud.dockerosb.persistence.ServiceInstanceRepository
+import io.meshcloud.dockerosb.service.GenericCatalogService
+import org.apache.commons.io.FileUtils
+import org.junit.*
 import org.springframework.cloud.servicebroker.model.catalog.Catalog
+import java.io.File
 import java.time.Instant
 
-class PeriodicCounterMetricsServiceTest : BaseMetricsServiceTest() {
-
+class PeriodicCounterMetricsServiceTest {
   private val serviceDefinitionId = "d40133dd-8373-4c25-8014-fde98f38a728"
   private val serviceInstanceId = "testInstanceID"
   private val serviceInstanceId2 = "testInstanceID2"
@@ -21,11 +21,25 @@ class PeriodicCounterMetricsServiceTest : BaseMetricsServiceTest() {
   private val secondStartDate = Instant.parse("2020-01-01T12:00:00Z")
   private val endDate = Instant.parse("2022-12-01T12:00:00Z")
 
-  private lateinit var periodicCounterController: PeriodicCounterController
+  companion object {
+    private lateinit var periodicCounterController: PeriodicCounterController
+    private var fixture: ServiceBrokerFixture = ServiceBrokerFixture("src/test/resources/catalog.yml")
+    var serviceInstanceRepository: ServiceInstanceRepository = ServiceInstanceRepository(fixture.yamlHandler, fixture.gitHandler)
+    var catalogService: GenericCatalogService = GenericCatalogService(fixture.contextFactory)
 
-  @Before
-  fun init() {
-    periodicCounterController = PeriodicCounterController(listOf(PeriodicCounterMetricProvider(catalogService.catalog.block() as Catalog, serviceInstanceRepository)))
+    @BeforeClass
+    @JvmStatic
+    fun beforeClass() {
+      FileUtils.copyDirectory(File("src/test/resources/instances"), File("${fixture.localGitPath}/instances"))
+      periodicCounterController = PeriodicCounterController(listOf(PeriodicCounterMetricProvider(catalogService.catalog.block() as Catalog, serviceInstanceRepository)))
+    }
+
+    @AfterClass
+    @JvmStatic
+    fun afterClass() {
+      fixture.close()
+      FileUtils.deleteDirectory(File(fixture.localGitPath))
+    }
   }
 
   @Test
