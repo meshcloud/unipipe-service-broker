@@ -30,9 +30,13 @@ class CatalogRepository(
 
     val catalog = yamlHandler.readObject(catalogYml, YamlCatalog::class.java)
 
-    return Catalog.builder()
-        .serviceDefinitions(catalog.services)
-        .build()
+    val regexPattern = Regex("^[-a-zA-Z0-9\\s]+\$")
+    if (catalog.services.any { it -> !(regexPattern.containsMatchIn(it.id)) })
+      throw IllegalArgumentException("ServiceDefinitionId cannot contain any characters other than a-z, A-Z, 0-9 and - in your catalog!")
+    else
+      return Catalog.builder()
+            .serviceDefinitions(catalog.services)
+            .build()
   }
 
   class YamlCatalog(

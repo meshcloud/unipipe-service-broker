@@ -38,6 +38,7 @@ class PeriodicCounterController(
   private fun getResponse(serviceDefinitionId: String, from: Instant, to: Instant, instanceIndex: Int): ResponseEntity<MetricsResponse<PeriodicCounterMetricModel>> {
     val provider = metricsProviders.firstOrNull { it.canHandle(serviceDefinitionId) }
         ?: throw IllegalArgumentException("Could not find a matching provider for service id $serviceDefinitionId!")
+    if (instanceIndex < 0) throw IllegalArgumentException("Instance Index cannot be lower than 0!")
     val dataPoints = provider.getMetrics(serviceDefinitionId, from, to, instanceIndex)
     val response = MetricsResponse(dataPoints)
     val hasMorePages = instanceIndex < provider.totalInstanceCount(serviceDefinitionId) - 1
