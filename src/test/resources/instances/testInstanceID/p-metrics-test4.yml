@@ -1,0 +1,19 @@
+serviceInstanceId: testInstanceID
+resource: testSecond
+values:
+  - writtenAt: '2019-09-13T00:00:00.000Z'
+    periodStart: '2019-12-01T00:00:00.000Z'
+    periodEnd: '2019-12-12T00:00:00.000Z'
+    countedValue: 200
+  - writtenAt: '2019-09-29T00:00:00.000Z'
+    periodStart: '2019-12-12T00:00:00.000Z'
+    periodEnd: '2021-12-28T00:00:00.000Z'
+    countedValue: 700
+  - writtenAt: '2020-10-05T05:00:00.000Z'
+    periodStart: '2021-02-28T00:00:00.000Z'
+    periodEnd: '2021-12-05T00:00:00.000Z'
+    countedValue: 150
+  - writtenAt: '2021-10-05T05:00:00.000Z'
+    periodStart: '2021-03-28T00:00:00.000Z'
+    periodEnd: '2021-12-12T00:00:00.000Z'
+    countedValue: 1502
