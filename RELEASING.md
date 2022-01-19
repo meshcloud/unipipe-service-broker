@@ -7,7 +7,9 @@
    Note that we consider the commands and output part of unipipe cli's "API".
   
 2. Update the version number in these places:
-    - `cli/info.ts`
+    - `cli/unipipe/info.ts`
+    - `examples/pipeline/github-actions/vnet.yml`
+    - `cli/unipipe/blueprints/github-workflow.yml.js`
 
 3. Update `CHANGELOG.md`. We follow the guidelines from
    [Keep a Changelog][keep-a-changelog]. It's recommended to add changes for the next version in a vNext section already together with pull requests, as this will make releasing a lot easier.
