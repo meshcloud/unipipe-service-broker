@@ -1,4 +1,11 @@
-import { colors, Command, Select, prompt, Input } from "../deps.ts";
+import {
+  colors,
+  Command,
+  Select,
+  SelectValueOptions,
+  prompt,
+  Input,
+} from "../deps.ts";
 import { mapInstances } from "./helpers.ts";
 import { show } from "./show.ts";
 import { STATUSES, update } from "./update.ts";
@@ -13,21 +20,36 @@ export function registerBrowseCmd(program: Command) {
 }
 
 async function browse(osbRepoPath: string) {
-  // deno-lint-ignore require-await
-  const instanceOptions = await mapInstances(osbRepoPath, async (x) => {
-    const i = x.instance;
-    const plan = i.serviceDefinition.plans.filter((x) => x.id === i.planId)[0];
+  const instanceOptions: SelectValueOptions = [];
 
-    const name = [
-      colors.dim(i.serviceInstanceId),
-      colors.green(i.serviceDefinition.name),
-      colors.brightGreen(plan.name),
-      colors.blue(x.status?.status || "new"),
-      colors.red(i.deleted ? "deleted" : ""),
-    ].join(" ");
+  // We need to refresh the instance list select prompt before showing it.
+  // Otherwise it's possible that e.g. a user updates an instance status but the instance list
+  // does not reflect that when it's shown again. Replacing the select options array contents is not
+  // exactly officially documented as supported by cliffy, but also not forbidden. It works though ;-)
+  async function refreshInstanceList() {
+    // deno-lint-ignore require-await
+    const opts = await mapInstances(osbRepoPath, async (x) => {
+      const i = x.instance;
+      const plan = i.serviceDefinition.plans.filter(
+        (x) => x.id === i.planId
+      )[0];
 
-    return { name, value: i.serviceInstanceId };
-  });
+      const name = [
+        colors.dim(i.serviceInstanceId),
+        colors.green(i.serviceDefinition.name),
+        colors.brightGreen(plan.name),
+        colors.blue(x.status?.status || "new"),
+        colors.red(i.deleted ? "deleted" : ""),
+      ].join(" ");
+
+      return { name, value: i.serviceInstanceId };
+    });
+
+    instanceOptions.length = 0;
+    instanceOptions.push(...opts);
+  }
+
+  await refreshInstanceList();
 
   await prompt([
     {
@@ -53,6 +75,7 @@ async function browse(osbRepoPath: string) {
             break;
           }
           case "↑ instances":
+            await refreshInstanceList();
             next("instances"); // back up
             break;
           default:
