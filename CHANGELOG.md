@@ -1,13 +1,21 @@
 # Changelog
 
-## v1.3.0 (vNext)
+## v1.3.0
 
 This release comes with quite a bunch of new features
 
+### Service Broker
+
+- Added support for [metrics-based service metering](https://docs.meshcloud.io/docs/meshstack.meshmarketplace.metrics-metering.html).
+  This allows service developers to easily implement usage-based services that charge e.g. by the number of API requests
+  served or GiB-h of storage saved. Learn more about metrics-based metering implementation in the [UniPipe wiki](https://github.com/meshcloud/unipipe-service-broker/wiki/Reference#metrics-reference).
+
 ### CLI
 
-- Added a `unipipe browse` command. This command allows interactively manipulating service instances and bindings in a repository. Great for semi-manual service workflows!
-
+- add a new `unipipe browse` command to interactively explore and update service instances. This is very useful for "semi-automated" services where operators want to manually update service instance status.
+- add a new `unipipe upgrade` command that allows upgrading unipipe-cli versions when unipipe was installed via `deno install`. See [installation instructions](https://github.com/meshcloud/unipipe-service-broker/wiki/How-To-Guides#deno-install)
+- Add an official windows installation script for unipipe cli
+  
 ## v1.2.2
 
 - integrate cli into unipipe-service-broker repository
