@@ -2,7 +2,7 @@ import { Command } from '../deps.ts';
 import { write } from '../dir.ts';
 import { InstanceHandler } from '../handler.ts';
 import { ServiceInstance } from '../osb.ts';
-import { mapInstances } from './helpers.ts';
+import { Repository } from "../repository.ts";
 
 interface TransformOpts {
   xportRepo: string;
@@ -26,18 +26,21 @@ export function registerTransformCmd(program: Command) {
       "Path to the target git repository. If not specified the transform runs in place on the OSB git repo.",
     )
     .action(async (options: TransformOpts, repo: string) => {
-      await transform(repo, options);
+      const repository = new Repository(repo);
+      
+      await transform(repository, options);
     });
 }
 
 async function transform(
-  osbRepoPath: string,
+  repository: Repository,
   opts: TransformOpts,
 ) {
-  const handlers = await loadHandlers(opts.registryOfHandlers);
-  const outRepoPath = opts.xportRepo || osbRepoPath;
+  const outRepoPath = opts.xportRepo || repository.path;
 
-  mapInstances(osbRepoPath, async (instance: ServiceInstance) => {
+  const handlers = await loadHandlers(opts.registryOfHandlers);
+
+  repository.mapInstances(async (instance: ServiceInstance) => {
     const handler = handlers[instance.instance.serviceDefinitionId];
     const handledBy = (handler && handler.name) || "(no handler found)";
 

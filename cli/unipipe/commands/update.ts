@@ -1,5 +1,5 @@
-import { Command, EnumType, path } from "../deps.ts";
-import { stringify } from "../yaml.ts";
+import { Command, EnumType } from "../deps.ts";
+import { Repository } from "../repository.ts";
 
 const ALL_STATUSES = ["succeeded", "failed", "in progress"] as const;
 type StatusesTuple = typeof ALL_STATUSES;
@@ -35,37 +35,24 @@ export function registerUpdateCmd(program: Command) {
       default: "",
     })
     .action(async (options: UpdateOpts, repo: string) => {
-      await update(repo, options);
+      const repository = new Repository(repo);
+      await update(repository, options);
     });
 }
 
-export async function update(osbRepoPath: string, opts: UpdateOpts) {
-  let statusYmlPath: string;
-
-  if (!opts.bindingId) {
-    const instanceStatusYmlPath = path.join(
-      osbRepoPath,
-      "instances",
-      opts.instanceId,
-      "status.yml"
-    );
-    statusYmlPath = instanceStatusYmlPath;
-  } else {
-    const bindingStatusYmlPath = path.join(
-      osbRepoPath,
-      "instances",
-      opts.instanceId,
-      "bindings",
-      opts.bindingId,
-      "status.yml"
-    );
-    statusYmlPath = bindingStatusYmlPath;
-  }
-
-  const yaml = stringify({
+export async function update(repository: Repository, opts: UpdateOpts) {
+  const status = {
     status: opts.status,
     description: opts.description,
-  });
+  };
 
-  await Deno.writeTextFile(statusYmlPath, yaml);
+  if (!opts.bindingId) {
+    await repository.updateInstanceStatus(opts.instanceId, status);
+  } else {
+    await repository.updateBindingStatus(
+      opts.instanceId,
+      opts.bindingId,
+      status
+    );
+  }
 }

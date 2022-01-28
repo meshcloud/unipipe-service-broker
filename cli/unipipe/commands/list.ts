@@ -1,7 +1,11 @@
-import { Command, EnumType, Table } from '../deps.ts';
-import { MeshMarketplaceContext } from '../mesh.ts';
-import { CloudFoundryContext, OsbServiceInstance, ServiceInstance } from '../osb.ts';
-import { mapInstances } from './helpers.ts';
+import { Command, EnumType, Table } from "../deps.ts";
+import { MeshMarketplaceContext } from "../mesh.ts";
+import {
+  CloudFoundryContext,
+  OsbServiceInstance,
+  ServiceInstance,
+} from "../osb.ts";
+import { Repository } from "../repository.ts";
 
 // see https://stackoverflow.com/questions/44480644/string-union-to-string-array for the trick used here
 const ALL_FORMATS = ["text", "json"] as const;
@@ -38,65 +42,66 @@ export function registerListCmd(program: Command) {
     .type("status", statusesType)
     .option(
       "-p, --profile [profile:profile]",
-      "include columns of context information according to the specified OSB API profile. Supported values are 'meshmarketplace' and 'cloudfoundry'. Ignored when '-o json' is set.",
+      "include columns of context information according to the specified OSB API profile. Supported values are 'meshmarketplace' and 'cloudfoundry'. Ignored when '-o json' is set."
     )
     .option(
       "-o, --output-format [format:format]",
       "Output format. Supported formats are json and text.",
       {
         default: "text",
-      },
+      }
     )
     .option(
       "--status [status:status]",
-      "Filters instances by status. Allowed values are 'in progress', 'succeeded', 'failed' and 'EMPTY' (no status file present for this instance).",
+      "Filters instances by status. Allowed values are 'in progress', 'succeeded', 'failed' and 'EMPTY' (no status file present for this instance)."
     )
     .option(
       "--deleted [deleted:boolean]",
-      "Filters instances by deleted. Allowed values are 'true' and 'false'",
+      "Filters instances by deleted. Allowed values are 'true' and 'false'"
     )
     .description(
-      "Lists service instances status stored in a UniPipe OSB git repo.",
+      "Lists service instances status stored in a UniPipe OSB git repo."
     )
     .action(async (options: ListOpts, repo: string) => {
-      const out = await list(repo, options);
+      const repository = new Repository(repo);
+      const out = await list(repository, options);
       console.log(out);
     });
 }
 
 export async function list(
-  osbRepoPath: string,
-  opts: ListOpts,
+  repo: Repository,
+  opts: ListOpts
 ): Promise<string> {
   const filterFn = buildFilterFn(opts);
 
+  
   switch (opts.outputFormat) {
     case "json":
-      return await listJson(osbRepoPath, filterFn);
+      return await listJson(repo, filterFn);
     case "text":
-      return await listTable(osbRepoPath, filterFn, opts.profile);
+      return await listTable(repo, filterFn, opts.profile);
   }
 }
 
 async function listJson(
-  osbRepoPath: string,
-  filterFn: (instance: ServiceInstance) => boolean,
+  repository: Repository,
+  filterFn: (instance: ServiceInstance) => boolean
 ): Promise<string> {
-  const results = await mapInstances(
-    osbRepoPath,
+  const results = await repository.mapInstances(
     async (instance) => await instance,
-    filterFn,
+    filterFn
   );
 
   return JSON.stringify(results);
 }
 
 async function listTable(
-  osbRepoPath: string,
+  repository: Repository,
   filterFn: (instance: ServiceInstance) => boolean,
-  profile?: Profile,
+  profile?: Profile
 ): Promise<string> {
-  const results = await mapInstances(osbRepoPath, async (instance) => {
+  const results = await repository.mapInstances(async (instance) => {
     const i = instance.instance;
 
     const plan = i.serviceDefinition.plans.filter((x) => x.id === i.planId)[0];
@@ -114,19 +119,9 @@ async function listTable(
   }, filterFn);
 
   const pcols = profileColHeaders(profile);
-  const header = [
-    "id",
-    ...pcols,
-    "service",
-    "plan",
-    "status",
-    "deleted",
-  ];
+  const header = ["id", ...pcols, "service", "plan", "status", "deleted"];
 
-  return new Table()
-    .header(header)
-    .body(results)
-    .toString();
+  return new Table().header(header).body(results).toString();
 }
 
 function profileColHeaders(profile?: Profile): string[] {
@@ -140,39 +135,32 @@ function profileColHeaders(profile?: Profile): string[] {
   }
 }
 
-function profileColValues(
-  i: OsbServiceInstance,
-  profile?: Profile,
-): string[] {
+function profileColValues(i: OsbServiceInstance, profile?: Profile): string[] {
   switch (profile) {
     case undefined:
       return [];
     case "meshmarketplace": {
       const ctx = i.context as MeshMarketplaceContext;
-      return [
-        ctx.customer_id,
-        ctx.project_id,
-      ];
+      return [ctx.customer_id, ctx.project_id];
     }
     case "cloudfoundry": {
       const ctx = i.context as CloudFoundryContext;
-      return [
-        ctx.organization_name,
-        ctx.space_name,
-      ];
+      return [ctx.organization_name, ctx.space_name];
     }
   }
 }
 
 function buildFilterFn(opts: ListOpts): (instance: ServiceInstance) => boolean {
-  return ((instance: ServiceInstance) => {
-    const statusFilterMatches = !opts.status ||
+  return (instance: ServiceInstance) => {
+    const statusFilterMatches =
+      !opts.status ||
       opts.status === instance.status?.status ||
-      ((opts.status === "EMPTY") && (instance.status === null));
+      (opts.status === "EMPTY" && instance.status === null);
 
-    const deletedFilterMatches = (!opts.deleted && opts.deleted !== false) ||
+    const deletedFilterMatches =
+      (!opts.deleted && opts.deleted !== false) ||
       opts.deleted === instance.instance.deleted;
 
     return deletedFilterMatches && statusFilterMatches;
-  });
+  };
 }
