@@ -28,7 +28,7 @@ The Unipipe-Service-Broker Wiki will provide you most infromation to start and s
 https://github.com/meshcloud/unipipe-service-broker/wiki
 
 ## How to deploy the Unipipe-Service-Broker
-How to deploy Unipipe-Service-Broker
+Please see the official Unipipe-Service-Broker documentation regarding the "How to deploy Unipipe-Service-Broker" Guide"
 https://github.com/meshcloud/unipipe-service-broker/wiki/How-To-Guides#-how-to-deploy-unipipe-service-broker
 
 ## How to setup your Service Broker in the meshMarketplace
