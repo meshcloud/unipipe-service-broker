@@ -32,12 +32,16 @@ How to deploy Unipipe-Service-Broker
 https://github.com/meshcloud/unipipe-service-broker/wiki/How-To-Guides#-how-to-deploy-unipipe-service-broker
 
 ## How to setup your Service Broker in the meshMarketplace
+Service development in the meshMarketplace is documented in the meschloud official documents.
+https://docs.meshcloud.io/docs/meshstack.meshmarketplace.development.html#docsNav
+
 To setup your service broker in the meshMarketpalce you need to login into the meshPanel.
 In the Customer Overview select the tab Marketplace and the sub-tab Service Brokers. Click on '+ Register'
 <p align="center">
   <img src="docs/assets/add-service-broker.png" width="250">
 </p>
 
+Register the Service Broker by entering the required parameters.
 <p align="center">
   <img src="docs/assets/register-service-broker.png" width="250">
 </p>
