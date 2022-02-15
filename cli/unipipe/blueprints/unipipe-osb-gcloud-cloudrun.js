@@ -6,12 +6,12 @@ export const unipipeOsbGCloudCloudRunTerraform = `
 # Instructions
 #   1. Customize the variable blocks below to configure your deployment and consider configuring a terraform backend
 #   2. Ensure you have valid GCloud credentials to execute terraform \`gcloud auth login\` and \`gcloud auth configure-docker\`
-#      2.1. you have to be the OWNER on GCloud Project to execute this terraform template otherwise google_iam_policy resource creation fails
+#      2.1. you should also have \`resourcemanager.projects.setIamPolicy\` and \`resourcemanager.projects.getIamPolicy\` permissions on the GCloud Project to execute this terraform template otherwise google_iam_policy resource creation fails. Therefore \`roles/editor\` permissions are not sufficient.
 #      2.2. the template will use docker pull/push commands for mirroring the unipipe-service-broker images. To do that you should install \`docker\` on your machine.
 #   3. Run \`terraform init && terraform apply\`
-#      3.1. Set create_cloudrun_service variable as false on your first setup. We should add our auto generated ssh deploy key into the github repository and also you should commit your first catalog.yml
+#      3.1. Set create_cloudrun_service variable to false on your first setup. We should add our auto generated SSH Deploy Key into the GitHub repository and also you should commit your first catalog.yml
 #      3.2. You should add the unipipe_git_ssh_key to your repository as a Deploy Key and also give the write-access permission on it
-#      3.3. After you set your Deploy key and Catalog.yml, execute \`terraform apply -var="create_cloudrun_service=true"\` to create the cloudrun service. This will automatically change the create_cloudrun_service variable to true.
+#      3.3. After you set your Deploy key and add your catalog.yml file to the repository, execute \`terraform apply -var="create_cloudrun_service=true"\` to create the CloudRun service. This will automatically set the create_cloudrun_service variable to true.
 #   4. Add the deployed UniPipe OSB to your marketplace.
 #      4.1. You will find all necessary info in the terraform output.
 #      4.2. To view the OSB API password run \`terraform output unipipe_basic_auth_password\`
