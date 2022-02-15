@@ -6,12 +6,12 @@ export const unipipeOsbGCloudCloudRunTerraform = `
 # Instructions
 #   1. Customize the variable blocks below to configure your deployment and consider configuring a terraform backend
 #   2. Ensure you have valid GCloud credentials to execute terraform \`gcloud auth login\` and \`gcloud auth configure-docker\`
-#      2.1. you have to be OWNER on Gcloud Project to execute this terraform template otherwise google_iam_policy resource creation fails
+#      2.1. you have to be the OWNER on GCloud Project to execute this terraform template otherwise google_iam_policy resource creation fails
 #      2.2. the template will use docker pull/push commands for mirroring the unipipe-service-broker images. To do that you should install \`docker\` on your machine.
 #   3. Run \`terraform init && terraform apply\`
 #      3.1. Set create_cloudrun_service variable as false on your first setup. We should add our auto generated ssh deploy key into the github repository and also you should commit your first catalog.yml
 #      3.2. You should add the unipipe_git_ssh_key to your repository as a Deploy Key and also give the write-access permission on it
-#      3.3. After you set your Deploy key and Catalog.yml, execute \`terraform apply\` once more with create_cloudrun_service variable as true
+#      3.3. After you set your Deploy key and Catalog.yml, execute \`terraform apply -var="create_cloudrun_service=true"\` to create the cloudrun service. This will automatically change the create_cloudrun_service variable to true.
 #   4. Add the deployed UniPipe OSB to your marketplace.
 #      4.1. You will find all necessary info in the terraform output.
 #      4.2. To view the OSB API password run \`terraform output unipipe_basic_auth_password\`
@@ -64,7 +64,7 @@ variable "cloudrun_service_name" {
 
 variable "unipipe_version" {
   description = "Unipipe version, see https://github.com/meshcloud/unipipe-service-broker/releases"
-  default     = "v1.2.0"
+  default     = "v1.3.0"
 }
 
 variable "gcloud_container_registry_prefix" {
@@ -87,24 +87,43 @@ variable "unipipe_basic_auth_username" {
   default     = "user"
 }
 
+variable "gcp_service_list" {
+  description ="The list of apis necessary for the project"
+  type = list(string)
+  default = [
+    "containerregistry.googleapis.com",
+    "run.googleapis.com"
+  ]
+}
+
 provider "google" {
   project = var.project_id
   region  = var.region
 }
+
 provider "tls" {
 }
 
 provider "random" {
 }
 
+resource "google_project_service" "gcp_services" {
+  for_each = toset(var.gcp_service_list)
+  project = var.project_id
+  service = each.key
+  disable_on_destroy = false
+}
+
 module "mirror" {
   source  = "neomantra/mirror/docker"
   version = "0.4.0"
-  # insert the 2 required variables here
   image_name    = "unipipe-service-broker"
   image_tag     = var.unipipe_version
   source_prefix = "ghcr.io/meshcloud"
   dest_prefix   = var.gcloud_container_registry_prefix
+  depends_on = [
+    google_project_service.gcp_services
+  ]
 }
 
 resource "tls_private_key" "unipipe_git_ssh_key" {
@@ -177,7 +196,6 @@ resource "google_cloud_run_service_iam_policy" "noauth" {
   location = google_cloud_run_service.default[0].location
   project  = google_cloud_run_service.default[0].project
   service  = google_cloud_run_service.default[0].name
-
   policy_data = data.google_iam_policy.noauth[0].policy_data
 }
 
