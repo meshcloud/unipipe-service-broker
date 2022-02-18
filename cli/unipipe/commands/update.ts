@@ -12,6 +12,7 @@ const statusesType = new EnumType(ALL_STATUSES);
 interface UpdateOpts {
   instanceId: string;
   bindingId?: string;
+  credential?: string[]
   status: Status;
   description: string;
 }
@@ -26,6 +27,10 @@ export function registerUpdateCmd(program: Command) {
     .option("-i --instance-id <instance-id>", "Service instance id.", {})
     .option("-b --binding-id <binding-id>", "Service binding id.", {
       depends: ["instance-id"],
+    })
+    .option("-c --credential <credential>", "Credential key-value.", {
+      collect: true,
+      depends: ["binding-id"],
     })
     .option(
       "--status <status:status>",
@@ -46,9 +51,17 @@ export async function update(repository: Repository, opts: UpdateOpts) {
     description: opts.description,
   };
 
+  var credentialsYaml = "";
+  opts.credential?.forEach(credential => {
+    credentialsYaml += `${credential}\n`;
+  })
+
   if (!opts.bindingId) {
     await repository.updateInstanceStatus(opts.instanceId, status);
   } else {
+    if (credentialsYaml != "") {
+      await repository.updateBindingCredentials(opts.instanceId, opts.bindingId, credentialsYaml);
+    }
     await repository.updateBindingStatus(
       opts.instanceId,
       opts.bindingId,
