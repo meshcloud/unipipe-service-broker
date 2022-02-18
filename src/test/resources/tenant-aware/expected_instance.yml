@@ -31,7 +31,7 @@ serviceDefinition:
     tenantAware: true
   requires: []
   dashboardClient: null
-originatingIdentity: !<PlatformContext>
+originatingIdentity:
   platform: null
   user: "unittester"
 asyncAccepted: true

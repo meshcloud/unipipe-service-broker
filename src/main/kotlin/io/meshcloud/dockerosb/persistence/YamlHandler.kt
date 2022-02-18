@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
+import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
@@ -19,8 +20,9 @@ import java.io.FileWriter
 @Service
 class YamlHandler {
 
-  val yamlMapper = ObjectMapper(YAMLFactory())
-    .registerKotlinModule()
+  val yamlMapper = ObjectMapper(YAMLFactory()
+    .configure(YAMLGenerator.Feature.USE_NATIVE_TYPE_ID,false) // Set to false, so that types are tagged inline
+  ).registerKotlinModule()
     .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
     .registerModule(JavaTimeModule())
 

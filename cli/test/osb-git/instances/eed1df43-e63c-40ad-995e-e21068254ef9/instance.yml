@@ -79,7 +79,7 @@ serviceDefinition:
     supportUrl: "https://azure.microsoft.com/en-us/services/devops/"
   requires: []
   dashboardClient: null
-originatingIdentity: !<PlatformContext>
+originatingIdentity:
   platform: "meshmarketplace"
   user_id: "502c9d14-db19-4e20-b71a-e3a0717bc0db"
   user_euid: "partner@meshcloud.io"
@@ -88,7 +88,7 @@ parameters:
   projectname: "test"
   projectdescription: "test"
   msteamsad: "TEST"
-context: !<PlatformContext>
+context:
   platform: "meshmarketplace"
   permission_url: null
   project_id: "osb-dev"

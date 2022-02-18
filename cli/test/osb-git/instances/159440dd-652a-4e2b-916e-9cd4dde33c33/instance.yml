@@ -58,7 +58,7 @@ serviceDefinition:
                   description: "Azure Region"
                   type: "string"
               type: object
-originatingIdentity: !<PlatformContext>
+originatingIdentity:
   platform: "meshmarketplace"
   user_id: "502c9d14-db19-4e20-b71a-e3a0717bc0db"
   user_euid: "partner@meshcloud.io"
@@ -66,7 +66,7 @@ asyncAccepted: true
 parameters:
   cidr: "10.0.0.0/24"
   region: "eu-west"
-context: !<PlatformContext>
+context:
   platform: "meshmarketplace"
   permission_url: null
   project_id: "osb-dev"

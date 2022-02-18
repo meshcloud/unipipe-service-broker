@@ -3,11 +3,11 @@ bindingId: "7cbebf1f-f494-424f-9d65-c0a037257024"
 serviceInstanceId: "b80e0781-74fd-422c-89e9-def5e76a8128"
 serviceDefinitionId: "d40133dd-8373-4c25-8014-fde98f38a728"
 planId: "a13edcdf-eb54-44d3-8902-8f24d5acb07e"
-originatingIdentity: !<PlatformContext>
+originatingIdentity:
   platform: "http://localhost:8080/serviceRegistry/location/1"
   user_id: "67c54164-8f7c-4a86-b0d8-0ecdd6510366"
 parameters: { }
-context: !<PlatformContext>
+context:
   platform: "http://localhost:8080/serviceRegistry/location/1"
   permission_url: null
   project_id: "managed-project"
