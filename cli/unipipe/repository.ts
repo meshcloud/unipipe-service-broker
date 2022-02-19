@@ -130,7 +130,6 @@ export class Repository {
       bindingId,
       "credentials.yml"
     );
-
     await Deno.writeTextFile(credentialsYmlPath, credentials);
   }
 }
