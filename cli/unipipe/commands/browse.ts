@@ -234,7 +234,7 @@ async function updateBinding(
     bindingId,
     status: status,
     description: description,
-    credential: credentials.length > 0 ? fixedCredentials : undefined,
+    credentials: credentials.length > 0 ? fixedCredentials : undefined,
   });
 
   console.log(
