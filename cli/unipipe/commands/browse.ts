@@ -59,7 +59,7 @@ async function browseInstances(repo: Repository) {
     const opts = instance.bindings.map((x) => {
       const name = [
         colors.dim("id: ") + colors.gray(x.binding.bindingId),
-        // we could add binding paremeters in here,
+        // we could add binding parameters in here,
         colors.dim("params: ") +
           colors.green(JSON.stringify(x.binding.parameters)),
         colors.dim("status: ") +
@@ -177,7 +177,7 @@ async function updateInstance(repo: Repository, instanceId: string) {
     },
     {
       name: "description",
-      message: "Add a status descript status",
+      message: "Add a status description",
       type: Input,
     },
   ]);
@@ -205,7 +205,7 @@ async function updateBinding(
     },
     {
       name: "description",
-      message: "Add a status descript status",
+      message: "Add a status description",
       type: Input,
     },
   ]);
