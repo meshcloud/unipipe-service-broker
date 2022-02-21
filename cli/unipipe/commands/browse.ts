@@ -98,7 +98,13 @@ async function browseInstances(repo: Repository) {
             break;
           case "bindings":
             await refreshBindingList(instanceId);
-            next("selectBinding");
+            if (bindingOptions.length > 0) {
+              next("selectBinding");
+            }
+            else {
+              console.log("No bindings found for this instance!")
+              next("instanceCmd");
+            }
             break;
           case "update":
             await updateInstance(repo, instanceId);
