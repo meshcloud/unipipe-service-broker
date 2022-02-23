@@ -5,6 +5,7 @@ import {
   SelectValueOptions,
   prompt,
   Input,
+  List,
 } from "../deps.ts";
 import { Repository } from "../repository.ts";
 import { stringify } from "../yaml.ts";
@@ -209,16 +210,35 @@ async function updateBinding(
       type: Input,
     },
   ]);
+  const credentials: string[] = await List.prompt(
+    {
+      message: "Add credential `key:value` pairs. Use comma `,` to separate credentials. If you don't want to update, leave it blank.",
+    }
+  );
+
+  // cliffy does not support whitespace in list prompt input.
+  // the following part is a workaround that adds the whitespace after the first colon character
+  var fixedCredentials: string[] = [];
+  credentials.forEach((credential) => {
+    const colonIndex = credential.indexOf(":");
+    if (colonIndex === -1) {
+      throw new Error("Could not find colon `:` in credential `key:value` pair: " + credential);
+    }
+    const key = credential.substring(0, colonIndex);
+    const value = credential.substring(colonIndex + 1);
+    fixedCredentials.push(key + ": " + value);
+  })
 
   await update(repo, {
     instanceId,
     bindingId,
     status: status,
     description: description,
+    credentials: credentials.length > 0 ? fixedCredentials : undefined,
   });
 
   console.log(
-    `Updated status of instance ${instanceId} binding ${bindingId} to '${status}'`
+    `Updated status of instance ${instanceId} binding ${bindingId} to '${status}' and credentials are '${fixedCredentials.length > 0 ? 'overwritten' : 'not updated'}'`
   );
 }
 

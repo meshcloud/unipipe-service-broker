@@ -27,3 +27,4 @@ export { UpgradeCommand, GithubProvider } from "https://deno.land/x/cliffy@v0.20
 export { Table } from "https://deno.land/x/cliffy@v0.20.1/table/mod.ts";
 export { prompt as prompt,Input,Select } from "https://deno.land/x/cliffy@v0.20.1/prompt/mod.ts";
 export type { SelectValueOptions } from "https://deno.land/x/cliffy@v0.20.1/prompt/mod.ts";
+export { List } from "https://deno.land/x/cliffy@v0.20.1/prompt/list.ts";

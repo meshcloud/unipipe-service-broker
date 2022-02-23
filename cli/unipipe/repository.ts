@@ -116,4 +116,20 @@ export class Repository {
     const yaml = stringify(status);
     await Deno.writeTextFile(statusYmlPath, yaml);
   }
+
+  async updateBindingCredentials(
+    instanceId: string,
+    bindingId: string,
+    credentials: string
+  ) {
+    const credentialsYmlPath = path.join(
+      this.path,
+      "instances",
+      instanceId,
+      "bindings",
+      bindingId,
+      "credentials.yml"
+    );
+    await Deno.writeTextFile(credentialsYmlPath, credentials);
+  }
 }

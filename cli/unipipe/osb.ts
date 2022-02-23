@@ -69,6 +69,7 @@ export interface ServiceInstance extends Record<string, unknown> {
 export interface ServiceBinding extends Record<string, unknown> {
   binding: OsbServiceBinding; // content of bindings/$binding-id/binding.yml
   status: OsbServiceBindingStatus | null; // contents of status.yml, null if not available
+  credentials: Record<string, unknown> | null; // contents of credentials.yml
 }
 /**
  * Parse a yaml file, throwing an error if it fails.
@@ -131,8 +132,13 @@ export async function readBinding(path: string): Promise<ServiceBinding> {
     `${path}/status.yml`
   )) as OsbServiceInstanceStatus | null;
 
+  const credentials = (await tryParseYamlFile(
+    `${path}/credentials.yml`
+  )) as Record<string, unknown> | null;
+
   return {
     binding: binding,
     status: status,
+    credentials: credentials
   };
 }
