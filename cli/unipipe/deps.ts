@@ -6,7 +6,7 @@
 export * as path from "https://deno.land/std@0.115.1/path/mod.ts";
 export * as yaml from "https://deno.land/std@0.115.1/encoding/yaml.ts";
 export { v4 as uuid } from "https://deno.land/std@0.115.1/uuid/mod.ts";
-export * as colors from 'https://deno.land/std@0.115.1/fmt/colors.ts';
+export * as colors from "https://deno.land/std@0.115.1/fmt/colors.ts";
 
 // note: it's a bit ugly that we have to foray into the private parts of the stdlib, but otherwise we can't configure
 // the options we need
@@ -18,13 +18,21 @@ export { Schema as YamlSchema } from "https://deno.land/std@0.115.1/encoding/_ya
  */
 export {
   Command,
-  Type,
-  EnumType,
   CompletionsCommand,
+  EnumType,
+  Type,
 } from "https://deno.land/x/cliffy@v0.20.1/command/mod.ts";
 export type { ITypeInfo } from "https://deno.land/x/cliffy@v0.20.1/command/mod.ts";
-export { UpgradeCommand, GithubProvider } from "https://deno.land/x/cliffy@v0.20.1/command/upgrade/mod.ts";
+export {
+  GithubProvider,
+  UpgradeCommand,
+} from "https://deno.land/x/cliffy@v0.20.1/command/upgrade/mod.ts";
+export type { GithubProviderOptions } from "https://deno.land/x/cliffy@v0.20.1/command/upgrade/mod.ts";
 export { Table } from "https://deno.land/x/cliffy@v0.20.1/table/mod.ts";
-export { prompt as prompt,Input,Select } from "https://deno.land/x/cliffy@v0.20.1/prompt/mod.ts";
+export {
+  Input,
+  prompt as prompt,
+  Select,
+} from "https://deno.land/x/cliffy@v0.20.1/prompt/mod.ts";
 export type { SelectValueOptions } from "https://deno.land/x/cliffy@v0.20.1/prompt/mod.ts";
 export { List } from "https://deno.land/x/cliffy@v0.20.1/prompt/list.ts";
