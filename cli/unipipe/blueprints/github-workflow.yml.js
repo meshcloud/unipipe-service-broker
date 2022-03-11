@@ -3,7 +3,6 @@ name: Update Instances
 concurrency: osb-instances # signal that we're modifying instances
 
 env:
-  unipipe-version: v1.3.0
   # Use Github Repository Secrets to set your credentials.
   MY_SECRET_KEY: \${{ secrets.MY_SECRET_KEY }}
 
@@ -19,24 +18,8 @@ jobs:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
     steps:
-      ### Installing UniPipe-CLI
-      - name: mkdir-bin-folder
-        run: mkdir -p ~/.local/bin
-      - name: unipipe-cli-cache
-        id: unipipe-cli-cache
-        uses: actions/cache@v2
-        with:
-          path: ~/.local/bin
-          key: \${{ runner.os }}-unipipe-cli-\${{env.unipipe-version}}
-      - name: add-bin-folder-to-path
-        run: echo "~/.local/bin" >> $GITHUB_PATH
-      - name: download-unipipe-cli
-        if: steps.unipipe-cli-cache.outputs.cache-hit != 'true'
-        run: |
-          cd ~/.local/bin
-          wget --no-verbose https://github.com/meshcloud/unipipe-service-broker/releases/download/\${{env.unipipe-version}}/unipipe-cli-x86_64-unknown-linux-gnu
-          mv unipipe-x86_64-unknown-linux-gnu unipipe
-          chmod +x unipipe
+      - name: install unipipe cli
+        uses: meshcloud/setup-unipipe@v1
       - name: checkout # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
         uses: actions/checkout@master
       ### Transform your example instances
