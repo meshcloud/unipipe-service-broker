@@ -12,7 +12,7 @@ interface TransformOpts {
 export function registerTransformCmd(program: Command) {
   program
     .command(
-      "transform <repo>",
+      "transform [repo]",
     )
     .description(
       "Transform service instances stored in a UniPipe OSB git repo using the specified handlers.",
@@ -25,8 +25,8 @@ export function registerTransformCmd(program: Command) {
       "-x, --xport-repo [path:string]",
       "Path to the target git repository. If not specified the transform runs in place on the OSB git repo.",
     )
-    .action(async (options: TransformOpts, repo: string) => {
-      const repository = new Repository(repo);
+    .action(async (options: TransformOpts, repo: string|undefined) => {
+      const repository = new Repository(repo ? repo : ".");
       
       await transform(repository, options);
     });

@@ -17,7 +17,7 @@ export interface ShowOpts {
 export function registerShowCmd(program: Command) {
   // show
   program
-    .command("show <repo>")
+    .command("show [repo]")
     .type("format", formatsType)
     .description(
       "Shows the state stored service instance stored in a UniPipe OSB git repo."
@@ -29,8 +29,8 @@ export function registerShowCmd(program: Command) {
       { default: "yaml" }
     )
     .option("--pretty", "Pretty print")
-    .action(async (options: ShowOpts, repo: string) => {
-      const repository = new Repository(repo);
+    .action(async (options: ShowOpts, repo: string|undefined) => {
+      const repository = new Repository(repo ? repo : ".");
       await show(repository, options);
     });
 }

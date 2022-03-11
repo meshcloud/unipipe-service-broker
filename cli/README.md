@@ -40,10 +40,10 @@ Options:
 Commands:
 
   completions          - Generate shell completions.
-  list         <repo>  - Lists service instances status stored in a UniPipe OSB git repo.
-  show         <repo>  - Shows the state stored service instance stored in a UniPipe OSB git repo.
-  transform    <repo>  - Transform service instances stored in a UniPipe OSB git repo using the specified handlers.
-  update       <repo>  - Update status of a service instance or binding stored in a UniPipe OSB git repo.
+  list         [repo]  - Lists service instances status stored in a UniPipe OSB git repo.
+  show         [repo]  - Shows the state stored service instance stored in a UniPipe OSB git repo.
+  transform    [repo]  - Transform service instances stored in a UniPipe OSB git repo using the specified handlers.
+  update       [repo]  - Update status of a service instance or binding stored in a UniPipe OSB git repo.
   generate             - Generate useful artifacts for working with UniPipe OSB such as catalogs, transform handlers, CI pipelines and more.
 ```
 
