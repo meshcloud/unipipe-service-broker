@@ -14,10 +14,10 @@ import { STATUSES, update } from "./update.ts";
 
 export function registerBrowseCmd(program: Command) {
   program
-    .command("browse <repo>")
+    .command("browse [repo]")
     .description("Interactively browse and manipulate a UniPipe OSB git repo.")
-    .action(async (_opts: Record<never, never>, repo: string) => {
-      const repository = new Repository(repo);
+    .action(async (_opts: Record<never, never>, repo: string|undefined) => {
+      const repository = new Repository(repo ? repo : ".");
       await browseInstances(repository);
     });
 }

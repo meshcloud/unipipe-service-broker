@@ -19,7 +19,7 @@ interface UpdateOpts {
 
 export function registerUpdateCmd(program: Command) {
   program
-    .command("update <repo>")
+    .command("update [repo]")
     .type("status", statusesType)
     .description(
       "Update status of a service instance or binding stored in a UniPipe OSB git repo."
@@ -39,8 +39,8 @@ export function registerUpdateCmd(program: Command) {
     .option("--description [description]", "Status description text.", {
       default: "",
     })
-    .action(async (options: UpdateOpts, repo: string) => {
-      const repository = new Repository(repo);
+    .action(async (options: UpdateOpts, repo: string|undefined) => {
+      const repository = new Repository(repo ? repo : ".");
       await update(repository, options);
     });
 }

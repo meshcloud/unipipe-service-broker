@@ -36,7 +36,7 @@ const statusesType = new EnumType(ALL_STATUSES);
 
 export function registerListCmd(program: Command) {
   program
-    .command("list <repo>")
+    .command("list [repo]")
     .type("format", formatsType)
     .type("profile", profilesType)
     .type("status", statusesType)
@@ -62,8 +62,8 @@ export function registerListCmd(program: Command) {
     .description(
       "Lists service instances status stored in a UniPipe OSB git repo."
     )
-    .action(async (options: ListOpts, repo: string) => {
-      const repository = new Repository(repo);
+    .action(async (options: ListOpts, repo: string|undefined) => {
+      const repository = new Repository(repo ? repo : ".");
       const out = await list(repository, options);
       console.log(out);
     });
