@@ -10,6 +10,7 @@ No new features
 
 - parameter `repo` is now optional for all commands. This is not breaking, because the commands still accept the parameter.
 - command `unipipe browse` shows customer and project details if available in context.
+- command `unipipe browse` can update binding credentials.
 - github pipelines now use setup-github action
 
 ## v1.3.0
