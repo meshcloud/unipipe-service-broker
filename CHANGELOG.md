@@ -1,5 +1,17 @@
 # Changelog
 
+## v1.4.0
+
+### Service Broker
+
+No new features
+
+### CLI
+
+- parameter `repo` is now optional for all commands. This is not breaking, because the commands still accept the parameter.
+- command `unipipe browse` shows customer and project details if available in context.
+- github pipelines now use setup-github action
+
 ## v1.3.0
 
 This release comes with quite a bunch of new features

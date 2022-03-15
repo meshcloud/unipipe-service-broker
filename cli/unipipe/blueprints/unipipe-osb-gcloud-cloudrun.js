@@ -64,7 +64,7 @@ variable "cloudrun_service_name" {
 
 variable "unipipe_version" {
   description = "Unipipe version, see https://github.com/meshcloud/unipipe-service-broker/releases"
-  default     = "v1.3.0"
+  default     = "v1.4.0"
 }
 
 variable "gcloud_container_registry_prefix" {
