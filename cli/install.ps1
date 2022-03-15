@@ -42,10 +42,9 @@ catch {
 # Ask user whether to add unipipe to the environment variables automatically
 $userenv = $(Write-Host "Adding unipipe to your Environment-Variables? (y/n)" -NoNewLine -ForegroundColor Green; Read-Host)
 if ($userenv -like "y") {
-    $Reg = "HKCU:Environment"
-    $OldPath = (Get-ItemProperty -Path $Reg -Name PATH).Path
+    $OldPath[System.Environment]::GetEnvironmentVariable('PATH','User')
     $NewPath = $OldPath + ";" + $($folder.FullName).ToString()
-    Set-ItemProperty -Path $Reg -Name PATH -Value $NewPath
+    [Environment]::SetEnvironmentVariable("PATH",  $NewPath, [EnvironmentVariableTarget]::User)
     Write-Host "Reloading Powershell is required!`n" -ForegroundColor Yellow
 }
 
