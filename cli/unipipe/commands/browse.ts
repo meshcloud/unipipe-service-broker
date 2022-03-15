@@ -36,7 +36,7 @@ async function browseInstances(repo: Repository) {
         (x) => x.id === i.planId
       )[0];
 
-      const name = [
+      const instanceDetails = [
         colors.dim("id: ") + colors.gray(i.serviceInstanceId),
         colors.dim("service: ") + colors.green(i.serviceDefinition.name),
         colors.dim("plan: ") + colors.yellow(plan.name),
@@ -45,7 +45,15 @@ async function browseInstances(repo: Repository) {
         colors.dim("status: ") +
           colors.blue(x.status?.status || "new") +
           colors.red(i.deleted ? " deleted" : ""),
-      ].join(" ");
+      ];
+
+      // In contrast to the list command, we do not require user input for determining which profile to use.
+      if (i.context.platform === "meshmarketplace") {
+        instanceDetails.unshift(colors.dim("project: ") + colors.white(i.context.project_id))
+        instanceDetails.unshift(colors.dim("customer: ") + colors.white(i.context.customer_id))
+      }
+
+      const name = instanceDetails.join(" ")
 
       return { name, value: i.serviceInstanceId };
     });
