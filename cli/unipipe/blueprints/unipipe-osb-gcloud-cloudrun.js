@@ -12,6 +12,11 @@ export const unipipeOsbGCloudCloudRunTerraform = `
 #      3.1. Set create_cloudrun_service variable to false on your first setup. We should add our auto generated SSH Deploy Key into the GitHub repository and also you should commit your first catalog.yml
 #      3.2. You should add the unipipe_git_ssh_key to your repository as a Deploy Key and also give the write-access permission on it
 #      3.3. After you set your Deploy key and add your catalog.yml file to the repository, execute \`terraform apply -var="create_cloudrun_service=true"\` to create the CloudRun service. This will automatically set the create_cloudrun_service variable to true.
+#      (OPTIONAL STEPS)
+#      3.4. You can also use your own private keys to secure git connection. In this case you should set the private_key_pem variable to your private key.
+#      3.5. To provide your private key follow the instructions below:
+#      3.5.1. Export your private key to your terminal environment variable without any new line. For example: \`export PRIVKEY='-----BEGIN EC PRIVATE KEY-----MIGkAgEBBDABjkhCM0UOWXXXXXX=-----END EC PRIVATE KEY-----'\`
+#      3.5.2. Execute the apply command with extra private_key_pem variable \`terraform apply -var="create_cloudrun_service=true" -var="private_key_pem=\$PRIVKEY"\`
 #   4. Add the deployed UniPipe OSB to your marketplace.
 #      4.1. You will find all necessary info in the terraform output.
 #      4.2. To view the OSB API password run \`terraform output unipipe_basic_auth_password\`
@@ -87,6 +92,13 @@ variable "unipipe_basic_auth_username" {
   default     = "user"
 }
 
+variable "private_key_pem" {
+  description = "Private key in PEM format. This is an optional parameter. If you don't provide it, we will generate a new one for you. For production use cases, we advise generating your own keys. Remove every new line from your key value and make it one line string."
+  sensitive   = true
+  default     = null
+  type        = string
+}
+
 variable "gcp_service_list" {
   description ="The list of apis necessary for the project"
   type = list(string)
@@ -127,8 +139,9 @@ module "mirror" {
 }
 
 resource "tls_private_key" "unipipe_git_ssh_key" {
-  algorithm = "RSA"
-  rsa_bits  = 4096
+  count = var.private_key_pem == null ? 1 : 0
+  algorithm   = "ECDSA"
+  ecdsa_curve = "P384"
 }
 
 # setup a random password for the OSB instance
@@ -142,8 +155,15 @@ resource "google_cloud_run_service" "default" {
   name     = var.cloudrun_service_name
   location = var.region
 
+  metadata {
+    annotations = {
+      "autoscaling.knative.dev/maxScale"      = "3"
+    }
+  }
+
   template {
     spec {
+      container_concurrency = 1000
       containers {
         image = module.mirror.dest_full
         ports {
@@ -160,7 +180,7 @@ resource "google_cloud_run_service" "default" {
         }
         env {
           name  = "GIT_SSH_KEY"
-          value = tls_private_key.unipipe_git_ssh_key.private_key_pem
+          value = var.private_key_pem == null ? tls_private_key.unipipe_git_ssh_key.0.private_key_pem : var.private_key_pem
         }
         env {
           name  = "APP_BASIC_AUTH_USERNAME"
@@ -179,6 +199,13 @@ resource "google_cloud_run_service" "default" {
     latest_revision = true
   }
   autogenerate_revision_name = true
+
+  lifecycle {
+    ignore_changes = [
+      template[0].spec[0].service_account_name,
+      metadata.0.annotations,
+    ]
+  }
 }
 
 data "google_iam_policy" "noauth" {
@@ -218,7 +245,7 @@ output "url" {
 }
 
 output "unipipe_git_ssh_key" {
-  value       = tls_private_key.unipipe_git_ssh_key.public_key_openssh
+  value       = var.private_key_pem == null ? tls_private_key.unipipe_git_ssh_key.0.public_key_openssh : null
   description = "UniPipe will use this key to access the git repository. You have to give read+write access on the target repository for this key."
 }
 `
