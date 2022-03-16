@@ -70,8 +70,8 @@ provider "random" {
 # setup key pair for accesing the git repository
 # this setup will store the private key in your terrraform state and is thus not recommended for production use cases
 resource "tls_private_key" "unipipe_git_ssh_key" {
-  algorithm = "RSA"
-  rsa_bits  = 4096
+  algorithm   = "ECDSA"
+  ecdsa_curve = "P384"
 }
 
 # first we need a resource group
