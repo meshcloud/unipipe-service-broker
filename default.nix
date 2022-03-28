@@ -1,8 +1,5 @@
 { pkgs ? import <nixpkgs> { } }:
 
-let
-  unstable = import <nixos-unstable> {};
-in
 pkgs.mkShell {
   NIX_SHELL = "unipipe";
   shellHook = ''
@@ -12,6 +9,6 @@ pkgs.mkShell {
   buildInputs = [    
 
     # node / typescript (meshPanel, utilities eetc.)
-    unstable.deno
+    pkgs.deno
   ];
 }
