@@ -4,19 +4,17 @@ export const unipipeOsbGCloudCloudRunTerraform = `
 # - deploys on GCloud CloudRun Service
 #
 # Instructions
-#   1. Customize the variable blocks below to configure your deployment and consider configuring a terraform backend
+#   1. Replace all occurrences of "..." with proper values.
 #   2. Ensure you have valid GCloud credentials to execute terraform \`gcloud auth login\` and \`gcloud auth configure-docker\`
 #      2.1. you should also have \`resourcemanager.projects.setIamPolicy\` and \`resourcemanager.projects.getIamPolicy\` permissions on the GCloud Project to execute this terraform template otherwise google_iam_policy resource creation fails. Therefore \`roles/editor\` permissions are not sufficient.
 #      2.2. the template will use docker pull/push commands for mirroring the unipipe-service-broker images. To do that you should install \`docker\` on your machine.
 #   3. Run \`terraform init && terraform apply\`
-#      3.1. Set create_cloudrun_service variable to false on your first setup. We should add our auto generated SSH Deploy Key into the GitHub repository and also you should commit your first catalog.yml
-#      3.2. You should add the unipipe_git_ssh_key to your repository as a Deploy Key and also give the write-access permission on it
-#      3.3. After you set your Deploy key and add your catalog.yml file to the repository, execute \`terraform apply -var="create_cloudrun_service=true"\` to create the CloudRun service. This will automatically set the create_cloudrun_service variable to true.
+#      3.1. You should add the unipipe_git_ssh_key to your repository as a Deploy Key and also give the write-access permission on it
 #      (OPTIONAL STEPS)
-#      3.4. You can also use your own private keys to secure git connection. In this case you should set the private_key_pem variable to your private key.
-#      3.5. To provide your private key follow the instructions below:
-#      3.5.1. Export your private key to your terminal environment variable without any new line. For example: \`export PRIVKEY='-----BEGIN EC PRIVATE KEY-----MIGkAgEBBDABjkhCM0UOWXXXXXX=-----END EC PRIVATE KEY-----'\`
-#      3.5.2. Execute the apply command with extra private_key_pem variable \`terraform apply -var="create_cloudrun_service=true" -var="private_key_pem=\$PRIVKEY"\`
+#      3.2. You can also use your own private keys to secure git connection. In this case you should set the private_key_pem variable to your private key.
+#      3.3. To provide your private key follow the instructions below:
+#      3.3.1. Export your private key to your terminal environment variable without any new line. For example: \`export PRIVKEY='-----BEGIN EC PRIVATE KEY-----MIGkAgEBBDABjkhCM0UOWXXXXXX=-----END EC PRIVATE KEY-----'\`
+#      3.3.2. Execute the apply command with extra private_key_pem variable \`terraform apply -var="create_cloudrun_service=true" -var="private_key_pem=\$PRIVKEY"\`
 #   4. Add the deployed UniPipe OSB to your marketplace.
 #      4.1. You will find all necessary info in the terraform output.
 #      4.2. To view the OSB API password run \`terraform output unipipe_basic_auth_password\`
@@ -24,228 +22,42 @@ export const unipipeOsbGCloudCloudRunTerraform = `
 #############################################################
 
 terraform {
-  required_version = ">= 0.14"
-
-  required_providers {
-    google = {
-      source  = "hashicorp/google"
-      version = "3.72.0"
-    }
-    tls = {
-      source  = "hashicorp/tls"
-      version = "3.1.0"
-    }
-    random = {
-      source  = "hashicorp/random"
-      version = "3.1.0"
-    }
-  }
-
-  # use local state files, if you want you can put your state files to your remote storage as well
-  backend "local" {
+  # Removing the backend will output the terraform state in the local filesystem
+  # See https://www.terraform.io/language/settings/backends for more details
+  #
+  # Remove/comment the backend block below if you are only testing the module.
+  # Please be aware that you cannot destroy the created resources via terraform if you lose the state file.
+  backend "gcs" {
+    bucket = "..."
+    prefix = "..."
   }
 }
 
-variable "create_cloudrun_service" {
-  description = "You should set it as 'True' after you configure your Github repository and apply the terraform template again."
-  type        = bool
-  default     = false
-}
+# UniPipe container on GCP
+module "unipipe" {
+  source     = "git@github.com:meshcloud/terraform-gcp-unipipe.git?ref=c758f8f27b0187da467fb8a9fd1dd583935036af"
+  project_id = "..."
 
-variable "project_id" {
-  description = "The project ID to deploy resource into"
-  default     = "GCLOUDPROJECT"
-}
-
-variable "region" {
-  description = "The Region to deploy resource into"
-  default     = "europe-west3"
-}
-
-variable "cloudrun_service_name" {
-  description = "The CloudRun service name"
-  default     = "unipipe-service-broker-demo"
-}
-
-variable "unipipe_version" {
-  description = "Unipipe version, see https://github.com/meshcloud/unipipe-service-broker/releases"
-  default     = "v1.4.0"
-}
-
-variable "gcloud_container_registry_prefix" {
-  description = "GCloud Container Registry address. Format: <region>.gcr.io/<project_id>"
-  default     = "eu.gcr.io/GCLOUDPROJECT"
-}
-
-variable "unipipe_git_remote" {
-  description = "Git repo URL. Use a deploy key (GitHub) or similar to setup an automation user SSH key for unipipe."
-  default     = "git@github.com:ORGANIZATION/REPO.git"
-}
-
-variable "unipipe_git_branch" {
-  description = "Git branch name"
-  default     = "master"
-}
-
-variable "unipipe_basic_auth_username" {
-  description = "OSB API basic auth username"
-  default     = "user"
-}
-
-variable "private_key_pem" {
-  description = "Private key in PEM format. This is an optional parameter. If you don't provide it, we will generate a new one for you. For production use cases, we advise generating your own keys. Remove every new line from your key value and make it one line string."
-  sensitive   = true
-  default     = null
-  type        = string
-}
-
-variable "gcp_service_list" {
-  description ="The list of apis necessary for the project"
-  type = list(string)
-  default = [
-    "containerregistry.googleapis.com",
-    "run.googleapis.com"
-  ]
-}
-
-provider "google" {
-  project = var.project_id
-  region  = var.region
-}
-
-provider "tls" {
-}
-
-provider "random" {
-}
-
-resource "google_project_service" "gcp_services" {
-  for_each = toset(var.gcp_service_list)
-  project = var.project_id
-  service = each.key
-  disable_on_destroy = false
-}
-
-module "mirror" {
-  source  = "neomantra/mirror/docker"
-  version = "0.4.0"
-  image_name    = "unipipe-service-broker"
-  image_tag     = var.unipipe_version
-  source_prefix = "ghcr.io/meshcloud"
-  dest_prefix   = var.gcloud_container_registry_prefix
-  depends_on = [
-    google_project_service.gcp_services
-  ]
-}
-
-resource "tls_private_key" "unipipe_git_ssh_key" {
-  count = var.private_key_pem == null ? 1 : 0
-  algorithm   = "ECDSA"
-  ecdsa_curve = "P384"
-}
-
-# setup a random password for the OSB instance
-resource "random_password" "unipipe_basic_auth_password" {
-  length  = 16
-  special = false
-}
-
-resource "google_cloud_run_service" "default" {
-  count    = var.create_cloudrun_service ? 1 : 0
-  name     = var.cloudrun_service_name
-  location = var.region
-
-  metadata {
-    annotations = {
-      "autoscaling.knative.dev/maxScale"      = "3"
-    }
-  }
-
-  template {
-    spec {
-      container_concurrency = 1000
-      containers {
-        image = module.mirror.dest_full
-        ports {
-          name           = "http1"
-          container_port = 8075
-        }
-        env {
-          name  = "GIT_REMOTE"
-          value = var.unipipe_git_remote
-        }
-        env {
-          name  = "GIT_REMOTE_BRANCH"
-          value = var.unipipe_git_branch
-        }
-        env {
-          name  = "GIT_SSH_KEY"
-          value = var.private_key_pem == null ? tls_private_key.unipipe_git_ssh_key.0.private_key_pem : var.private_key_pem
-        }
-        env {
-          name  = "APP_BASIC_AUTH_USERNAME"
-          value = var.unipipe_basic_auth_username
-        }
-        env {
-          name  = "APP_BASIC_AUTH_PASSWORD"
-          value = random_password.unipipe_basic_auth_password.result
-        }
-      }
-    }
-  }
-
-  traffic {
-    percent         = 100
-    latest_revision = true
-  }
-  autogenerate_revision_name = true
-
-  lifecycle {
-    ignore_changes = [
-      template[0].spec[0].service_account_name,
-      metadata.0.annotations,
-    ]
-  }
-}
-
-data "google_iam_policy" "noauth" {
-  count = var.create_cloudrun_service ? 1 : 0
-  binding {
-    role = "roles/run.invoker"
-    members = [
-      "allUsers",
-    ]
-  }
-}
-
-resource "google_cloud_run_service_iam_policy" "noauth" {
-  count    = var.create_cloudrun_service ? 1 : 0
-  location = google_cloud_run_service.default[0].location
-  project  = google_cloud_run_service.default[0].project
-  service  = google_cloud_run_service.default[0].name
-  policy_data = data.google_iam_policy.noauth[0].policy_data
+  unipipe_git_remote = "..."
 }
 
 output "unipipe_basic_auth_username" {
-  value = var.unipipe_basic_auth_username
+  value = module.unipipe.unipipe_basic_auth_username
 }
 
 output "unipipe_basic_auth_password" {
-  value     = random_password.unipipe_basic_auth_password.result
+  value     = module.unipipe.unipipe_basic_auth_password
   description = "Execute the command to see the password => 'terraform output unipipe_basic_auth_password'"
   sensitive = true
 }
 
 output "url" {
-  value       = google_cloud_run_service.default[*].status[*].url
+  value       = module.unipipe.url
   description = "UniPipe OSB API URL. If you want access to the catalog page, you can add /v2/catalog at the end of the url."
-  depends_on = [
-    google_cloud_run_service.default
-  ]
 }
 
 output "unipipe_git_ssh_key" {
-  value       = var.private_key_pem == null ? tls_private_key.unipipe_git_ssh_key.0.public_key_openssh : null
+  value       = module.unipipe.unipipe_git_ssh_key
   description = "UniPipe will use this key to access the git repository. You have to give read+write access on the target repository for this key."
 }
 `
