@@ -3,5 +3,4 @@
 set -o errexit
 set -o nounset
 
-deno_flags=$(deno run ../flags.ts --quiet)
-deno run $deno_flags "$(dirname "$0")"/main.ts "$@"
+(cd "$(dirname "$0")" && deno task run "$@")

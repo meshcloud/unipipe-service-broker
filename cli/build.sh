@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 
 set -e
+# before we do anything else, ensure we typecheck fine
+deno task check
 
 deno_flags=$(deno run flags.ts --quiet)
 
