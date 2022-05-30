@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "strict": true
+  },
+  "lint": {
+    "files": {
+      "include": ["unipipe/"]
+    }
+  },
+  "fmt": {
+    "files": {
+      "include": ["unipipe/"]
+    }
+  },
+  "tasks": {
+    "run": "deno run $(deno run --quiet --no-check ./flags.ts) ./unipipe/main.ts",
+    "check": "deno check ./unipipe/main.ts",
+    "test": "deno test $(deno run --quiet --no-check ./flags.ts) unipipe/",
+    "install": "deno install -f -n unipipe $(deno run --quiet --no-check ./flags.ts) unipipe/main.ts"
+  }
+}

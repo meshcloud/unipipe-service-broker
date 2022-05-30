@@ -1,4 +1,4 @@
-{ pkgs ? import <nixpkgs> { } }:
+{ pkgs ? import <nixpkgs-unstable> { } }:
 
 pkgs.mkShell {
   NIX_SHELL = "unipipe";
@@ -7,8 +7,6 @@ pkgs.mkShell {
   '';
 
   buildInputs = [    
-
-    # node / typescript (meshPanel, utilities eetc.)
     pkgs.deno
   ];
 }

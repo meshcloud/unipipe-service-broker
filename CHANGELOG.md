@@ -1,5 +1,13 @@
 # Changelog
 
+## vNext
+
+### CLI
+
+- you can now search for service instances and bingins in `unipipe browse`. This greatly enhances the usability of
+  the browse mode for large repositories. Also the list now shows a summary info at the bottom how many instances
+  where found vs. how many exist in total.
+
 ## v1.4.0
 
 ### Service Broker

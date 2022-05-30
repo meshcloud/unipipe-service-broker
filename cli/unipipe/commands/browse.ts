@@ -91,6 +91,8 @@ async function browseInstances(repo: Repository) {
       type: Select,
       message: "Pick a service instance",
       options: instanceOptions,
+      search: true,
+      info: true
     },
     {
       name: "instanceCmd",
@@ -133,6 +135,8 @@ async function browseInstances(repo: Repository) {
       type: Select,
       message: "Pick a service binding",
       options: bindingOptions,
+      search: true,
+      info: true
     },
     {
       name: "bindingCmd",
