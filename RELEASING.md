@@ -8,8 +8,6 @@
   
 2. Update the version number in these places:
     - `cli/unipipe/info.ts`
-    - `cli/unipipe/blueprints/unipipe-osb-gcloud-cloudrun.js`
-    - `cli/unipipe/blueprints/unipipe-osb-aci.tf.js`
 
 3. Update `CHANGELOG.md`. We follow the guidelines from
    [Keep a Changelog][keep-a-changelog]. It's recommended to add changes for the next version in a vNext section already together with pull requests, as this will make releasing a lot easier.
