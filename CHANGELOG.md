@@ -2,6 +2,10 @@
 
 ## vNext
 
+- ...
+
+## v1.5.0
+
 ### CLI
 
 - you can now search for service instances and bingins in `unipipe browse`. This greatly enhances the usability of
