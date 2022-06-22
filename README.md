@@ -37,6 +37,8 @@ After installing unipipe cli, dive into the [Tutorials](https://github.com/meshc
 
 For understanding how everything fits together check out [Understanding the UniPipe universe](https://github.com/meshcloud/unipipe-service-broker/wiki/Understanding#understanding-the-unipipe-universe).
 
+[![Or watch this video!](https://img.youtube.com/vi/Vasaz8JvdeE/hqdefault.jpg))](https://youtu.be/Vasaz8JvdeE)
+
 # 📚 Wiki
 
 All documentation is available in [our Wiki](https://github.com/meshcloud/unipipe-service-broker/wiki#home) 
