@@ -1,3 +1,8 @@
+server:
+  # See https://github.com/spring-projects/spring-hateoas/issues/753#issuecomment-589971994
+  # with framework instead of native. See https://stackoverflow.com/questions/68318269/spring-server-forward-headers-strategy-native-vs-framework
+  # for the difference between the two.
+  forward-headers-strategy: framework
 git:
   local-path: /tmp/git
   remote-branch: master
