@@ -4,6 +4,12 @@
 
 - ...
 
+## v1.5.2
+### CLI
+- no changes
+
+### OSB
+- fix: handling x-forward-headers
 ## v1.5.0
 
 ### CLI
