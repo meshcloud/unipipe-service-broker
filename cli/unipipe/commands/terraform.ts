@@ -1,6 +1,6 @@
 import { Command } from "../deps.ts";
 import { ServiceInstance } from "../handler.ts";
-import { ServiceBinding } from "../osb.ts";
+import { OsbServiceInstanceStatus, ServiceBinding } from "../osb.ts";
 import { Repository } from "../repository.ts";
 
 // currently unused, but we most likely will introduce options soon
@@ -40,7 +40,36 @@ async function mapBindings(
   repo: Repository,
 ): Promise<string[]> {
   return await Promise.all(
-    instance.bindings.map((binding) => processBinding(instance, binding, repo)),
+    instance.bindings.map((binding) => {
+      try {
+        return processBinding(instance, binding, repo);
+      } catch (e) {
+        const bindingIdentifier = instance.instance.serviceInstanceId + "/" +
+          binding.binding.bindingId;
+
+        console.log(
+          `processing binding ${bindingIdentifier} failed with error: ${e}`,
+        );
+
+        const status: OsbServiceInstanceStatus = {
+          status: "failed",
+          description: "Processing the binding failed!",
+        };
+
+        repo.updateInstanceStatus(
+          instance.instance.serviceInstanceId,
+          status,
+        );
+
+        repo.updateBindingStatus(
+          instance.instance.serviceInstanceId,
+          binding.binding.bindingId,
+          status,
+        );
+
+        return bindingIdentifier + ": failed";
+      }
+    }),
   );
 }
 
@@ -66,7 +95,26 @@ async function processBinding(
     }
   }
 
-  const wrapper = {
+  const bindingDir =
+    `${repo.path}/instances/${instance.instance.serviceInstanceId}/bindings/${binding.binding.bindingId}`;
+
+  createTerraformWrapper(instance, binding, bindingDir);
+
+  const tfResult = await executeTerraform(bindingDir);
+
+  updateStatusAfterTfApply(tfResult, repo, instance, binding);
+
+  return tfResult.success
+    ? bindingIdentifier + ": successful"
+    : bindingIdentifier + ": failed";
+}
+
+function createTerraformWrapper(
+  instance: ServiceInstance,
+  binding: ServiceBinding,
+  bindingDir: string,
+) {
+  const terraformWrapper = {
     variable: {
       client_secret: {
         description: "Client Secret of the Azure App Registration.",
@@ -81,26 +129,43 @@ async function processBinding(
         client_secret: "${var.client_secret}",
         ...instance.instance.parameters,
         ...binding.binding.bindResource,
-        ...binding.binding.parameters
-        // TODO We should also consider adding tags as parameters. Because currently for me meshStack or a policy that
-        // is defined via a LZ always sets tags, that get removed again on terraform apply, as we don't define them here.
+        ...binding.binding.parameters,
       },
     },
   };
 
-  const bindingDir =
-    `${repo.path}/instances/${instance.instance.serviceInstanceId}/bindings/${binding.binding.bindingId}`;
-
-  Deno.writeTextFile(
+  Deno.writeTextFileSync(
     `${bindingDir}/module.tf.json`,
-    JSON.stringify(wrapper, null, 2),
+    JSON.stringify(terraformWrapper, null, 2),
+  );
+}
+
+function updateStatusAfterTfApply(
+  tfResult: Deno.ProcessStatus,
+  repo: Repository,
+  instance: ServiceInstance,
+  binding: ServiceBinding,
+) {
+  const status: OsbServiceInstanceStatus = tfResult.success
+    ? {
+      status: "succeeded",
+      description: "Terraform applied successfully",
+    }
+    : {
+      status: "failed",
+      description: "Applying Terraform failed!",
+    };
+
+  repo.updateInstanceStatus(
+    instance.instance.serviceInstanceId,
+    status,
   );
 
-  const tfResult = await executeTerraform(bindingDir);
-
-  return tfResult.success
-    ? bindingIdentifier + ": successful"
-    : bindingIdentifier + ": failed";
+  repo.updateBindingStatus(
+    instance.instance.serviceInstanceId,
+    binding.binding.bindingId,
+    status,
+  );
 }
 
 // TODO write log to a service binding specific log file (can be overwritten on every new run)
