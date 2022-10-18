@@ -12,8 +12,8 @@ export function registerTerraformCmd(program: Command) {
     .command("terraform [repo]")
     .description(
       "Runs Terraform modules located in the repository's terraform/<service_id> folder for all tenant service bindings. A" +
-      "TF_VAR_client_secret env variable must be set to provide the secret of the service principal that will be used for applying " +
-      "Terraform.",
+        "TF_VAR_client_secret env variable must be set to provide the secret of the service principal that will be used for applying " +
+        "Terraform.",
     )
     .action(async (options: TerraformOpts, repo: string | undefined) => {
       const repository = new Repository(repo ? repo : ".");
@@ -49,6 +49,23 @@ async function processBinding(
   binding: ServiceBinding,
   repo: Repository,
 ): Promise<string> {
+  const bindingIdentifier = instance.instance.serviceInstanceId + "/" +
+    binding.binding.bindingId;
+
+  try {
+    Deno.statSync(
+      `${repo.path}/terraform/${instance.instance.serviceDefinitionId}`,
+    );
+  } catch (e) {
+    if (e instanceof Deno.errors.NotFound) {
+      console.log(
+        `Skipping ${bindingIdentifier}, because no Terraform folder exists for service definition with id ${instance.instance.serviceInstanceId}`,
+      );
+
+      return bindingIdentifier + ": skipped";
+    }
+  }
+
   const wrapper = {
     variable: {
       client_secret: {
@@ -81,10 +98,9 @@ async function processBinding(
 
   const tfResult = await executeTerraform(bindingDir);
 
-  const bindingIdentifier = instance.instance.serviceInstanceId + "/" + binding.binding.bindingId + ": ";
-
-  return  +
-    tfResult.success ? bindingIdentifier + "successful" : bindingIdentifier + "failed";
+  return tfResult.success
+    ? bindingIdentifier + ": successful"
+    : bindingIdentifier + ": failed";
 }
 
 // TODO write log to a service binding specific log file (can be overwritten on every new run)
