@@ -1,10 +1,11 @@
+import { registerBrowseCmd } from "./commands/browse.ts";
 import { registerGenerateCmd } from "./commands/generate.ts";
 import { registerListCmd } from "./commands/list.ts";
 import { registerShowCmd } from "./commands/show.ts";
+import { registerTerraformCmd } from "./commands/terraform.ts";
 import { registerTransformCmd } from "./commands/transform.ts";
 import { registerUpdateCmd } from "./commands/update.ts";
 import { registerUpgradeCmd } from "./commands/upgrade.ts";
-import { registerBrowseCmd } from "./commands/browse.ts";
 import { Command, CompletionsCommand } from "./deps.ts";
 import { VERSION } from "./info.ts";
 
@@ -22,6 +23,7 @@ registerUpdateCmd(program);
 registerGenerateCmd(program);
 registerUpgradeCmd(program);
 registerBrowseCmd(program);
+registerTerraformCmd(program);
 
 const hasArgs = Deno.args.length > 0;
 if (hasArgs) {

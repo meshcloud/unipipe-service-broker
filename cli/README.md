@@ -187,6 +187,9 @@ using typescript. This provides the following benefits:
 
 You need [deno](https://deno.land) installed on your system.
 
+If you are using VS Code, you also have to install the Deno extension and initialize the Deno workspace 
+via Cmd/Strg + Shift + P -> "Deno: Initialize Workspace Configuration"
+
 ```bash
 # running locally (using deno run, not compiled)
 ./unipipe/unipipe.sh --help
