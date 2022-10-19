@@ -12,7 +12,7 @@ export function registerTerraformCmd(program: Command) {
     .command("terraform [repo]")
     .description(
       "Runs Terraform modules located in the repository's terraform/<service_id> folder for all tenant service bindings. A" +
-        "TF_VAR_client_secret env variable must be set to provide the secret of the service principal that will be used for applying " +
+        "TF_VAR_platform_secret env variable must be set to provide the secret of the service principal that will be used for applying " +
         "Terraform.",
     )
     .action(async (options: TerraformOpts, repo: string | undefined) => {
@@ -120,8 +120,8 @@ function createTerraformWrapper(
 ) {
   const terraformWrapper = {
     variable: {
-      client_secret: {
-        description: "Client Secret of the Azure App Registration.",
+      platform_secret: {
+        description: "The secret that will be used by Terraform to authenticate against the cloud platform.",
         type: "string",
         sensitive: true,
       },
@@ -130,7 +130,7 @@ function createTerraformWrapper(
       wrapper: {
         source:
           `../../../../terraform/${instance.instance.serviceDefinitionId}`,
-        client_secret: "${var.client_secret}",
+        platform_secret: "${var.platform_secret}",
         ...instance.instance.parameters,
         ...binding.binding.bindResource,
         ...binding.binding.parameters,

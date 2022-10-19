@@ -11,8 +11,8 @@ const SERVICE_BINDING_ID = "456";
 const TF_MODULE_CONTENT = JSON.stringify(
   {
     variable: {
-      client_secret: {
-        description: "Client Secret of the Azure App Registration.",
+      platform_secret: {
+        description: "The secret that will be used by Terraform to authenticate against the cloud platform.",
         type: "string",
         sensitive: true,
       },
@@ -20,7 +20,7 @@ const TF_MODULE_CONTENT = JSON.stringify(
     module: {
       wrapper: {
         source: "../../../../terraform/" + SERVICE_DEFINITION_ID,
-        client_secret: "${var.client_secret}",
+        platform_secret: "${var.platform_secret}",
         myParam: "test",
         tenant_id: "my-tenant",
         platform: "dev.azure",
