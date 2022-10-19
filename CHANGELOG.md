@@ -2,7 +2,11 @@
 
 ## vNext
 
-- ...
+- Added a new `unipipe terraform` command to execute Terraform modules easily. For several service brokers execution 
+of a Terraform Module is the central task they have to execute. The Terraform module must exist in the git repository
+that also contains the instances in a terraform/<serviceId> folder. It must be compatible with a specific set of variables 
+that will be provided to it via the unipipe terraform command. These variables are determined dynamically via the parameters
+and bindResource information provided by the UniPipe Service Broker.
 
 ## v1.5.2
 ### CLI
