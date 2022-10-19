@@ -21,9 +21,11 @@ const TF_MODULE_CONTENT = JSON.stringify(
       wrapper: {
         source: "../../../../terraform/" + SERVICE_DEFINITION_ID,
         platform_secret: "${var.platform_secret}",
+        platform: "dev.azure",
+        project_id: "my-project",
+        customer_id: "my-customer",
         myParam: "test",
         tenant_id: "my-tenant",
-        platform: "dev.azure",
       },
     },
   },
@@ -173,6 +175,12 @@ function createInstanceAndBinding(tmp: string) {
         parameters: {
           myParam: "test",
         },
+        context: {
+          platform: "dev.azure",
+          project_id: "my-project",
+          customer_id: "my-customer",
+          auth_url: "should-be-ignored"
+        }
       },
       null,
       2,

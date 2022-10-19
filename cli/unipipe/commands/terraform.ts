@@ -118,6 +118,16 @@ function createTerraformWrapper(
   binding: ServiceBinding,
   bindingDir: string,
 ) {
+
+  // we reduce the context object here as for the Terraform execution those auth urls are not relevant
+  // deno-lint-ignore no-explicit-any
+  const reducedContext: any = {
+    ...instance.instance.context
+  }
+  delete(reducedContext.auth_url)
+  delete(reducedContext.token_url)
+  delete(reducedContext.permission_url)
+
   const terraformWrapper = {
     variable: {
       platform_secret: {
@@ -131,6 +141,7 @@ function createTerraformWrapper(
         source:
           `../../../../terraform/${instance.instance.serviceDefinitionId}`,
         platform_secret: "${var.platform_secret}",
+        ...reducedContext,
         ...instance.instance.parameters,
         ...binding.binding.bindResource,
         ...binding.binding.parameters,
