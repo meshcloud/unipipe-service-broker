@@ -2,11 +2,17 @@
 
 ## vNext
 
+## v1.6.0
+### CLI
+
 - Added a new `unipipe terraform` command to execute Terraform modules easily. For several service brokers execution 
 of a Terraform Module is the central task they have to execute. The Terraform module must exist in the git repository
 that also contains the instances in a terraform/<serviceId> folder. It must be compatible with a specific set of variables 
 that will be provided to it via the unipipe terraform command. These variables are determined dynamically via the parameters
 and bindResource information provided by the UniPipe Service Broker.
+
+### OSB
+- no changes
 
 ## v1.5.2
 ### CLI
@@ -14,11 +20,12 @@ and bindResource information provided by the UniPipe Service Broker.
 
 ### OSB
 - fix: handling x-forward-headers
+
 ## v1.5.0
 
 ### CLI
 
-- you can now search for service instances and bingins in `unipipe browse`. This greatly enhances the usability of
+- you can now search for service instances and bindings in `unipipe browse`. This greatly enhances the usability of
   the browse mode for large repositories. Also the list now shows a summary info at the bottom how many instances
   where found vs. how many exist in total.
 - generate ECDSA key instead of RSA key in templated deployment 
