@@ -1,12 +1,12 @@
-import { catalog } from '../blueprints/catalog.yml.js';
-import { basicTransformHandler } from '../blueprints/basic-handler.js.js';
-import { terraformTransformHandler } from '../blueprints/terraform-handler.js.js';
-import { githubWorkflow } from '../blueprints/github-workflow.yml.js';
-import { executionScript } from '../blueprints/execution-script.sh.js';
-import { unipipeOsbAciTerraform } from '../blueprints/unipipe-osb-aci.tf.js';
-import { unipipeOsbGCloudCloudRunTerraform } from '../blueprints/unipipe-osb-gcloud-cloudrun.js';
-import { colors, Command, Input, Select, uuid, EnumType } from '../deps.ts';
-import { Dir, File, write } from '../dir.ts';
+import { basicTransformHandler } from "../blueprints/basic-handler.js.js";
+import { catalog } from "../blueprints/catalog.yml.js";
+import { executionScript } from "../blueprints/execution-script.sh.js";
+import { githubWorkflow } from "../blueprints/github-workflow.yml.js";
+import { terraformTransformHandler } from "../blueprints/terraform-handler.js.js";
+import { unipipeOsbAciTerraform } from "../blueprints/unipipe-osb-aci.tf.js";
+import { unipipeOsbGCloudCloudRunTerraform } from "../blueprints/unipipe-osb-gcloud-cloudrun.js";
+import { colors, Command, EnumType, Input, Select, uuid } from "../deps.ts";
+import { Dir, write } from "../dir.ts";
 
 const ALL_HANDLER_TYPES = [ "handler_b", "handler_tf" ] as const;
 type HandlersTuple = typeof ALL_HANDLER_TYPES;
@@ -87,15 +87,15 @@ function generateUuid() {
 }
 
 async function generateCatalog(options: CatalogOpts) {
-  writeDirectoryWithUserInput("catalog.yml", catalog, "Pick a destination directory for the generated catalog file:", (options.destination?options.destination:undefined))
+  await writeDirectoryWithUserInput("catalog.yml", catalog, "Pick a destination directory for the generated catalog file:", (options.destination?options.destination:undefined))
 }
 
 async function generateExecutionScript(options: CatalogOpts) {
-  writeDirectoryWithUserInput("execute-terraform-templates.sh", executionScript, "Pick a destination directory for the generated execution script file:", (options.destination?options.destination:undefined))
+  await writeDirectoryWithUserInput("execute-terraform-templates.sh", executionScript, "Pick a destination directory for the generated execution script file:", (options.destination?options.destination:undefined))
 }
 
 async function generateGithubWorkflow(options: CatalogOpts) {
-  writeDirectoryWithUserInput("github-workflow.yml", githubWorkflow, "Pick a destination directory for the generated github-workflow file:", (options.destination?options.destination:undefined))
+  await writeDirectoryWithUserInput("github-workflow.yml", githubWorkflow, "Pick a destination directory for the generated github-workflow file:", (options.destination?options.destination:undefined))
 }
 
 async function generateTransformHandler(options: CatalogOpts) {
@@ -116,7 +116,7 @@ async function generateTransformHandler(options: CatalogOpts) {
       });
   }
 
-  var outputContent = ""
+  let outputContent = "";
   switch (options.handler) {
     case "handler_b": {
       if (options.uuid == "Default: Auto-generated UUID"){
@@ -205,7 +205,7 @@ async function writeDirectory(dir: Dir){
   );
 }
 
-function writeTerraformInstructions(terraform: string, initialText: string='Instructions:') {
+function writeTerraformInstructions(terraform: string, initialText = 'Instructions:') {
   // KISS, just find where the actual terraform code starts and log the file header above it
   const instructions = terraform.substring(
     0,
