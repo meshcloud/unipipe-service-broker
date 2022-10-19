@@ -26,6 +26,8 @@ export async function run(
   repo: Repository,
   opts: TerraformOpts,
 ): Promise<string[][]> {
+  console.log("starting terraform command");
+
   const instances = await repo.mapInstances(async (instance) => {
     return await instance;
   });
@@ -40,14 +42,14 @@ async function mapBindings(
   repo: Repository,
 ): Promise<string[]> {
   return await Promise.all(
-    instance.bindings.map((binding) => {
+    instance.bindings.map(async(binding) => {
       try {
-        return processBinding(instance, binding, repo);
+        return await processBinding(instance, binding, repo);
       } catch (e) {
         const bindingIdentifier = instance.instance.serviceInstanceId + "/" +
           binding.binding.bindingId;
 
-        console.log(
+        console.error(
           `processing binding ${bindingIdentifier} failed with error: ${e}`,
         );
 
@@ -80,6 +82,8 @@ async function processBinding(
 ): Promise<string> {
   const bindingIdentifier = instance.instance.serviceInstanceId + "/" +
     binding.binding.bindingId;
+
+  console.log("starting to process " + bindingIdentifier);
 
   try {
     Deno.statSync(
