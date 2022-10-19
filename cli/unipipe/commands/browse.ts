@@ -1,12 +1,5 @@
-import {
-  colors,
-  Command,
-  Select,
-  SelectValueOptions,
-  prompt,
-  Input,
-  List,
-} from "../deps.ts";
+import { colors, Command, Input, List, prompt, Select, SelectValueOptions } from "../deps.ts";
+import { OsbStatusValue } from "../osb.ts";
 import { Repository } from "../repository.ts";
 import { stringify } from "../yaml.ts";
 import { show } from "./show.ts";
@@ -100,9 +93,9 @@ async function browseInstances(repo: Repository) {
       type: Select,
       options: ["show", "bindings", "update", "↑ instances"],
       after: async ({ selectInstance, instanceCmd }, next) => {
-        const cmd = instanceCmd!!;
-        const instanceId = selectInstance!!;
-        switch (cmd!!) {
+        const cmd = instanceCmd!;
+        const instanceId = selectInstance!;
+        switch (cmd!) {
           case "show":
             await showInstance(repo, instanceId);
             next("instanceCmd"); // loop
@@ -144,9 +137,9 @@ async function browseInstances(repo: Repository) {
       type: Select,
       options: ["show", "update", "↑ bindings", "↑ instances"],
       after: async ({ selectInstance, selectBinding, bindingCmd }, next) => {
-        const instanceId = selectInstance!!;
-        const bindingId = selectBinding!!;
-        const cmd = bindingCmd!!;
+        const instanceId = selectInstance!;
+        const bindingId = selectBinding!;
+        const cmd = bindingCmd!;
         switch (cmd) {
           case "show":
             await showBinding(repo, instanceId, bindingId);
@@ -197,8 +190,8 @@ async function updateInstance(repo: Repository, instanceId: string) {
 
   await update(repo, {
     instanceId,
-    status: status,
-    description: description,
+    status: status! as unknown as OsbStatusValue,
+    description: description!,
   });
 
   console.log(`Updated status of instance ${instanceId} to '${status}'`);
@@ -230,7 +223,7 @@ async function updateBinding(
 
   // cliffy does not support whitespace in list prompt input.
   // the following part is a workaround that adds the whitespace after the first colon character
-  var fixedCredentials: string[] = [];
+  const fixedCredentials: string[] = [];
   credentials.forEach((credential) => {
     const colonIndex = credential.indexOf(":");
     if (colonIndex === -1) {
@@ -244,8 +237,8 @@ async function updateBinding(
   await update(repo, {
     instanceId,
     bindingId,
-    status: status,
-    description: description,
+    status: status! as unknown as OsbStatusValue,
+    description: description!,
     credentials: credentials.length > 0 ? fixedCredentials : undefined,
   });
 

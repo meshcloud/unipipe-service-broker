@@ -1,6 +1,6 @@
+import { mapBindings } from "./commands/helpers.ts";
 import { MeshMarketplaceContext } from "./mesh.ts";
 import { parse } from "./yaml.ts";
-import { mapBindings } from "./commands/helpers.ts";
 
 export interface CloudFoundryContext {
   // cloudfoundry context object, https://github.com/openservicebrokerapi/servicebroker/blob/master/profile.md#cloud-foundry-context-object
@@ -51,12 +51,14 @@ export interface OsbServiceBinding extends Record<string, unknown> {
   deleted: boolean;
 }
 
+export type OsbStatusValue = "succeeded" | "in progress" | "failed";
+
 export interface OsbServiceInstanceStatus extends Record<string, unknown> {
-  status: "succeeded" | "in progress" | "failed";
+  status: OsbStatusValue;
   description: string;
 }
 export interface OsbServiceBindingStatus extends Record<string, unknown> {
-  status: "succeeded" | "in progress" | "failed";
+  status: OsbStatusValue;
   description: string;
 }
 

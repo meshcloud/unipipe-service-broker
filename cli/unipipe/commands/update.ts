@@ -51,7 +51,7 @@ export async function update(repository: Repository, opts: UpdateOpts) {
     description: opts.description,
   };
 
-  var credentialsYaml = "";
+  let credentialsYaml = "";
   opts.credentials?.forEach(credential => {
     credentialsYaml += `${credential}\n`;
   })

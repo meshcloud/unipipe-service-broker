@@ -1,10 +1,7 @@
 import { path } from "./deps.ts";
 import {
-  OsbServiceBindingStatus,
-  OsbServiceInstanceStatus,
-  readInstance,
+    OsbServiceBindingStatus, OsbServiceInstanceStatus, readInstance, ServiceInstance
 } from "./osb.ts";
-import { ServiceInstance } from "./osb.ts";
 import { stringify } from "./yaml.ts";
 
 export class Repository {
@@ -38,6 +35,18 @@ export class Repository {
     const instancesPath = path.join(this.path, "instances");
     const results: T[] = [];
 
+    try {
+      Deno.statSync(instancesPath);
+    } catch (e) {
+      if (e instanceof Deno.errors.NotFound) {
+        console.log(
+          `Instances directory does not exist in repository. Therefore no instances can be found!`,
+        );
+  
+        return [];
+      }
+    }
+
     // todo: should probably not Deno.exit from here, but throw a nice exception and handle that globally
     try {
       for await (const dir of Deno.readDir(instancesPath)) {
@@ -57,6 +66,7 @@ export class Repository {
 
           try {
             const r = await mapFn(instance);
+
             results.push(r);
           } catch (error) {
             console.error(
