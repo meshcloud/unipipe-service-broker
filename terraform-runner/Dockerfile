@@ -1,4 +1,4 @@
-FROM hashicorp/terraform:1.3.2
+FROM hashicorp/terraform:1.3.3
 
 ENV GLIBC_REPO=https://github.com/sgerrand/alpine-pkg-glibc
 ENV GLIBC_VERSION=2.30-r0
