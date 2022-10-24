@@ -11,7 +11,7 @@ export function registerTerraformCmd(program: Command) {
   program
     .command("terraform [repo]")
     .description(
-      "Runs Terraform modules located in the repository's terraform/<service_id> folder for all tenant service bindings. A" +
+      "Runs Terraform modules located in the repository’s terraform/<service_id> folder for all tenant service bindings. A " +
         "TF_VAR_platform_secret env variable must be set to provide the secret of the service principal that will be used for applying " +
         "Terraform.",
     )
