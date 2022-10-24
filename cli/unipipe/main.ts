@@ -1,5 +1,6 @@
 import { registerBrowseCmd } from "./commands/browse.ts";
 import { registerGenerateCmd } from "./commands/generate.ts";
+import { registerGitCmd } from "./commands/git.ts";
 import { registerListCmd } from "./commands/list.ts";
 import { registerShowCmd } from "./commands/show.ts";
 import { registerTerraformCmd } from "./commands/terraform.ts";
@@ -24,6 +25,7 @@ registerGenerateCmd(program);
 registerUpgradeCmd(program);
 registerBrowseCmd(program);
 registerTerraformCmd(program);
+registerGitCmd(program);
 
 const hasArgs = Deno.args.length > 0;
 if (hasArgs) {
