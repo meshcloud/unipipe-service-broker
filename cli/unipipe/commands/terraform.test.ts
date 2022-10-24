@@ -12,7 +12,8 @@ const TF_MODULE_CONTENT = JSON.stringify(
   {
     variable: {
       platform_secret: {
-        description: "The secret that will be used by Terraform to authenticate against the cloud platform.",
+        description:
+          "The secret that will be used by Terraform to authenticate against the cloud platform.",
         type: "string",
         sensitive: true,
       },
@@ -62,6 +63,30 @@ Deno.test(
       ]]);
     }),
 );
+
+Deno.test(
+  "sets instance without bindings to successful as nothing needs to be executed",
+  async () =>
+    await withTempDir(async (tmp) => {
+      createInstance(tmp);
+
+      const result = await run(new Repository(tmp), {});
+
+      await assertEquals(result, [[
+        `${SERVICE_INSTANCE_ID}: succeeded`,
+      ]]);
+
+      const expectedStatus =
+        "status: succeeded\ndescription: Instance without binding processed successfully. No action executed.\n";
+
+      await assertContent(
+        [tmp, `/instances/${SERVICE_INSTANCE_ID}/status.yml`],
+        expectedStatus,
+      );
+    }),
+);
+
+
 
 Deno.test(
   "can handle successful terraform execution",
@@ -162,8 +187,13 @@ function createTerraformServiceFolder(tmp: string) {
 }
 
 function createInstanceAndBinding(tmp: string) {
+  createInstance(tmp);
+  createBinding(tmp);
+}
+
+function createInstance(tmp: string) {
   Deno.mkdirSync(
-    tmp + `/instances/${SERVICE_INSTANCE_ID}/bindings/${SERVICE_BINDING_ID}`,
+    tmp + `/instances/${SERVICE_INSTANCE_ID}`,
     { recursive: true },
   );
   Deno.writeTextFileSync(
@@ -179,12 +209,19 @@ function createInstanceAndBinding(tmp: string) {
           platform: "dev.azure",
           project_id: "my-project",
           customer_id: "my-customer",
-          auth_url: "should-be-ignored"
-        }
+          auth_url: "should-be-ignored",
+        },
       },
       null,
       2,
     ),
+  );
+}
+
+function createBinding(tmp: string) {
+  Deno.mkdirSync(
+    tmp + `/instances/${SERVICE_INSTANCE_ID}/bindings/${SERVICE_BINDING_ID}`,
+    { recursive: true },
   );
   Deno.writeTextFileSync(
     tmp +

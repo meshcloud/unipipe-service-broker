@@ -41,38 +41,49 @@ async function mapBindings(
   instance: ServiceInstance,
   repo: Repository,
 ): Promise<string[]> {
-  return await Promise.all(
-    instance.bindings.map(async(binding) => {
-      try {
-        return await processBinding(instance, binding, repo);
-      } catch (e) {
-        const bindingIdentifier = instance.instance.serviceInstanceId + "/" +
-          binding.binding.bindingId;
+  if (instance.bindings.length == 0) {
+    const status: OsbServiceInstanceStatus = {
+      status: "succeeded",
+      description: "Instance without binding processed successfully. No action executed.",
+    }
+    repo.updateInstanceStatus(
+      instance.instance.serviceInstanceId,
+      status,
+    );
 
-        console.error(
-          `processing binding ${bindingIdentifier} failed with error: ${e}`,
-        );
+    return [instance.instance.serviceInstanceId + ": succeeded"];
+  }
 
-        const status: OsbServiceInstanceStatus = {
-          status: "failed",
-          description: "Processing the binding failed!",
-        };
+  return await Promise.all(instance.bindings.map(async (binding) => {
+    try {
+      return await processBinding(instance, binding, repo);
+    } catch (e) {
+      const bindingIdentifier = instance.instance.serviceInstanceId + "/" +
+        binding.binding.bindingId;
 
-        repo.updateInstanceStatus(
-          instance.instance.serviceInstanceId,
-          status,
-        );
+      console.error(
+        `processing binding ${bindingIdentifier} failed with error: ${e}`,
+      );
 
-        repo.updateBindingStatus(
-          instance.instance.serviceInstanceId,
-          binding.binding.bindingId,
-          status,
-        );
+      const status: OsbServiceInstanceStatus = {
+        status: "failed",
+        description: "Processing the binding failed!",
+      };
 
-        return bindingIdentifier + ": failed";
-      }
-    }),
-  );
+      repo.updateInstanceStatus(
+        instance.instance.serviceInstanceId,
+        status,
+      );
+
+      repo.updateBindingStatus(
+        instance.instance.serviceInstanceId,
+        binding.binding.bindingId,
+        status,
+      );
+
+      return bindingIdentifier + ": failed";
+    }
+  }));
 }
 
 async function processBinding(
@@ -118,20 +129,20 @@ function createTerraformWrapper(
   binding: ServiceBinding,
   bindingDir: string,
 ) {
-
   // we reduce the context object here as for the Terraform execution those auth urls are not relevant
   // deno-lint-ignore no-explicit-any
   const reducedContext: any = {
-    ...instance.instance.context
-  }
-  delete(reducedContext.auth_url)
-  delete(reducedContext.token_url)
-  delete(reducedContext.permission_url)
+    ...instance.instance.context,
+  };
+  delete (reducedContext.auth_url);
+  delete (reducedContext.token_url);
+  delete (reducedContext.permission_url);
 
   const terraformWrapper = {
     variable: {
       platform_secret: {
-        description: "The secret that will be used by Terraform to authenticate against the cloud platform.",
+        description:
+          "The secret that will be used by Terraform to authenticate against the cloud platform.",
         type: "string",
         sensitive: true,
       },

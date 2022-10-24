@@ -4,6 +4,7 @@
 ### CLI
 
 - Fixed zsh completions
+- `unipipe terraform` updates status.yml to succeeded for service instances without any binding
 
 ## v1.6.0
 ### CLI
