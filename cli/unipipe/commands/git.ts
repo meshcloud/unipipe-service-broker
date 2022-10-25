@@ -1,41 +1,82 @@
 import { Command } from "../deps.ts";
 import { Repository } from "../repository.ts";
-import ProcessStatus = Deno.ProcessStatus;
 
 interface GitOpts {
+  name: string;
+  email: string;
+  message: string;
 }
 
 export function registerGitCmd(program: Command) {
   program
     .command("git <cmd> [repo]")
-    .description("Runs Git and simplifies working with pull/push commands")
-    .action(async (options: GitOpts, cmd: string, repo: string | undefined) => {
+    .description("Runs Git to simplify pull/push commands")
+    .action(async (opts: GitOpts, cmd: string, repo: string | undefined) => {
 
       const repository = new Repository(repo ? repo : ".");
+      opts.name = opts.name || "Unipipe CLI";
+      opts.email = opts.email || "unipipe-cli@meshcloud.io";
+      opts.message = opts.message || "Commit changes";
 
       switch (cmd) {
         case "pull":
-          await pull(repository, options);
+          await commandPull(repository);
           break;
+        case "push":
+          await commandPush(repository, opts);
+          break;
+        default:
+          console.log(`Git command '${cmd}' is not found`);
       }
     });
 }
 
-export async function pull(repo: Repository, opts: GitOpts): Promise<boolean> {
-  const status = await executeGit(repo.path, ["pull", "--ff-only"])
-
-  return status.success
+async function commandPull(repo: Repository) {
+  await gitPull(repo.path);
 }
 
-export async function executeGit(dir: string, args: string[]): Promise<ProcessStatus> {
-  const cmd = ["git", ...args]
+async function commandPush(repo: Repository, opts: GitOpts) {
+  const add = await gitAdd(repo.path);
+  if (!add) return;
 
-  console.log(`Running ${cmd.join(' ')}`)
+  const commit = await gitCommit(repo.path, opts.name, opts.email, opts.message);
+  if (!commit) return;
+
+  await gitPush(repo.path);
+}
+
+async function gitPull(repoPath: string): Promise<boolean> {
+  return await executeGit(repoPath, ["pull", "--ff-only"]);
+}
+
+async function gitPush(repoPath: string): Promise<boolean> {
+  return await executeGit(repoPath, ["push"]);
+}
+
+async function gitAdd(repoPath: string): Promise<boolean> {
+  return await executeGit(repoPath, ["add", "."]);
+}
+
+async function gitCommit(repoPath: string, name: string, email: string, message: string): Promise<boolean> {
+  return await executeGit(repoPath, [
+    "commit",
+    "-a",
+    "-m", `Unipipe CLI: ${message}`,
+    "--author", `${name} <${email}>`]);
+}
+
+async function executeGit(dir: string, args: string[]): Promise<boolean> {
+  const cmd = ["git", ...args];
+
+  console.log(`Running ${cmd.join(' ')}`);
 
   const process = Deno.run({
     cmd: cmd,
     cwd: dir
   });
 
-  return await process.status();
+  const status = await process.status();
+  console.log(status.success ? "Command succeeded" : "Command failed");
+
+  return status.success;
 }
