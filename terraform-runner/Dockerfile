@@ -12,7 +12,7 @@ RUN set -ex && \
     rm -v /tmp/*.apk && \
     /usr/glibc-compat/sbin/ldconfig /lib /usr/glibc-compat/lib
 
-RUN apk add --no-cache curl bash sudo
+RUN apk add --no-cache curl bash sudo jq
 RUN curl -sf -L https://raw.githubusercontent.com/meshcloud/unipipe-service-broker/master/cli/install.sh | sudo bash
 
 COPY unipipe-terraform-cron /etc/cron.d/unipipe-terraform-cron
@@ -24,7 +24,8 @@ COPY run-unipipe-terraform.sh /root/unipipe/run-unipipe-terraform.sh
 RUN chmod 0755 ~/unipipe/run-unipipe-terraform.sh
 
 RUN mkdir ~/.ssh
-RUN ssh-keyscan github.com >> ~/.ssh/known_hosts
+RUN curl --silent https://api.github.com/meta \
+  | jq --raw-output '"github.com "+.ssh_keys[]' >> ~/.ssh/known_hosts
 
 COPY entry.sh /root/unipipe/entry.sh
 RUN chmod 0755 /root/unipipe/entry.sh
