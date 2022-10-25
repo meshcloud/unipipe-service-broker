@@ -12,7 +12,7 @@ At first you have to create an `env.list` and set some mandatory environment var
 ```
 GIT_USER_EMAIL=unipipe-terraform@meshcloud.io
 GIT_USER_NAME=UniPipe Terraform Runner
-GIT_REPO=<git repository ssh url>
+GIT_REMOTE=<git repository ssh url>
 TF_VAR_platform_secret=<secret of the service principal to create resources via terraform in cloud platform>
 ```
 

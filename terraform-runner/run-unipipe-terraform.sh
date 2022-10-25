@@ -9,7 +9,7 @@ if [ ! -f "$REPO_DIR" ]; then
     cd ~/unipipe
     git config --global user.email $GIT_USER_EMAIL
     git config --global user.name $GIT_USER_NAME
-    git clone $GIT_REPO $REPO_NAME
+    git clone $GIT_REMOTE $REPO_NAME
 fi
 
 cd $REPO_DIR
