@@ -32,21 +32,37 @@ export function registerGitCmd(program: Command) {
 }
 
 async function commandPull(repo: Repository) {
-  await gitPull(repo.path);
+  const pullFastForward = await gitPullFastForward(repo.path);
+
+  if (!pullFastForward) {
+    await gitPullRebase(repo.path);
+  }
 }
 
 async function commandPush(repo: Repository, opts: GitOpts) {
   const add = await gitAdd(repo.path);
   if (!add) return;
 
-  const commit = await gitCommit(repo.path, opts.name, opts.email, opts.message);
-  if (!commit) return;
+  const hasChanges = await gitDiffIndex(repo.path);
 
-  await gitPush(repo.path);
+  if (!hasChanges) {
+    const commit = await gitCommit(repo.path, opts.name, opts.email, opts.message);
+    if (!commit) return;
+  }
+
+  const push = await gitPush(repo.path);
+  if (!push) {
+    await commandPull(repo);
+    await gitPush(repo.path);
+  }
 }
 
-async function gitPull(repoPath: string): Promise<boolean> {
+async function gitPullFastForward(repoPath: string): Promise<boolean> {
   return await executeGit(repoPath, ["pull", "--ff-only"]);
+}
+
+async function gitPullRebase(repoPath: string): Promise<boolean> {
+  return await executeGit(repoPath, ["pull", "--rebase"]);
 }
 
 async function gitPush(repoPath: string): Promise<boolean> {
@@ -57,12 +73,13 @@ async function gitAdd(repoPath: string): Promise<boolean> {
   return await executeGit(repoPath, ["add", "."]);
 }
 
+async function gitDiffIndex(repoPath: string): Promise<boolean> {
+  return await executeGit(repoPath, ["diff-index", "--quiet", "HEAD"]);
+}
+
 async function gitCommit(repoPath: string, name: string, email: string, message: string): Promise<boolean> {
   return await executeGit(repoPath, [
-    "commit",
-    "-a",
-    "-m", `Unipipe CLI: ${message}`,
-    "--author", `${name} <${email}>`]);
+    "commit", "-a", "-m", `Unipipe CLI: ${message}`, "--author", `${name} <${email}>`]);
 }
 
 async function executeGit(dir: string, args: string[]): Promise<boolean> {
