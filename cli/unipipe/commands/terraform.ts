@@ -129,11 +129,12 @@ async function processBinding(
     `${repo.path}/instances/${instance.instance.serviceInstanceId}/bindings/${binding.binding.bindingId}`;
 
   createTerraformWrapper(instance, binding, bindingDir);
+  tryCopyBackendTf(repo, bindingDir);
 
   const tfResult = await executeTerraform(
     bindingDir,
     binding.binding.bindingId,
-    instance.instance
+    instance.instance,
   );
 
   updateStatusAfterTfApply(tfResult, repo, instance, binding);
@@ -213,6 +214,29 @@ function createTerraformWrapper(
   Deno.writeTextFileSync(
     `${bindingDir}/module.tf.json`,
     JSON.stringify(terraformWrapper, null, 2),
+  );
+}
+
+function tryCopyBackendTf(
+  repo: Repository,
+  serviceDefinitionId: string,
+  bindingDir: string,
+) {
+  try {
+    Deno.statSync(
+      `${repo.path}/terraform/${serviceDefinitionId}/backend.tf`,
+    );
+  } catch (_) {
+    console.debug(
+      `No backend file exists for service definition ${serviceDefinitionId}. So we are not using a backend for binding ${bindingDir}`,
+    );
+
+    return;
+  }
+
+  Deno.copyFileSync(
+    `${repo.path}/terraform/${serviceDefinitionId}/backend.tf`,
+    `${bindingDir}/backend.tf`,
   );
 }
 

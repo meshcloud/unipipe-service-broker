@@ -116,6 +116,30 @@ Deno.test(
 );
 
 Deno.test(
+  "copies backend.tf to binding folder if it exists",
+  async () =>
+    await withTempDir(async (tmp) => {
+      createInstanceAndBinding(tmp);
+      createTerraformServiceFolder(tmp);
+      createTerraformBackendFile(tmp);
+
+      const stub = mockTerraformExecution();
+
+      const result = await run(new Repository(tmp), {});
+
+      await assertEquals(result, [[
+        `${SERVICE_INSTANCE_ID}/${SERVICE_BINDING_ID}: successful`,
+      ]]);
+
+      const backendFile = Deno.statSync(`${tmp}/terraform/${SERVICE_DEFINITION_ID}/backend.tf`);
+
+      await(assertEquals(backendFile.isFile, true));
+
+      stub.restore();
+    }),
+);
+
+Deno.test(
   "selects correct terraform workspace",
   async () =>
     await withTempDir(async (tmp) => {
@@ -314,9 +338,16 @@ function createTfMockResult(success = true) {
 }
 
 function createTerraformServiceFolder(repoDir: string) {
-  Deno.mkdirSync(repoDir + "/terraform/" + SERVICE_DEFINITION_ID, {
+  Deno.mkdirSync(`${repoDir}/terraform/${SERVICE_DEFINITION_ID}`, {
     recursive: true,
   });
+}
+
+function createTerraformBackendFile(repoDir: string) {
+  Deno.writeTextFileSync(
+    `${repoDir}/terraform/${SERVICE_DEFINITION_ID}/backend.tf`,
+    "backend-config..."
+  )
 }
 
 function createInstanceAndBinding(
@@ -329,11 +360,11 @@ function createInstanceAndBinding(
 
 function createInstance(repoDir: string, manualInstanceInputNeeded = false) {
   Deno.mkdirSync(
-    repoDir + `/instances/${SERVICE_INSTANCE_ID}`,
+    `${repoDir}/instances/${SERVICE_INSTANCE_ID}`,
     { recursive: true },
   );
   Deno.writeTextFileSync(
-    repoDir + `/instances/${SERVICE_INSTANCE_ID}/instance.yml`,
+    `${repoDir}/instances/${SERVICE_INSTANCE_ID}/instance.yml`,
     JSON.stringify(
       {
         serviceInstanceId: SERVICE_INSTANCE_ID,
@@ -370,7 +401,7 @@ function createInstance(repoDir: string, manualInstanceInputNeeded = false) {
 
 function createManualInstanceParams(repoDir: string) {
   Deno.writeTextFileSync(
-    repoDir + `/instances/${SERVICE_INSTANCE_ID}/params.yml`,
+    `${repoDir}/instances/${SERVICE_INSTANCE_ID}/params.yml`,
     JSON.stringify(
       {
         manualParam: "test",
@@ -383,8 +414,7 @@ function createManualInstanceParams(repoDir: string) {
 
 function createBinding(repoDir: string) {
   Deno.mkdirSync(
-    repoDir +
-      `/instances/${SERVICE_INSTANCE_ID}/bindings/${SERVICE_BINDING_ID}`,
+          `${repoDir}/instances/${SERVICE_INSTANCE_ID}/bindings/${SERVICE_BINDING_ID}`,
     { recursive: true },
   );
   Deno.writeTextFileSync(
