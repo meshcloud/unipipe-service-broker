@@ -1,6 +1,8 @@
 import { Command } from "../deps.ts";
-import { ServiceInstance } from "../handler.ts";
-import { OsbServiceInstanceStatus, ServiceBinding } from "../osb.ts";
+import { MeshMarketplaceContext, ServiceInstance } from "../handler.ts";
+import {
+    CloudFoundryContext, OsbServiceInstance, OsbServiceInstanceStatus, ServiceBinding
+} from "../osb.ts";
 import { Repository } from "../repository.ts";
 
 // currently unused, but we most likely will introduce options soon
@@ -128,7 +130,11 @@ async function processBinding(
 
   createTerraformWrapper(instance, binding, bindingDir);
 
-  const tfResult = await executeTerraform(bindingDir);
+  const tfResult = await executeTerraform(
+    bindingDir,
+    binding.binding.bindingId,
+    instance.instance
+  );
 
   updateStatusAfterTfApply(tfResult, repo, instance, binding);
 
@@ -241,6 +247,8 @@ function updateStatusAfterTfApply(
 // TODO write log to a service binding specific log file (can be overwritten on every new run)
 async function executeTerraform(
   bindingDir: string,
+  bindingId: string,
+  instance: OsbServiceInstance,
 ): Promise<Deno.ProcessStatus> {
   console.log("Running Terraform Init for " + bindingDir);
 
@@ -251,6 +259,8 @@ async function executeTerraform(
 
   await tfInit.status();
 
+  await selectOrCreateTerraformWorkspace(bindingId, instance, bindingDir);
+
   console.log("Running Terraform Apply for " + bindingDir);
 
   const tfApply = Deno.run({
@@ -259,4 +269,49 @@ async function executeTerraform(
   });
 
   return await tfApply.status();
+}
+
+async function selectOrCreateTerraformWorkspace(
+  bindingId: string,
+  instance: OsbServiceInstance,
+  bindingDir: string,
+) {
+  let workspaceName = bindingId;
+  if ("project_id" in instance.context) {
+    const meshContext = instance.context as MeshMarketplaceContext;
+    workspaceName =
+      `${meshContext.customer_id}.${meshContext.project_id}.${bindingId}`;
+  } else if ("space_name" in instance.context) {
+    const meshContext = instance.context as CloudFoundryContext;
+    workspaceName =
+      `${meshContext.organization_name}.${meshContext.space_name}.${bindingId}`;
+  }
+
+  console.log(
+    `Selecting Terraform Workspace ${workspaceName} for binding ${bindingDir}.`,
+  );
+
+  const existingWorkspace = Deno.run({
+    cmd: ["terraform", "workspace", "select", workspaceName],
+    cwd: bindingDir,
+  });
+
+  const existingWorkspaceResult = await existingWorkspace.status();
+
+  if (!existingWorkspaceResult.success) {
+    console.log("Running Terraform Workspace new for " + bindingDir);
+
+    const newWorkspace = Deno.run({
+      cmd: ["terraform", "workspace", "new", workspaceName],
+      cwd: bindingDir,
+    });
+
+    const newWorkspaceResult = await newWorkspace.status();
+
+    if (!newWorkspaceResult.success) {
+      throw new Error(
+        `Could not create workspace ${workspaceName} for binding ${bindingDir}.`,
+      );
+    }
+  }
 }

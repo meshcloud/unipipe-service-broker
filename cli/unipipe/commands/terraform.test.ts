@@ -1,5 +1,5 @@
 import { path } from "../deps.ts";
-import { assertEquals, returnsNext, Stub, stub } from "../dev_deps.ts";
+import { assertEquals, assertSpyCall, returnsNext, Stub, stub } from "../dev_deps.ts";
 import { Repository } from "../repository.ts";
 import { withTempDir } from "../test-util.ts";
 import { run } from "./terraform.ts";
@@ -7,6 +7,9 @@ import { run } from "./terraform.ts";
 const SERVICE_DEFINITION_ID = "777";
 const SERVICE_INSTANCE_ID = "123";
 const SERVICE_BINDING_ID = "456";
+
+const CUSTOMER_IDENTIFIER = "my-customer";
+const PROJECT_IDENTIFIER = "my-project";
 
 const TF_MODULE = {
   variable: {
@@ -28,7 +31,7 @@ const TF_MODULE = {
       tenant_id: "my-tenant",
     },
   },
-}
+};
 
 const TF_MODULE_CONTENT = JSON.stringify(
   TF_MODULE,
@@ -109,6 +112,78 @@ Deno.test(
       await verifyStatusAndTfModuleFileContent(tmp, expectedStatus);
 
       stub.restore();
+    }),
+);
+
+Deno.test(
+  "selects correct terraform workspace",
+  async () =>
+    await withTempDir(async (tmp) => {
+      createInstanceAndBinding(tmp);
+      createTerraformServiceFolder(tmp);
+
+      const stub = mockTerraformExecution();
+
+      const result = await run(new Repository(tmp), {});
+
+      await assertEquals(result, [[
+        `${SERVICE_INSTANCE_ID}/${SERVICE_BINDING_ID}: successful`,
+      ]]);
+
+      assertSpyCall(stub, 1, {
+        args: [{
+          cmd: [
+            "terraform",
+            "workspace",
+            "select",
+            `${CUSTOMER_IDENTIFIER}.${PROJECT_IDENTIFIER}.${SERVICE_BINDING_ID}`,
+          ],
+          cwd:
+            `${tmp}/instances/${SERVICE_INSTANCE_ID}/bindings/${SERVICE_BINDING_ID}`,
+        }],
+      });
+
+      stub.restore();
+    }),
+);
+
+Deno.test(
+  "creates a new workspace if terraform workspace select returned an error",
+  async () =>
+    await withTempDir(async (tmp) => {
+      createInstanceAndBinding(tmp);
+      createTerraformServiceFolder(tmp);
+
+      const successfulMockResult = createTfMockResult(true);
+
+      const failedMockResult = createTfMockResult(false);
+    
+      const tfStub: Stub = stub(
+        Deno,
+        "run",
+        returnsNext([successfulMockResult, failedMockResult, successfulMockResult, successfulMockResult]),
+      );
+
+      const result = await run(new Repository(tmp), {});
+
+      await assertEquals(result, [[
+        `${SERVICE_INSTANCE_ID}/${SERVICE_BINDING_ID}: successful`,
+      ]]);
+
+      assertSpyCall(tfStub, 2, {
+        args: [{
+          cmd: [
+            "terraform",
+            "workspace",
+            "new",
+            `${CUSTOMER_IDENTIFIER}.${PROJECT_IDENTIFIER}.${SERVICE_BINDING_ID}`,
+          ],
+          cwd:
+            `${tmp}/instances/${SERVICE_INSTANCE_ID}/bindings/${SERVICE_BINDING_ID}`,
+        }],
+      });
+
+      tfStub.restore();
     }),
 );
 
@@ -201,15 +276,33 @@ Deno.test(
         "status: succeeded\ndescription: Terraform applied successfully\n";
 
       const tfModuleContent = JSON.parse(TF_MODULE_CONTENT);
-      tfModuleContent.module.wrapper.manualParam = "test"
+      tfModuleContent.module.wrapper.manualParam = "test";
 
-      await verifyStatusAndTfModuleFileContent(tmp, expectedStatus, JSON.stringify(tfModuleContent, null, 2));
+      await verifyStatusAndTfModuleFileContent(
+        tmp,
+        expectedStatus,
+        JSON.stringify(tfModuleContent, null, 2),
+      );
       stub.restore();
     }),
 );
 
-function mockTerraformExecution(success = true): Stub {
-  const mockResult = {
+function mockTerraformExecution(
+  tfApplySuccess = true
+): Stub {
+  const successfulMockResult = createTfMockResult(true);
+
+  const tfApplyMockResult = createTfMockResult(tfApplySuccess);
+
+  return stub(
+    Deno,
+    "run",
+    returnsNext([successfulMockResult, successfulMockResult, tfApplyMockResult]),
+  );
+}
+
+function createTfMockResult(success = true) {
+  return {
     status: () => {
       return {
         success: success,
@@ -218,12 +311,6 @@ function mockTerraformExecution(success = true): Stub {
       };
     },
   };
-
-  return stub(
-    Deno,
-    "run",
-    returnsNext([mockResult, mockResult]),
-  );
 }
 
 function createTerraformServiceFolder(repoDir: string) {
@@ -258,20 +345,20 @@ function createInstance(repoDir: string, manualInstanceInputNeeded = false) {
             metadata: {
               manualInstanceInputNeeded: true,
             },
-          },{
+          }, {
             id: "plan456",
             metadata: {
               manualInstanceInputNeeded: manualInstanceInputNeeded,
             },
-          },]
+          }],
         },
         parameters: {
           myParam: "test",
         },
         context: {
           platform: "dev.azure",
-          project_id: "my-project",
-          customer_id: "my-customer",
+          project_id: PROJECT_IDENTIFIER,
+          customer_id: CUSTOMER_IDENTIFIER,
           auth_url: "should-be-ignored",
         },
       },
