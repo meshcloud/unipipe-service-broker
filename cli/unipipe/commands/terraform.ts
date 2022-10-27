@@ -1,8 +1,6 @@
 import { Command } from "../deps.ts";
-import { MeshMarketplaceContext, ServiceInstance } from "../handler.ts";
-import {
-    CloudFoundryContext, OsbServiceInstance, OsbServiceInstanceStatus, ServiceBinding
-} from "../osb.ts";
+import { ServiceInstance } from "../handler.ts";
+import { OsbServiceInstance, OsbServiceInstanceStatus, ServiceBinding } from "../osb.ts";
 import { Repository } from "../repository.ts";
 
 // currently unused, but we most likely will introduce options soon
@@ -129,7 +127,7 @@ async function processBinding(
     `${repo.path}/instances/${instance.instance.serviceInstanceId}/bindings/${binding.binding.bindingId}`;
 
   createTerraformWrapper(instance, binding, bindingDir);
-  tryCopyBackendTf(repo, bindingDir);
+  tryCopyBackendTf(repo, instance.instance.serviceDefinitionId, bindingDir);
 
   const tfResult = await executeTerraform(
     bindingDir,
@@ -283,7 +281,7 @@ async function executeTerraform(
 
   await tfInit.status();
 
-  await selectOrCreateTerraformWorkspace(bindingId, instance, bindingDir);
+  await selectOrCreateTerraformWorkspace(bindingId, bindingDir);
 
   console.log("Running Terraform Apply for " + bindingDir);
 
@@ -297,19 +295,9 @@ async function executeTerraform(
 
 async function selectOrCreateTerraformWorkspace(
   bindingId: string,
-  instance: OsbServiceInstance,
   bindingDir: string,
 ) {
-  let workspaceName = bindingId;
-  if ("project_id" in instance.context) {
-    const meshContext = instance.context as MeshMarketplaceContext;
-    workspaceName =
-      `${meshContext.customer_id}.${meshContext.project_id}.${bindingId}`;
-  } else if ("space_name" in instance.context) {
-    const meshContext = instance.context as CloudFoundryContext;
-    workspaceName =
-      `${meshContext.organization_name}.${meshContext.space_name}.${bindingId}`;
-  }
+  const workspaceName = bindingId;
 
   console.log(
     `Selecting Terraform Workspace ${workspaceName} for binding ${bindingDir}.`,

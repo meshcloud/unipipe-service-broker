@@ -160,7 +160,7 @@ Deno.test(
             "terraform",
             "workspace",
             "select",
-            `${CUSTOMER_IDENTIFIER}.${PROJECT_IDENTIFIER}.${SERVICE_BINDING_ID}`,
+            SERVICE_BINDING_ID,
           ],
           cwd:
             `${tmp}/instances/${SERVICE_INSTANCE_ID}/bindings/${SERVICE_BINDING_ID}`,
@@ -200,7 +200,7 @@ Deno.test(
             "terraform",
             "workspace",
             "new",
-            `${CUSTOMER_IDENTIFIER}.${PROJECT_IDENTIFIER}.${SERVICE_BINDING_ID}`,
+            SERVICE_BINDING_ID,
           ],
           cwd:
             `${tmp}/instances/${SERVICE_INSTANCE_ID}/bindings/${SERVICE_BINDING_ID}`,
