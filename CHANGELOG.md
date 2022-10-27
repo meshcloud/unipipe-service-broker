@@ -5,6 +5,12 @@
 
 - Fixed zsh completions
 - `unipipe terraform` updates status.yml to succeeded for service instances without any binding
+- A `UniPipe Terraform Runner` docker container is now available. You can find the versioned containers 
+[here](https://github.com/meshcloud/unipipe-service-broker/pkgs/container/unipipe-terraform-runner).
+It can be configured via a few environment variables and executes `unipipe terraform` every minute 
+for the configured git repository. It also pulls changes from and pushes updated status.yml files, 
+etc to the configured git repository. Using this `UniPipe Terraform Runner` together with the
+`UniPipe Service Broker` results in a fully functional service broker.
 
 ## v1.6.0
 ### CLI
