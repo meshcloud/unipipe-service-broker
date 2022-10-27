@@ -25,9 +25,7 @@ async function browseInstances(repo: Repository) {
     // deno-lint-ignore require-await
     const opts = await repo.mapInstances(async (x) => {
       const i = x.instance;
-      const plan = i.serviceDefinition.plans.filter(
-        (x) => x.id === i.planId
-      )[0];
+      const plan = x.servicePlan;
 
       const instanceDetails = [
         colors.dim("id: ") + colors.gray(i.serviceInstanceId),

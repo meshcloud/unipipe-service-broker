@@ -1,10 +1,6 @@
 import { Command, EnumType, Table } from "../deps.ts";
 import { MeshMarketplaceContext } from "../mesh.ts";
-import {
-  CloudFoundryContext,
-  OsbServiceInstance,
-  ServiceInstance,
-} from "../osb.ts";
+import { CloudFoundryContext, OsbServiceInstance, ServiceInstance } from "../osb.ts";
 import { Repository } from "../repository.ts";
 
 // see https://stackoverflow.com/questions/44480644/string-union-to-string-array for the trick used here
@@ -104,15 +100,15 @@ async function listTable(
   const results = await repository.mapInstances(async (instance) => {
     const i = instance.instance;
 
-    const plan = i.serviceDefinition.plans.filter((x) => x.id === i.planId)[0];
+    const plan = instance.servicePlan;
 
     const pcols: string[] = profileColValues(i, profile);
 
     return await [
       i.serviceInstanceId,
       ...pcols,
-      plan?.name || "",
       i.serviceDefinition.name,
+      plan?.name || "",
       instance.status?.status || "",
       i.deleted === undefined ? "" : i.deleted.toString(),
     ];

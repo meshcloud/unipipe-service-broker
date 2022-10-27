@@ -8,28 +8,30 @@ const SERVICE_DEFINITION_ID = "777";
 const SERVICE_INSTANCE_ID = "123";
 const SERVICE_BINDING_ID = "456";
 
-const TF_MODULE_CONTENT = JSON.stringify(
-  {
-    variable: {
-      platform_secret: {
-        description:
-          "The secret that will be used by Terraform to authenticate against the cloud platform.",
-        type: "string",
-        sensitive: true,
-      },
-    },
-    module: {
-      wrapper: {
-        source: "../../../../terraform/" + SERVICE_DEFINITION_ID,
-        platform_secret: "${var.platform_secret}",
-        platform: "dev.azure",
-        project_id: "my-project",
-        customer_id: "my-customer",
-        myParam: "test",
-        tenant_id: "my-tenant",
-      },
+const TF_MODULE = {
+  variable: {
+    platform_secret: {
+      description:
+        "The secret that will be used by Terraform to authenticate against the cloud platform.",
+      type: "string",
+      sensitive: true,
     },
   },
+  module: {
+    wrapper: {
+      source: "../../../../terraform/" + SERVICE_DEFINITION_ID,
+      platform_secret: "${var.platform_secret}",
+      platform: "dev.azure",
+      project_id: "my-project",
+      customer_id: "my-customer",
+      myParam: "test",
+      tenant_id: "my-tenant",
+    },
+  },
+}
+
+const TF_MODULE_CONTENT = JSON.stringify(
+  TF_MODULE,
   null,
   2,
 );
@@ -85,8 +87,6 @@ Deno.test(
       );
     }),
 );
-
-
 
 Deno.test(
   "can handle successful terraform execution",
@@ -162,6 +162,52 @@ Deno.test(
     }),
 );
 
+Deno.test(
+  "puts instance and binding to pending if manual instance parameters needed and not there yet",
+  async () =>
+    await withTempDir(async (tmp) => {
+      createInstanceAndBinding(tmp, true);
+
+      const result = await run(new Repository(tmp), {});
+
+      await assertEquals(result, [[
+        `${SERVICE_INSTANCE_ID}/${SERVICE_BINDING_ID}: pending`,
+      ]]);
+
+      const expectedStatus =
+        "status: in progress\ndescription: Waiting for manual input from a platform operator!\n";
+
+      await verifyInstanceAndBindingStatus(tmp, expectedStatus);
+    }),
+);
+
+Deno.test(
+  "succeeds if manual instance parameters needed and they are available",
+  async () =>
+    await withTempDir(async (tmp) => {
+      createInstanceAndBinding(tmp, true);
+      createTerraformServiceFolder(tmp);
+      createManualInstanceParams(tmp);
+
+      const stub = mockTerraformExecution();
+
+      const result = await run(new Repository(tmp), {});
+
+      await assertEquals(result, [[
+        `${SERVICE_INSTANCE_ID}/${SERVICE_BINDING_ID}: successful`,
+      ]]);
+
+      const expectedStatus =
+        "status: succeeded\ndescription: Terraform applied successfully\n";
+
+      const tfModuleContent = JSON.parse(TF_MODULE_CONTENT);
+      tfModuleContent.module.wrapper.manualParam = "test"
+
+      await verifyStatusAndTfModuleFileContent(tmp, expectedStatus, JSON.stringify(tfModuleContent, null, 2));
+      stub.restore();
+    }),
+);
+
 function mockTerraformExecution(success = true): Stub {
   const mockResult = {
     status: () => {
@@ -180,28 +226,45 @@ function mockTerraformExecution(success = true): Stub {
   );
 }
 
-function createTerraformServiceFolder(tmp: string) {
-  Deno.mkdirSync(tmp + "/terraform/" + SERVICE_DEFINITION_ID, {
+function createTerraformServiceFolder(repoDir: string) {
+  Deno.mkdirSync(repoDir + "/terraform/" + SERVICE_DEFINITION_ID, {
     recursive: true,
   });
 }
 
-function createInstanceAndBinding(tmp: string) {
-  createInstance(tmp);
-  createBinding(tmp);
+function createInstanceAndBinding(
+  repoDir: string,
+  manualInstanceInputNeeded = false,
+) {
+  createInstance(repoDir, manualInstanceInputNeeded);
+  createBinding(repoDir);
 }
 
-function createInstance(tmp: string) {
+function createInstance(repoDir: string, manualInstanceInputNeeded = false) {
   Deno.mkdirSync(
-    tmp + `/instances/${SERVICE_INSTANCE_ID}`,
+    repoDir + `/instances/${SERVICE_INSTANCE_ID}`,
     { recursive: true },
   );
   Deno.writeTextFileSync(
-    tmp + `/instances/${SERVICE_INSTANCE_ID}/instance.yml`,
+    repoDir + `/instances/${SERVICE_INSTANCE_ID}/instance.yml`,
     JSON.stringify(
       {
         serviceInstanceId: SERVICE_INSTANCE_ID,
         serviceDefinitionId: SERVICE_DEFINITION_ID,
+        planId: "plan456",
+        serviceDefinition: {
+          plans: [{
+            id: "plan123",
+            metadata: {
+              manualInstanceInputNeeded: true,
+            },
+          },{
+            id: "plan456",
+            metadata: {
+              manualInstanceInputNeeded: manualInstanceInputNeeded,
+            },
+          },]
+        },
         parameters: {
           myParam: "test",
         },
@@ -218,13 +281,27 @@ function createInstance(tmp: string) {
   );
 }
 
-function createBinding(tmp: string) {
+function createManualInstanceParams(repoDir: string) {
+  Deno.writeTextFileSync(
+    repoDir + `/instances/${SERVICE_INSTANCE_ID}/params.yml`,
+    JSON.stringify(
+      {
+        manualParam: "test",
+      },
+      null,
+      2,
+    ),
+  );
+}
+
+function createBinding(repoDir: string) {
   Deno.mkdirSync(
-    tmp + `/instances/${SERVICE_INSTANCE_ID}/bindings/${SERVICE_BINDING_ID}`,
+    repoDir +
+      `/instances/${SERVICE_INSTANCE_ID}/bindings/${SERVICE_BINDING_ID}`,
     { recursive: true },
   );
   Deno.writeTextFileSync(
-    tmp +
+    repoDir +
       `/instances/${SERVICE_INSTANCE_ID}/bindings/${SERVICE_BINDING_ID}/binding.yml`,
     JSON.stringify(
       {
@@ -244,26 +321,35 @@ function createBinding(tmp: string) {
 }
 
 async function verifyStatusAndTfModuleFileContent(
-  tmp: string,
+  repoDir: string,
+  expectedStatus: string,
+  expectedTfModuleContent = TF_MODULE_CONTENT,
+) {
+  await verifyInstanceAndBindingStatus(repoDir, expectedStatus);
+
+  await assertContent(
+    [
+      repoDir,
+      `/instances/${SERVICE_INSTANCE_ID}/bindings/${SERVICE_BINDING_ID}/module.tf.json`,
+    ],
+    expectedTfModuleContent,
+  );
+}
+
+async function verifyInstanceAndBindingStatus(
+  repoDir: string,
   expectedStatus: string,
 ) {
   await assertContent(
-    [tmp, `/instances/${SERVICE_INSTANCE_ID}/status.yml`],
-    expectedStatus,
-  );
-  await assertContent(
-    [
-      tmp,
-      `/instances/${SERVICE_INSTANCE_ID}/bindings/${SERVICE_BINDING_ID}/status.yml`,
-    ],
+    [repoDir, `/instances/${SERVICE_INSTANCE_ID}/status.yml`],
     expectedStatus,
   );
 
   await assertContent(
     [
-      tmp,
-      `/instances/${SERVICE_INSTANCE_ID}/bindings/${SERVICE_BINDING_ID}/module.tf.json`,
+      repoDir,
+      `/instances/${SERVICE_INSTANCE_ID}/bindings/${SERVICE_BINDING_ID}/status.yml`,
     ],
-    TF_MODULE_CONTENT,
+    expectedStatus,
   );
 }

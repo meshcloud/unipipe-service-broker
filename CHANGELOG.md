@@ -11,6 +11,14 @@ It can be configured via a few environment variables and executes `unipipe terra
 for the configured git repository. It also pulls changes from and pushes updated status.yml files, 
 etc to the configured git repository. Using this `UniPipe Terraform Runner` together with the
 `UniPipe Service Broker` results in a fully functional service broker.
+- Fixed mixed up plan and service column in `unipipe list` command. Service names are now shown 
+in the Service column and plans are shown in the Plan column.
+- Added manual parameter input to `unipipe terraform` processing. This can be used if before executing
+Terraform for a Service Instance, an operator needs to take some manual action and provide additional 
+input to the Terraform module. This can be used to e.g. provide an IP range for a service instance of a 
+networking service, if no IPAM solution is in place. The operator just needs to put a `params.yml` in
+the according instance folder. Once this file is available the `unipipe terraform` command will apply Terraform.
+Whether a service requires this manual input can be defined in the metadata of a Service Plan in the service catalog.
 
 ## v1.6.0
 ### CLI
