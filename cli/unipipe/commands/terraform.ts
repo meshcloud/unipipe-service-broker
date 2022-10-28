@@ -1,15 +1,19 @@
 import { Command } from "../deps.ts";
 import { ServiceInstance } from "../handler.ts";
-import { OsbServiceInstance, OsbServiceInstanceStatus, ServiceBinding } from "../osb.ts";
+import { OsbServiceInstanceStatus, ServiceBinding } from "../osb.ts";
 import { Repository } from "../repository.ts";
 
 // currently unused, but we most likely will introduce options soon
 interface TerraformOpts {
+  plan?: boolean;
 }
+
+type TerraformCommand = "apply" | "plan" | "destroy";
 
 export function registerTerraformCmd(program: Command) {
   program
     .command("terraform [repo]")
+    .option("-p, --plan", "With this option only a terraform plan instead of an apply will be executed.")
     .description(
       "Runs Terraform modules located in the repository’s terraform/<service_id> folder for all tenant service bindings. A " +
         "TF_VAR_platform_secret env variable must be set to provide the secret of the service principal that will be used for applying " +
@@ -33,13 +37,14 @@ export async function run(
   });
 
   return await Promise.all(
-    instances.map((instance) => mapBindings(instance, repo)),
+    instances.map((instance) => mapBindings(instance, repo, opts)),
   );
 }
 
 async function mapBindings(
   instance: ServiceInstance,
   repo: Repository,
+  opts: TerraformOpts,
 ): Promise<string[]> {
   if (instance.bindings.length == 0) {
     const status: OsbServiceInstanceStatus = {
@@ -57,7 +62,7 @@ async function mapBindings(
 
   return await Promise.all(instance.bindings.map(async (binding) => {
     try {
-      return await processBinding(instance, binding, repo);
+      return await processBinding(instance, binding, repo, opts);
     } catch (e) {
       const bindingIdentifier = instance.instance.serviceInstanceId + "/" +
         binding.binding.bindingId;
@@ -91,6 +96,7 @@ async function processBinding(
   instance: ServiceInstance,
   binding: ServiceBinding,
   repo: Repository,
+  opts: TerraformOpts,
 ): Promise<string> {
   const bindingIdentifier = instance.instance.serviceInstanceId + "/" +
     binding.binding.bindingId;
@@ -129,17 +135,28 @@ async function processBinding(
   createTerraformWrapper(instance, binding, bindingDir);
   tryCopyBackendTf(repo, instance.instance.serviceDefinitionId, bindingDir);
 
+  const isDeleted = instance.instance.deleted || binding.binding.deleted;
+  let terraformCommand: TerraformCommand = "plan";
+  if (!opts.plan) {
+    terraformCommand = isDeleted ? "destroy" : "apply"
+  }
+
   const tfResult = await executeTerraform(
+    terraformCommand,
     bindingDir,
     binding.binding.bindingId,
-    instance.instance,
+    isDeleted
   );
 
-  updateStatusAfterTfApply(tfResult, repo, instance, binding);
+  if (!opts.plan) {
+    updateStatusAfterTfApply(tfResult, repo, instance, binding, isDeleted);
+  }
+
+  const successMessage = opts.plan ? "planned" : isDeleted ? "deleted" : "successful"
 
   return tfResult.success
-    ? bindingIdentifier + ": successful"
-    : bindingIdentifier + ": failed";
+    ? `${bindingIdentifier}: ${successMessage}`
+    : `${bindingIdentifier}: failed`;
 }
 
 function handlePendingManualParameters(
@@ -243,11 +260,12 @@ function updateStatusAfterTfApply(
   repo: Repository,
   instance: ServiceInstance,
   binding: ServiceBinding,
+  isDeleted = false
 ) {
   const status: OsbServiceInstanceStatus = tfResult.success
     ? {
       status: "succeeded",
-      description: "Terraform applied successfully",
+      description: isDeleted ? "Service Instance successfully deleted!" : "Terraform applied successfully",
     }
     : {
       status: "failed",
@@ -268,9 +286,10 @@ function updateStatusAfterTfApply(
 
 // TODO write log to a service binding specific log file (can be overwritten on every new run)
 async function executeTerraform(
+  terraformCommand: TerraformCommand,
   bindingDir: string,
   bindingId: string,
-  instance: OsbServiceInstance,
+  isDeleted: boolean
 ): Promise<Deno.ProcessStatus> {
   console.log("Running Terraform Init for " + bindingDir);
 
@@ -283,14 +302,23 @@ async function executeTerraform(
 
   await selectOrCreateTerraformWorkspace(bindingId, bindingDir);
 
-  console.log("Running Terraform Apply for " + bindingDir);
+  console.log(`Running Terraform ${terraformCommand} for ${bindingDir}`);
 
-  const tfApply = Deno.run({
-    cmd: ["terraform", "apply", "-auto-approve"],
+  const planCommand = ["terraform", "plan"];
+  if (isDeleted) {
+    planCommand.push("-destroy")
+  }
+
+  const cmd = terraformCommand == "plan"
+    ? planCommand
+    : ["terraform", terraformCommand, "-auto-approve"];
+
+  const tfCommand = Deno.run({
+    cmd: cmd,
     cwd: bindingDir,
   });
 
-  return await tfApply.status();
+  return await tfCommand.status();
 }
 
 async function selectOrCreateTerraformWorkspace(
