@@ -44,8 +44,9 @@ async function mapBindings(
   if (instance.bindings.length == 0) {
     const status: OsbServiceInstanceStatus = {
       status: "succeeded",
-      description: "Instance without binding processed successfully. No action executed.",
-    }
+      description:
+        "Instance without binding processed successfully. No action executed.",
+    };
     repo.updateInstanceStatus(
       instance.instance.serviceInstanceId,
       status,
@@ -96,6 +97,18 @@ async function processBinding(
 
   console.log("starting to process " + bindingIdentifier);
 
+  if (
+    instance.servicePlan.metadata.manualInstanceInputNeeded === true &&
+    instance.manualParameters === null
+  ) {
+    return handlePendingManualParameters(
+      bindingIdentifier,
+      repo,
+      instance,
+      binding,
+    );
+  }
+
   try {
     Deno.statSync(
       `${repo.path}/terraform/${instance.instance.serviceDefinitionId}`,
@@ -122,6 +135,36 @@ async function processBinding(
   return tfResult.success
     ? bindingIdentifier + ": successful"
     : bindingIdentifier + ": failed";
+}
+
+function handlePendingManualParameters(
+  bindingIdentifier: string,
+  repo: Repository,
+  instance: ServiceInstance,
+  binding: ServiceBinding,
+) {
+  console.log(
+    `Service Binding ${bindingIdentifier} is pending, because manual parameters have not been provided yet. ` +
+      "params.yml is missing in the service instance",
+  );
+
+  const status: OsbServiceInstanceStatus = {
+    status: "in progress",
+    description: "Waiting for manual input from a platform operator!",
+  };
+
+  repo.updateInstanceStatus(
+    instance.instance.serviceInstanceId,
+    status,
+  );
+
+  repo.updateBindingStatus(
+    instance.instance.serviceInstanceId,
+    binding.binding.bindingId,
+    status,
+  );
+
+  return bindingIdentifier + ": pending";
 }
 
 function createTerraformWrapper(
@@ -156,6 +199,7 @@ function createTerraformWrapper(
         ...instance.instance.parameters,
         ...binding.binding.bindResource,
         ...binding.binding.parameters,
+        ...instance.manualParameters,
       },
     },
   };
