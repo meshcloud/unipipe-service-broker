@@ -5,11 +5,14 @@ import { withTempDir } from "../test-util.ts";
 import { run } from "./terraform.ts";
 
 const SERVICE_DEFINITION_ID = "777";
+const SERVICE_PLAN_ID = "plan456";
+const SERVICE_PLAN_NAME = "My great test plan";
 const SERVICE_INSTANCE_ID = "123";
 const SERVICE_BINDING_ID = "456";
 
 const CUSTOMER_IDENTIFIER = "my-customer";
 const PROJECT_IDENTIFIER = "my-project";
+
 
 const TF_MODULE = {
   variable: {
@@ -24,6 +27,8 @@ const TF_MODULE = {
     wrapper: {
       source: "../../../../terraform/" + SERVICE_DEFINITION_ID,
       platform_secret: "${var.platform_secret}",
+      plan_id: SERVICE_PLAN_ID,
+      plan_name: SERVICE_PLAN_NAME,
       platform: "dev.azure",
       project_id: "my-project",
       customer_id: "my-customer",
@@ -520,15 +525,17 @@ function createInstance(
       {
         serviceInstanceId: SERVICE_INSTANCE_ID,
         serviceDefinitionId: SERVICE_DEFINITION_ID,
-        planId: "plan456",
+        planId: SERVICE_PLAN_ID,
         serviceDefinition: {
           plans: [{
             id: "plan123",
+            name: "Another Plan",
             metadata: {
               manualInstanceInputNeeded: true,
             },
           }, {
-            id: "plan456",
+            id: SERVICE_PLAN_ID,
+            name: SERVICE_PLAN_NAME,
             metadata: {
               manualInstanceInputNeeded: manualInstanceInputNeeded,
             },
