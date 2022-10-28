@@ -19,6 +19,12 @@ input to the Terraform module. This can be used to e.g. provide an IP range for 
 networking service, if no IPAM solution is in place. The operator just needs to put a `params.yml` in
 the according instance folder. Once this file is available the `unipipe terraform` command will apply Terraform.
 Whether a service requires this manual input can be defined in the metadata of a Service Plan in the service catalog.
+- Support usage of Terraform Backend for `unipipe terraform` command. If a backend.tf file exists in the service's
+terraform folder it is copied to the binding directory where Terraform is executed. No configuration of
+the backend.tf can be done. The file will be used as is. In order to separate the different tfstates in the backend,
+the `unipipe terraform` command uses Terraform Workspaces. A workspace will be created for every service binding.
+Credentials for accessing the backend have to be set via environment variables. If e.g. an azure backend is used,
+ARM_CLIENT_ID and ARM_CLIENT_SECRET have to be set.
 
 ## v1.6.0
 ### CLI

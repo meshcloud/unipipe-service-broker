@@ -1,6 +1,6 @@
 import { Command } from "../deps.ts";
 import { ServiceInstance } from "../handler.ts";
-import { OsbServiceInstanceStatus, ServiceBinding } from "../osb.ts";
+import { OsbServiceInstance, OsbServiceInstanceStatus, ServiceBinding } from "../osb.ts";
 import { Repository } from "../repository.ts";
 
 // currently unused, but we most likely will introduce options soon
@@ -127,8 +127,13 @@ async function processBinding(
     `${repo.path}/instances/${instance.instance.serviceInstanceId}/bindings/${binding.binding.bindingId}`;
 
   createTerraformWrapper(instance, binding, bindingDir);
+  tryCopyBackendTf(repo, instance.instance.serviceDefinitionId, bindingDir);
 
-  const tfResult = await executeTerraform(bindingDir);
+  const tfResult = await executeTerraform(
+    bindingDir,
+    binding.binding.bindingId,
+    instance.instance,
+  );
 
   updateStatusAfterTfApply(tfResult, repo, instance, binding);
 
@@ -210,6 +215,29 @@ function createTerraformWrapper(
   );
 }
 
+function tryCopyBackendTf(
+  repo: Repository,
+  serviceDefinitionId: string,
+  bindingDir: string,
+) {
+  try {
+    Deno.statSync(
+      `${repo.path}/terraform/${serviceDefinitionId}/backend.tf`,
+    );
+  } catch (_) {
+    console.debug(
+      `No backend file exists for service definition ${serviceDefinitionId}. So we are not using a backend for binding ${bindingDir}`,
+    );
+
+    return;
+  }
+
+  Deno.copyFileSync(
+    `${repo.path}/terraform/${serviceDefinitionId}/backend.tf`,
+    `${bindingDir}/backend.tf`,
+  );
+}
+
 function updateStatusAfterTfApply(
   tfResult: Deno.ProcessStatus,
   repo: Repository,
@@ -241,6 +269,8 @@ function updateStatusAfterTfApply(
 // TODO write log to a service binding specific log file (can be overwritten on every new run)
 async function executeTerraform(
   bindingDir: string,
+  bindingId: string,
+  instance: OsbServiceInstance,
 ): Promise<Deno.ProcessStatus> {
   console.log("Running Terraform Init for " + bindingDir);
 
@@ -251,6 +281,8 @@ async function executeTerraform(
 
   await tfInit.status();
 
+  await selectOrCreateTerraformWorkspace(bindingId, bindingDir);
+
   console.log("Running Terraform Apply for " + bindingDir);
 
   const tfApply = Deno.run({
@@ -259,4 +291,39 @@ async function executeTerraform(
   });
 
   return await tfApply.status();
+}
+
+async function selectOrCreateTerraformWorkspace(
+  bindingId: string,
+  bindingDir: string,
+) {
+  const workspaceName = bindingId;
+
+  console.log(
+    `Selecting Terraform Workspace ${workspaceName} for binding ${bindingDir}.`,
+  );
+
+  const existingWorkspace = Deno.run({
+    cmd: ["terraform", "workspace", "select", workspaceName],
+    cwd: bindingDir,
+  });
+
+  const existingWorkspaceResult = await existingWorkspace.status();
+
+  if (!existingWorkspaceResult.success) {
+    console.log("Running Terraform Workspace new for " + bindingDir);
+
+    const newWorkspace = Deno.run({
+      cmd: ["terraform", "workspace", "new", workspaceName],
+      cwd: bindingDir,
+    });
+
+    const newWorkspaceResult = await newWorkspace.status();
+
+    if (!newWorkspaceResult.success) {
+      throw new Error(
+        `Could not create workspace ${workspaceName} for binding ${bindingDir}.`,
+      );
+    }
+  }
 }
