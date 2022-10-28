@@ -39,12 +39,6 @@ const TF_MODULE_CONTENT = JSON.stringify(
   2,
 );
 
-async function assertContent(pathComponents: string[], expected: string) {
-  const result = await Deno.readTextFile(path.join(...pathComponents));
-
-  assertEquals(result, expected);
-}
-
 Deno.test(
   "does nothing for empty repository",
   async () =>
@@ -106,6 +100,18 @@ Deno.test(
         `${SERVICE_INSTANCE_ID}/${SERVICE_BINDING_ID}: successful`,
       ]]);
 
+      assertSpyCall(stub, 2, {
+        args: [{
+          cmd: [
+            "terraform",
+            "apply",
+            "-auto-approve",
+          ],
+          cwd:
+            `${tmp}/instances/${SERVICE_INSTANCE_ID}/bindings/${SERVICE_BINDING_ID}`,
+        }],
+      });
+
       const expectedStatus =
         "status: succeeded\ndescription: Terraform applied successfully\n";
 
@@ -131,9 +137,11 @@ Deno.test(
         `${SERVICE_INSTANCE_ID}/${SERVICE_BINDING_ID}: successful`,
       ]]);
 
-      const backendFile = Deno.statSync(`${tmp}/terraform/${SERVICE_DEFINITION_ID}/backend.tf`);
+      const backendFile = Deno.statSync(
+        `${tmp}/terraform/${SERVICE_DEFINITION_ID}/backend.tf`,
+      );
 
-      await(assertEquals(backendFile.isFile, true));
+      await (assertEquals(backendFile.isFile, true));
 
       stub.restore();
     }),
@@ -181,11 +189,16 @@ Deno.test(
       const successfulMockResult = createTfMockResult(true);
 
       const failedMockResult = createTfMockResult(false);
-    
+
       const tfStub: Stub = stub(
         Deno,
         "run",
-        returnsNext([successfulMockResult, failedMockResult, successfulMockResult, successfulMockResult]),
+        returnsNext([
+          successfulMockResult,
+          failedMockResult,
+          successfulMockResult,
+          successfulMockResult,
+        ]),
       );
 
       const result = await run(new Repository(tmp), {});
@@ -311,8 +324,137 @@ Deno.test(
     }),
 );
 
+Deno.test(
+  "does terraform destroy for a deleted service instance",
+  async () =>
+    await withTempDir(async (tmp) => {
+      createInstanceAndBinding(tmp, false, true);
+      createTerraformServiceFolder(tmp);
+
+      const stub = mockTerraformExecution();
+
+      const result = await run(new Repository(tmp), {});
+
+      await assertEquals(result, [[
+        `${SERVICE_INSTANCE_ID}/${SERVICE_BINDING_ID}: deleted`,
+      ]]);
+
+      assertSpyCall(stub, 2, {
+        args: [{
+          cmd: [
+            "terraform",
+            "destroy",
+            "-auto-approve",
+          ],
+          cwd:
+            `${tmp}/instances/${SERVICE_INSTANCE_ID}/bindings/${SERVICE_BINDING_ID}`,
+        }],
+      });
+
+      const expectedStatus =
+        "status: succeeded\ndescription: Service Instance successfully deleted!\n";
+
+      await verifyInstanceAndBindingStatus(tmp, expectedStatus);
+
+      stub.restore();
+    }),
+);
+
+Deno.test(
+  "does only terraform plan if --plan paramater given",
+  async () =>
+    await withTempDir(async (tmp) => {
+      createInstanceAndBinding(tmp);
+      createTerraformServiceFolder(tmp);
+
+      const stub = mockTerraformExecution();
+
+      const result = await run(new Repository(tmp), { plan: true });
+
+      await assertEquals(result, [[
+        `${SERVICE_INSTANCE_ID}/${SERVICE_BINDING_ID}: planned`,
+      ]]);
+
+      assertSpyCall(stub, 2, {
+        args: [{
+          cmd: [
+            "terraform",
+            "plan",
+          ],
+          cwd:
+            `${tmp}/instances/${SERVICE_INSTANCE_ID}/bindings/${SERVICE_BINDING_ID}`,
+        }],
+      });
+
+      await assertEquals(
+        await fileExists([
+          tmp,
+          `/instances/${SERVICE_INSTANCE_ID}/status.yml`,
+        ]),
+        false,
+      );
+
+      await assertEquals(
+        await fileExists([
+          tmp,
+          `/instances/${SERVICE_INSTANCE_ID}/bindings/${SERVICE_BINDING_ID}/status.yml`,
+        ]),
+        false,
+      );
+
+      stub.restore();
+    }),
+);
+
+Deno.test(
+  "does only terraform plan if --plan paramater given and instance is destroyed",
+  async () =>
+    await withTempDir(async (tmp) => {
+      createInstanceAndBinding(tmp, false, true);
+      createTerraformServiceFolder(tmp);
+
+      const stub = mockTerraformExecution();
+
+      const result = await run(new Repository(tmp), { plan: true });
+
+      await assertEquals(result, [[
+        `${SERVICE_INSTANCE_ID}/${SERVICE_BINDING_ID}: planned`,
+      ]]);
+
+      assertSpyCall(stub, 2, {
+        args: [{
+          cmd: [
+            "terraform",
+            "plan",
+            "-destroy"
+          ],
+          cwd:
+            `${tmp}/instances/${SERVICE_INSTANCE_ID}/bindings/${SERVICE_BINDING_ID}`,
+        }],
+      });
+
+      await assertEquals(
+        await fileExists([
+          tmp,
+          `/instances/${SERVICE_INSTANCE_ID}/status.yml`,
+        ]),
+        false,
+      );
+
+      await assertEquals(
+        await fileExists([
+          tmp,
+          `/instances/${SERVICE_INSTANCE_ID}/bindings/${SERVICE_BINDING_ID}/status.yml`,
+        ]),
+        false,
+      );
+
+      stub.restore();
+    }),
+);
+
 function mockTerraformExecution(
-  tfApplySuccess = true
+  tfApplySuccess = true,
 ): Stub {
   const successfulMockResult = createTfMockResult(true);
 
@@ -321,7 +463,11 @@ function mockTerraformExecution(
   return stub(
     Deno,
     "run",
-    returnsNext([successfulMockResult, successfulMockResult, tfApplyMockResult]),
+    returnsNext([
+      successfulMockResult,
+      successfulMockResult,
+      tfApplyMockResult,
+    ]),
   );
 }
 
@@ -346,19 +492,24 @@ function createTerraformServiceFolder(repoDir: string) {
 function createTerraformBackendFile(repoDir: string) {
   Deno.writeTextFileSync(
     `${repoDir}/terraform/${SERVICE_DEFINITION_ID}/backend.tf`,
-    "backend-config..."
-  )
+    "backend-config...",
+  );
 }
 
 function createInstanceAndBinding(
   repoDir: string,
   manualInstanceInputNeeded = false,
+  deleted = false,
 ) {
-  createInstance(repoDir, manualInstanceInputNeeded);
-  createBinding(repoDir);
+  createInstance(repoDir, manualInstanceInputNeeded, deleted);
+  createBinding(repoDir, deleted);
 }
 
-function createInstance(repoDir: string, manualInstanceInputNeeded = false) {
+function createInstance(
+  repoDir: string,
+  manualInstanceInputNeeded = false,
+  deleted = false,
+) {
   Deno.mkdirSync(
     `${repoDir}/instances/${SERVICE_INSTANCE_ID}`,
     { recursive: true },
@@ -392,6 +543,7 @@ function createInstance(repoDir: string, manualInstanceInputNeeded = false) {
           customer_id: CUSTOMER_IDENTIFIER,
           auth_url: "should-be-ignored",
         },
+        deleted: deleted,
       },
       null,
       2,
@@ -412,9 +564,9 @@ function createManualInstanceParams(repoDir: string) {
   );
 }
 
-function createBinding(repoDir: string) {
+function createBinding(repoDir: string, deleted = false) {
   Deno.mkdirSync(
-          `${repoDir}/instances/${SERVICE_INSTANCE_ID}/bindings/${SERVICE_BINDING_ID}`,
+    `${repoDir}/instances/${SERVICE_INSTANCE_ID}/bindings/${SERVICE_BINDING_ID}`,
     { recursive: true },
   );
   Deno.writeTextFileSync(
@@ -430,6 +582,7 @@ function createBinding(repoDir: string) {
           tenant_id: "my-tenant",
           platform: "dev.azure",
         },
+        deleted: deleted,
       },
       null,
       2,
@@ -469,4 +622,19 @@ async function verifyInstanceAndBindingStatus(
     ],
     expectedStatus,
   );
+}
+
+async function assertContent(pathComponents: string[], expected: string) {
+  const result = await Deno.readTextFile(path.join(...pathComponents));
+
+  assertEquals(result, expected);
+}
+
+async function fileExists(pathComponents: string[]): Promise<boolean> {
+  try {
+    await Deno.statSync(path.join(...pathComponents));
+    return true;
+  } catch (_) {
+    return false;
+  }
 }

@@ -25,6 +25,11 @@ the backend.tf can be done. The file will be used as is. In order to separate th
 the `unipipe terraform` command uses Terraform Workspaces. A workspace will be created for every service binding.
 Credentials for accessing the backend have to be set via environment variables. If e.g. an azure backend is used,
 ARM_CLIENT_ID and ARM_CLIENT_SECRET have to be set.
+- `unipipe terraform` now supports the full lifecycle of a service instance. If a service instance or its binding is
+deleted, the `unipipe terraform` command applies a `terraform destroy` to remove the instance again.
+- It is now possible to add a `--plan` option to `unipipe terraform`, which executes the command basically as a dry-run.
+Instead of doing `terraform apply`, a `terraform plan` is executed and the console output shows the result of `terraform plan`.
+No status.yml is updated in this case.
 
 ## v1.6.0
 ### CLI
