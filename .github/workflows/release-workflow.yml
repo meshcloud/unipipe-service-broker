@@ -5,7 +5,7 @@ on:
     tags: [ v* ]
 
 jobs:
-  # We run the create-release action in a separate job to make the output available to the service broker and cli release jobs.
+  # We run the create-release action in a separate job to make the output available to the docker image and cli release jobs.
   # This means upon running the create-release job, no tests have been executed.
   create-release:
     runs-on: ubuntu-latest
@@ -84,6 +84,30 @@ jobs:
         asset_path: ./build/libs/unipipe-service-broker-1.0.0.jar
         asset_name: unipipe-service-broker.jar
         asset_content_type: application/zip
+  release-terraform-runner-docker-image:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+    - name: Create docker meta
+      id: meta
+      uses: docker/metadata-action@v4
+      with:
+        images: ghcr.io/meshcloud/unipipe-terraform-runner
+        tags: type=ref,event=tag
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@v1 
+      with:
+        registry: ghcr.io
+        username: ${{ github.repository_owner }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    - name: Build and push
+      uses: docker/build-push-action@v3
+      with:
+        context: "{{defaultContext}}:terraform-runner"
+        push: ${{ startsWith(github.ref, 'refs/tags/') }}
+        labels: ${{ steps.meta.outputs.labels }}
+        tags: ${{ steps.meta.outputs.tags }}
   release-cli:
     # sadly, triggering on a successful build workflow and then downloading the artifacts from there is not yet
     # possible with github actions, see https://github.com/actions/download-artifact/issues/3
