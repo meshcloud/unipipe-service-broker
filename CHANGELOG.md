@@ -30,6 +30,7 @@ deleted, the `unipipe terraform` command applies a `terraform destroy` to remove
 - It is now possible to add a `--plan` option to `unipipe terraform`, which executes the command basically as a dry-run.
 Instead of doing `terraform apply`, a `terraform plan` is executed and the console output shows the result of `terraform plan`.
 No status.yml is updated in this case.
+- `unipipe terraform` provides the plan_id and plan_name as variables to the Terraform module.
 
 ## v1.6.0
 ### CLI

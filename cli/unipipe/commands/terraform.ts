@@ -217,6 +217,8 @@ function createTerraformWrapper(
         source:
           `../../../../terraform/${instance.instance.serviceDefinitionId}`,
         platform_secret: "${var.platform_secret}",
+        plan_id: instance.servicePlan.id,
+        plan_name: instance.servicePlan.name,
         ...reducedContext,
         ...instance.instance.parameters,
         ...binding.binding.bindResource,
