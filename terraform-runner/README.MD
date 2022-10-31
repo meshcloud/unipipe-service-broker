@@ -16,9 +16,20 @@ GIT_REMOTE=<git repository ssh url>
 TF_VAR_platform_secret=<secret of the service principal to create resources via terraform in cloud platform>
 ```
 
+If your Terraform module is using a backend via azurerm, you have to add the following environment variables to the `env.list` file.
+These variables cannot be set directly in the Terraform modules. Therefore they have to be provided as environment variables.
+
+```
+ARM_TENANT_ID=<azure tenant id for backend storage> 
+ARM_SUBSCRIPTION_ID=<azure subscription id for backend storage> 
+ARM_CLIENT_ID=<service principal with access to backend storage> 
+ARM_CLIENT_SECRET=<secret of the service principal>
+```
+
 You also need an SSH key to access the git repository. This ssh-key will be submitted separately in the docker run command
 as you can see in the following:
 
 ```
-docker run -t -i -e GIT_SSH_KEY="$(<my-ssh-key-file)" --env-file env.list meshcloud/unipipe-terraform-runner
+docker pull ghcr.io/meshcloud/unipipe-service-broker:latest
+docker run -t -i -e GIT_SSH_KEY="$(<my-ssh-key-file)" --env-file env.list ghcr.io/meshcloud/unipipe-service-broker:latest
 ```
