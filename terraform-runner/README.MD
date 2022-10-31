@@ -30,6 +30,6 @@ You also need an SSH key to access the git repository. This ssh-key will be subm
 as you can see in the following:
 
 ```
-docker pull ghcr.io/meshcloud/unipipe-service-broker:latest
-docker run -t -i -e GIT_SSH_KEY="$(<my-ssh-key-file)" --env-file env.list ghcr.io/meshcloud/unipipe-service-broker:latest
+docker pull ghcr.io/meshcloud/unipipe-terraform-runner:latest
+docker run -t -i -e GIT_SSH_KEY="$(<my-ssh-key-file)" --env-file env.list ghcr.io/meshcloud/unipipe-terraform-runner:latest
 ```
