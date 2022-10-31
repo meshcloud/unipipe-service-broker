@@ -1,6 +1,8 @@
 # Changelog
 
 ## vNext
+
+## v1.7.0
 ### CLI
 
 - Fixed zsh completions
@@ -31,6 +33,9 @@ deleted, the `unipipe terraform` command applies a `terraform destroy` to remove
 Instead of doing `terraform apply`, a `terraform plan` is executed and the console output shows the result of `terraform plan`.
 No status.yml is updated in this case.
 - `unipipe terraform` provides the plan_id and plan_name as variables to the Terraform module.
+
+### OSB
+- no changes
 
 ## v1.6.0
 ### CLI
