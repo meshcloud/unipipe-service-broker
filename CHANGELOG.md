@@ -2,7 +2,16 @@
 
 ## vNext
 
-- terraform-runner logs in Azure Container Instances
+## v1.7.1
+
+### Terraform Runner
+- terraform-runner fix for Azure Container Instances
+
+### CLI
+- no changes
+
+### OSB
+- no changes
 
 ## v1.7.0
 ### CLI
