@@ -2,6 +2,8 @@
 
 ## vNext
 
+- terraform-runner logs in Azure Container Instances
+
 ## v1.7.0
 ### CLI
 
