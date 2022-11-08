@@ -142,7 +142,15 @@ export const helloWorldBackendTf = `#
 `;
 
 export const helloWorldGitignore = `**/.terraform/**
+# 'unipipe terraform' works with terraform workspaces and must remember which ones it uses per instance
 !**/.terraform/environment
+
+# Do not work with local state, use a proper backend
 terraform.tfstate.backup
+terraform.tfstate
 .terraform.lock.hcl
+
+# The deployment folder may contain secrets
+terraform/deployment/terraform.tfstate
+terraform/deployment/env.sh
 `
