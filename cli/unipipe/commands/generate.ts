@@ -12,6 +12,7 @@ import {
   helloWorldCatalog,
   helloWorldMainTf,
   helloWorldVariablesTf,
+  helloWorldGitignore,
 } from "../blueprints/terraform-runner-hello-world-service.ts";
 
 const ALL_HANDLER_TYPES = [ "handler_b", "handler_tf" ] as const;
@@ -101,11 +102,12 @@ function generateUuid() {
 async function generateService() {
   const serviceDefinitionId = uuid.generate();
 
-  // catalog
+  // repository root
   const catalog: Dir = {
     name: "./",
     entries: [
       { name: "catalog.yml", content: helloWorldCatalog(serviceDefinitionId) },
+      { name: ".gitignore", content: helloWorldGitignore },
     ],
   };
   await writeDirectory(catalog);

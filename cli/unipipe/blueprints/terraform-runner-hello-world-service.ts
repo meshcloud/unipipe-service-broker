@@ -139,3 +139,9 @@ export const helloWorldBackendTf = `#
 #   }
 # }
 `;
+
+export const helloWorldGitignore = `**/.terraform/**
+!**/.terraform/environment
+terraform.tfstate.backup
+.terraform.lock.hcl
+`
