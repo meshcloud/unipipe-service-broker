@@ -7,6 +7,12 @@ import { unipipeOsbAciTerraform } from "../blueprints/unipipe-osb-aci.tf.js";
 import { unipipeOsbGCloudCloudRunTerraform } from "../blueprints/unipipe-osb-gcloud-cloudrun.js";
 import { colors, Command, EnumType, Input, Select, uuid } from "../deps.ts";
 import { Dir, write } from "../dir.ts";
+import {
+  helloWorldBackendTf,
+  helloWorldCatalog,
+  helloWorldMainTf,
+  helloWorldVariablesTf,
+} from "../blueprints/terraform-runner-hello-world-service.ts";
 
 const ALL_HANDLER_TYPES = [ "handler_b", "handler_tf" ] as const;
 type HandlersTuple = typeof ALL_HANDLER_TYPES;
@@ -35,6 +41,12 @@ export function registerGenerateCmd(program: Command) {
     .description("Generate a sample OSB catalog for use by unipipe-broker.")
     .option("--destination <destination>", "Pick a destination directory for the generated catalog file.")
     .action(async (options: CatalogOpts) => await generateCatalog(options))
+    //
+    .command("terraform-runner-hello-world")
+    .description(
+      "Generate a service definition with matching terraform module.",
+    )
+    .action(() => generateService())
     //
     .command("uuid")
     .description(
@@ -86,6 +98,29 @@ function generateUuid() {
   console.log(uuid.generate());
 }
 
+async function generateService() {
+  const serviceDefinitionId = uuid.generate();
+
+  // catalog
+  const catalog: Dir = {
+    name: "./",
+    entries: [
+      { name: "catalog.yml", content: helloWorldCatalog(serviceDefinitionId) },
+    ],
+  };
+  await writeDirectory(catalog);
+
+  // terraform files
+  const terraform: Dir = {
+    name: `./terraform/${serviceDefinitionId}/`,
+    entries: [
+      { name: "main.tf", content: helloWorldMainTf },
+      { name: "backend.tf", content: helloWorldBackendTf },
+      { name: "variables.tf", content: helloWorldVariablesTf },
+    ],
+  };
+  writeDirectory(terraform);
+}
 async function generateCatalog(options: CatalogOpts) {
   await writeDirectoryWithUserInput("catalog.yml", catalog, "Pick a destination directory for the generated catalog file:", (options.destination?options.destination:undefined))
 }
