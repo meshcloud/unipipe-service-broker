@@ -2,6 +2,9 @@
 
 ## vNext
 
+### CLI
+- new command unipipe generate terraform-runner-hello-world will generate a sample catalog + terraform files for use with unipipe terraform command
+
 ## v1.7.1
 
 ### Terraform Runner
