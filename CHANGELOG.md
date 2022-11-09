@@ -5,6 +5,10 @@
 ### CLI
 - new command unipipe generate terraform-runner-hello-world will generate a sample catalog + terraform files for use with unipipe terraform command
 
+### Terraform Runner
+- Improve runner script robustness
+- Abort cron job if Git repo setup fails
+
 ## v1.7.1
 
 ### Terraform Runner
