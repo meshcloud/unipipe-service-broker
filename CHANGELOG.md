@@ -3,11 +3,25 @@
 ## vNext
 
 ### CLI
+- no changes
+
+### OSB
+- no changes
+
+### Terraform Runner
+- no changes
+
+## v1.7.2
+
+### CLI
 - new command unipipe generate terraform-runner-hello-world will generate a sample catalog + terraform files for use with unipipe terraform command
 
 ### Terraform Runner
 - Improve runner script robustness
 - Abort cron job if Git repo setup fails
+
+### OSB
+- no changes
 
 ## v1.7.1
 
