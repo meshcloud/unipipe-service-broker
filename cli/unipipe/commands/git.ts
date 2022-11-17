@@ -2,9 +2,9 @@ import { Command } from "../deps.ts";
 import { Repository } from "../repository.ts";
 
 interface GitOpts {
-  name: string;
-  email: string;
-  message: string;
+  name?: string;
+  email?: string;
+  message?: string;
 }
 
 export function registerGitCmd(program: Command) {
@@ -14,9 +14,6 @@ export function registerGitCmd(program: Command) {
     .action(async (opts: GitOpts, cmd: string, repo: string | undefined) => {
 
       const repository = new Repository(repo ? repo : ".");
-      opts.name = opts.name || "Unipipe CLI";
-      opts.email = opts.email || "unipipe-cli@meshcloud.io";
-      opts.message = opts.message || "Commit changes";
 
       switch (cmd) {
         case "pull":
@@ -39,14 +36,18 @@ export async function commandPull(repo: Repository) {
   }
 }
 
-async function commandPush(repo: Repository, opts: GitOpts) {
+export async function commandPush(repo: Repository, opts: GitOpts) {
+  const name = opts.name || "Uncoipipe CLI";
+  const email = opts.email || "unipipe-cli@meshcloud.io";
+  const message = opts.message || "Commit changes";
+  
   const add = await gitAdd(repo.path);
   if (!add) return;
 
   const hasChanges = await gitDiffIndex(repo.path);
 
   if (!hasChanges) {
-    const commit = await gitCommit(repo.path, opts.name, opts.email, opts.message);
+    const commit = await gitCommit(repo.path, name, email, message);
     if (!commit) return;
   }
 
