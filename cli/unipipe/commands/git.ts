@@ -31,7 +31,7 @@ export function registerGitCmd(program: Command) {
     });
 }
 
-async function commandPull(repo: Repository) {
+export async function commandPull(repo: Repository) {
   const pullFastForward = await gitPullFastForward(repo.path);
 
   if (!pullFastForward) {
