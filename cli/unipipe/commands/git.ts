@@ -78,7 +78,12 @@ export async function commandPush(repo: Repository, opts: GitOpts) {
 
     const push = await gitPush(repo.path);
     if (!push) {
-      await commandPull(repo);
+      const pullFastForward = await gitPullFastForward(repo.path);
+
+      if (!pullFastForward) {
+        await gitPullRebase(repo.path);
+      }
+      
       await gitPush(repo.path);
     }
   }
