@@ -16,9 +16,9 @@ Deno.test(
 
       await commandPull(new Repository(dir));
 
-      assertGit(dir, stub, 0, ["git", "add", "."]);
-      assertGit(dir, stub, 1, ["git", "diff-index", "--quiet", "HEAD", "--"])
-      assertGit(dir, stub, 2, ["git", "pull", "--ff-only"])      
+      assertSpyGit(dir, stub, 0, ["git", "add", "."]);
+      assertSpyGit(dir, stub, 1, ["git", "diff-index", "--quiet", "HEAD", "--"])
+      assertSpyGit(dir, stub, 2, ["git", "pull", "--ff-only"])      
       assertSpyCalls(stub, 3);      
 
       stub.restore();      
@@ -40,11 +40,11 @@ Deno.test(
 
       await commandPull(new Repository(dir));
 
-      assertGit(dir, stub, 0, [ "git", "add", "." ]);
-      assertGit(dir, stub, 1, [ "git", "diff-index", "--quiet", "HEAD", "--" ]);
-      assertGit(dir, stub, 2, [ "git", "stash" ]);
-      assertGit(dir, stub, 3, [ "git", "pull", "--ff-only" ]);
-      assertGit(dir, stub, 4, [ "git", "stash", "pop" ]);
+      assertSpyGit(dir, stub, 0, [ "git", "add", "." ]);
+      assertSpyGit(dir, stub, 1, [ "git", "diff-index", "--quiet", "HEAD", "--" ]);
+      assertSpyGit(dir, stub, 2, [ "git", "stash" ]);
+      assertSpyGit(dir, stub, 3, [ "git", "pull", "--ff-only" ]);
+      assertSpyGit(dir, stub, 4, [ "git", "stash", "pop" ]);
       assertSpyCalls(stub, 5);
 
       stub.restore();      
@@ -66,10 +66,10 @@ Deno.test(
 
       await commandPull(new Repository(dir));
 
-      assertGit(dir, stub, 0, [ "git", "add", "." ]);
-      assertGit(dir, stub, 1, [ "git", "diff-index", "--quiet", "HEAD", "--" ]);      
-      assertGit(dir, stub, 2, [ "git", "pull", "--ff-only" ]);
-      assertGit(dir, stub, 3, [ "git", "pull", "--rebase" ]);
+      assertSpyGit(dir, stub, 0, [ "git", "add", "." ]);
+      assertSpyGit(dir, stub, 1, [ "git", "diff-index", "--quiet", "HEAD", "--" ]);      
+      assertSpyGit(dir, stub, 2, [ "git", "pull", "--ff-only" ]);
+      assertSpyGit(dir, stub, 3, [ "git", "pull", "--rebase" ]);
       assertSpyCalls(stub, 4);      
 
       stub.restore();      
@@ -93,12 +93,12 @@ Deno.test(
 
       await commandPull(new Repository(dir));
 
-      assertGit(dir, stub, 0, [ "git", "add", "." ]);
-      assertGit(dir, stub, 1, [ "git", "diff-index", "--quiet", "HEAD", "--" ]);
-      assertGit(dir, stub, 2, [ "git", "stash" ]);
-      assertGit(dir, stub, 3, [ "git", "pull", "--ff-only" ]);
-      assertGit(dir, stub, 4, [ "git", "pull", "--rebase" ]);
-      assertGit(dir, stub, 5, [ "git", "stash", "pop" ]);
+      assertSpyGit(dir, stub, 0, [ "git", "add", "." ]);
+      assertSpyGit(dir, stub, 1, [ "git", "diff-index", "--quiet", "HEAD", "--" ]);
+      assertSpyGit(dir, stub, 2, [ "git", "stash" ]);
+      assertSpyGit(dir, stub, 3, [ "git", "pull", "--ff-only" ]);
+      assertSpyGit(dir, stub, 4, [ "git", "pull", "--rebase" ]);
+      assertSpyGit(dir, stub, 5, [ "git", "stash", "pop" ]);
       assertSpyCalls(stub, 6);      
 
       stub.restore();      
@@ -116,7 +116,7 @@ Deno.test(
 
       await commandPush(new Repository(dir), {});
 
-      assertGit(dir, stub, 0, [ "git", "add", "." ]);
+      assertSpyGit(dir, stub, 0, [ "git", "add", "." ]);
       assertSpyCalls(stub, 1);
 
       stub.restore();
@@ -135,8 +135,8 @@ Deno.test(
 
       await commandPush(new Repository(dir), {});
 
-      assertGit(dir, stub, 0, [ "git", "add", "." ]);
-      assertGit(dir, stub, 1, [ "git", "diff-index", "--quiet", "HEAD", "--" ]);
+      assertSpyGit(dir, stub, 0, [ "git", "add", "." ]);
+      assertSpyGit(dir, stub, 1, [ "git", "diff-index", "--quiet", "HEAD", "--" ]);
       assertSpyCalls(stub, 2);
 
       stub.restore();
@@ -157,10 +157,10 @@ Deno.test(
 
       await commandPush(new Repository(dir), {});
 
-      assertGit(dir, stub, 0, [ "git", "add", "." ]);
-      assertGit(dir, stub, 1, [ "git", "diff-index", "--quiet", "HEAD", "--" ]);
-      assertGit(dir, stub, 2, [ "git", "commit", "-a", "-m", "Unipipe CLI: Commit changes", "--author", "Uncoipipe CLI <unipipe-cli@meshcloud.io>"]);
-      assertGit(dir, stub, 3, [ "git", "push" ]);
+      assertSpyGit(dir, stub, 0, [ "git", "add", "." ]);
+      assertSpyGit(dir, stub, 1, [ "git", "diff-index", "--quiet", "HEAD", "--" ]);
+      assertSpyGit(dir, stub, 2, [ "git", "commit", "-a", "-m", "Unipipe CLI: Commit changes", "--author", "Uncoipipe CLI <unipipe-cli@meshcloud.io>"]);
+      assertSpyGit(dir, stub, 3, [ "git", "push" ]);
       assertSpyCalls(stub, 4);
 
       stub.restore();
@@ -183,12 +183,12 @@ Deno.test(
 
       await commandPush(new Repository(dir), {});
 
-      assertGit(dir, stub, 0, [ "git", "add", "." ]);
-      assertGit(dir, stub, 1, [ "git", "diff-index", "--quiet", "HEAD", "--" ]);
-      assertGit(dir, stub, 2, [ "git", "commit", "-a", "-m", "Unipipe CLI: Commit changes", "--author", "Uncoipipe CLI <unipipe-cli@meshcloud.io>"]);
-      assertGit(dir, stub, 3, [ "git", "push" ]);
-      assertGit(dir, stub, 4, [ "git", "pull", "--ff-only" ]);
-      assertGit(dir, stub, 5, [ "git", "push" ]);
+      assertSpyGit(dir, stub, 0, [ "git", "add", "." ]);
+      assertSpyGit(dir, stub, 1, [ "git", "diff-index", "--quiet", "HEAD", "--" ]);
+      assertSpyGit(dir, stub, 2, [ "git", "commit", "-a", "-m", "Unipipe CLI: Commit changes", "--author", "Uncoipipe CLI <unipipe-cli@meshcloud.io>"]);
+      assertSpyGit(dir, stub, 3, [ "git", "push" ]);
+      assertSpyGit(dir, stub, 4, [ "git", "pull", "--ff-only" ]);
+      assertSpyGit(dir, stub, 5, [ "git", "push" ]);
       assertSpyCalls(stub, 6);
 
       stub.restore();
@@ -212,13 +212,13 @@ Deno.test(
 
       await commandPush(new Repository(dir), {});
 
-      assertGit(dir, stub, 0, [ "git", "add", "." ]);
-      assertGit(dir, stub, 1, [ "git", "diff-index", "--quiet", "HEAD", "--" ]);
-      assertGit(dir, stub, 2, [ "git", "commit", "-a", "-m", "Unipipe CLI: Commit changes", "--author", "Uncoipipe CLI <unipipe-cli@meshcloud.io>", ]);
-      assertGit(dir, stub, 3, [ "git", "push" ]);
-      assertGit(dir, stub, 4, [ "git", "pull", "--ff-only" ]);
-      assertGit(dir, stub, 5, [ "git", "pull", "--rebase" ]);
-      assertGit(dir, stub, 6, [ "git", "push" ]);
+      assertSpyGit(dir, stub, 0, [ "git", "add", "." ]);
+      assertSpyGit(dir, stub, 1, [ "git", "diff-index", "--quiet", "HEAD", "--" ]);
+      assertSpyGit(dir, stub, 2, [ "git", "commit", "-a", "-m", "Unipipe CLI: Commit changes", "--author", "Uncoipipe CLI <unipipe-cli@meshcloud.io>", ]);
+      assertSpyGit(dir, stub, 3, [ "git", "push" ]);
+      assertSpyGit(dir, stub, 4, [ "git", "pull", "--ff-only" ]);
+      assertSpyGit(dir, stub, 5, [ "git", "pull", "--rebase" ]);
+      assertSpyGit(dir, stub, 6, [ "git", "push" ]);
       assertSpyCalls(stub, 7);
 
       stub.restore();
@@ -245,10 +245,10 @@ Deno.test(
       
       await commandPush(new Repository(dir), opts);
 
-      assertGit(dir, stub, 0, [ "git", "add", "." ]);
-      assertGit(dir, stub, 1, [ "git", "diff-index", "--quiet", "HEAD", "--" ]);
-      assertGit(dir, stub, 2, [ "git", "commit", "-a", "-m", "Unipipe CLI: Some changes", "--author", "John Doe <john@doe.loc>"]);
-      assertGit(dir, stub, 3, [ "git", "push" ]);
+      assertSpyGit(dir, stub, 0, [ "git", "add", "." ]);
+      assertSpyGit(dir, stub, 1, [ "git", "diff-index", "--quiet", "HEAD", "--" ]);
+      assertSpyGit(dir, stub, 2, [ "git", "commit", "-a", "-m", "Unipipe CLI: Some changes", "--author", "John Doe <john@doe.loc>"]);
+      assertSpyGit(dir, stub, 3, [ "git", "push" ]);
       assertSpyCalls(stub, 4);
 
       stub.restore();
@@ -283,7 +283,7 @@ function createMockedResult(success: boolean) {
   };
 }
 
-function assertGit(dir: string, stub: Stub, callIndex: number, args: string[]) {
+function assertSpyGit(dir: string, stub: Stub, callIndex: number, args: string[]) {
   assertSpyCall(stub, callIndex, {
     args: [{
       cmd: args,
