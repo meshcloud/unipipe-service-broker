@@ -10,7 +10,19 @@ interface GitOpts {
 export function registerGitCmd(program: Command) {
   program
     .command("git <cmd> [repo]")
-    .description("Runs Git to simplify pull/push commands")
+    .option(
+      "-n, --name [name:string]",
+      "Git author username. Default is `Unipipe CLI`."
+    )
+    .option(
+      "-e, --email [email:string]",
+      "Git author email. Default is `unipipe-cli@meshcloud.io`."
+    )
+    .option(
+      "-m, --message [message:string]",
+      "Commit message. Default is `Commit changes`."
+    )
+    .description("Runs Git pull/push commands resiliently. It takes care of retrying and rebasing if needed to make sure a push will be successful.")
     .action(async (opts: GitOpts, cmd: string, repo: string | undefined) => {
 
       const repository = new Repository(repo ? repo : ".");
