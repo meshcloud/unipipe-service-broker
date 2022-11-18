@@ -6,62 +6,31 @@ import { commandPull, commandPush } from "./git.ts";
 Deno.test(
   "can pull with fast forward with no local changes",
   async () =>
-    await withTempDir(async (tmp) => {
+    await withTempDir(async (dir) => {
 
-      const strub = createMockedGit([
+      const stub = createMockedGit([
         successfulResult(),
         successfulResult(),
         successfulResult()
       ]);
 
-      await commandPull(new Repository(tmp));
+      await commandPull(new Repository(dir));
 
-      assertSpyCall(strub, 0, { 
-        args: [{ 
-          cmd: [ 
-            "git",
-            "add",
-            "."
-          ], 
-          cwd: tmp 
-        }]
-      });
+      assertGit(dir, stub, 0, ["git", "add", "."]);
+      assertGit(dir, stub, 1, ["git", "diff-index", "--quiet", "HEAD", "--"])
+      assertGit(dir, stub, 2, ["git", "pull", "--ff-only"])      
+      assertSpyCalls(stub, 3);      
 
-      assertSpyCall(strub, 1, {
-        args: [{
-          cmd: [
-            "git",
-            "diff-index",
-            "--quiet",
-            "HEAD",
-            "--"
-          ],
-          cwd: tmp
-        }]
-      });
-
-      assertSpyCall(strub, 2, {
-        args: [{
-          cmd: [
-            "git",
-            "pull",
-            "--ff-only"
-          ],
-          cwd: tmp
-        }]
-      });
-
-      assertSpyCalls(strub, 3);      
-      strub.restore();      
+      stub.restore();      
     })
 );
 
 Deno.test(
   "can pull with fast forward with local changes",
   async () =>
-    await withTempDir(async (tmp) => {
+    await withTempDir(async (dir) => {
 
-      const strub = createMockedGit([
+      const stub = createMockedGit([
         successfulResult(),
         failedResult(),
         successfulResult(),
@@ -69,75 +38,25 @@ Deno.test(
         successfulResult()
       ]);
 
-      await commandPull(new Repository(tmp));
+      await commandPull(new Repository(dir));
 
-      assertSpyCall(strub, 0, { 
-        args: [{ 
-          cmd: [ 
-            "git",
-            "add",
-            "."
-          ], 
-          cwd: tmp 
-        }]
-      });
+      assertGit(dir, stub, 0, [ "git", "add", "." ]);
+      assertGit(dir, stub, 1, [ "git", "diff-index", "--quiet", "HEAD", "--" ]);
+      assertGit(dir, stub, 2, [ "git", "stash" ]);
+      assertGit(dir, stub, 3, [ "git", "pull", "--ff-only" ]);
+      assertGit(dir, stub, 4, [ "git", "stash", "pop" ]);
+      assertSpyCalls(stub, 5);
 
-      assertSpyCall(strub, 1, {
-        args: [{
-          cmd: [
-            "git",
-            "diff-index",
-            "--quiet",
-            "HEAD",
-            "--"
-          ],
-          cwd: tmp
-        }]
-      });
-
-      assertSpyCall(strub, 2, {
-        args: [{
-          cmd: [
-            "git",
-            "stash"
-          ],
-          cwd: tmp
-        }]
-      });
-
-      assertSpyCall(strub, 3, {
-        args: [{
-          cmd: [
-            "git",
-            "pull",
-            "--ff-only"
-          ],
-          cwd: tmp
-        }]
-      });
-
-      assertSpyCall(strub, 4, {
-        args: [{
-          cmd: [
-            "git",
-            "stash",
-            "pop"
-          ],
-          cwd: tmp
-        }]
-      });
-
-      assertSpyCalls(strub, 5);      
-      strub.restore();      
+      stub.restore();      
     })
 );
 
 Deno.test(
   "can pull with rebase with no local chnages",
   async () =>
-    await withTempDir(async (tmp) => {
+    await withTempDir(async (dir) => {
 
-      const strub = createMockedGit([
+      const stub = createMockedGit([
         successfulResult(),
         successfulResult(),
         failedResult(),
@@ -145,65 +64,24 @@ Deno.test(
         successfulResult(),
       ]);
 
-      await commandPull(new Repository(tmp));
+      await commandPull(new Repository(dir));
 
-      assertSpyCall(strub, 0, { 
-        args: [{ 
-          cmd: [ 
-            "git",
-            "add",
-            "."
-          ], 
-          cwd: tmp 
-        }]
-      });
+      assertGit(dir, stub, 0, [ "git", "add", "." ]);
+      assertGit(dir, stub, 1, [ "git", "diff-index", "--quiet", "HEAD", "--" ]);      
+      assertGit(dir, stub, 2, [ "git", "pull", "--ff-only" ]);
+      assertGit(dir, stub, 3, [ "git", "pull", "--rebase" ]);
+      assertSpyCalls(stub, 4);      
 
-      assertSpyCall(strub, 1, {
-        args: [{
-          cmd: [
-            "git",
-            "diff-index",
-            "--quiet",
-            "HEAD",
-            "--"
-          ],
-          cwd: tmp
-        }]
-      });
-
-      assertSpyCall(strub, 2, {
-        args: [{
-          cmd: [
-            "git",
-            "pull",
-            "--ff-only"
-          ],
-          cwd: tmp
-        }]
-      });
-
-      assertSpyCall(strub, 3, {
-        args: [{
-          cmd: [
-            "git",
-            "pull",
-            "--rebase"
-          ],
-          cwd: tmp
-        }]
-      });
-
-      assertSpyCalls(strub, 4);      
-      strub.restore();      
+      stub.restore();      
     })
 );
 
 Deno.test(
   "can pull with rebase with local chnages",
   async () =>
-    await withTempDir(async (tmp) => {
+    await withTempDir(async (dir) => {
 
-      const strub = createMockedGit([
+      const stub = createMockedGit([
         successfulResult(),
         failedResult(),
         successfulResult(),
@@ -213,222 +91,88 @@ Deno.test(
         successfulResult()
       ]);
 
-      await commandPull(new Repository(tmp));
+      await commandPull(new Repository(dir));
 
-      assertSpyCall(strub, 0, { 
-        args: [{ 
-          cmd: [ 
-            "git",
-            "add",
-            "."
-          ], 
-          cwd: tmp 
-        }]
-      });
+      assertGit(dir, stub, 0, [ "git", "add", "." ]);
+      assertGit(dir, stub, 1, [ "git", "diff-index", "--quiet", "HEAD", "--" ]);
+      assertGit(dir, stub, 2, [ "git", "stash" ]);
+      assertGit(dir, stub, 3, [ "git", "pull", "--ff-only" ]);
+      assertGit(dir, stub, 4, [ "git", "pull", "--rebase" ]);
+      assertGit(dir, stub, 5, [ "git", "stash", "pop" ]);
+      assertSpyCalls(stub, 6);      
 
-      assertSpyCall(strub, 1, {
-        args: [{
-          cmd: [
-            "git",
-            "diff-index",
-            "--quiet",
-            "HEAD",
-            "--"
-          ],
-          cwd: tmp
-        }]
-      });
-
-      assertSpyCall(strub, 2, {
-        args: [{
-          cmd: [
-            "git",
-            "stash"
-          ],
-          cwd: tmp
-        }]
-      });
-
-      assertSpyCall(strub, 3, {
-        args: [{
-          cmd: [
-            "git",
-            "pull",
-            "--ff-only"
-          ],
-          cwd: tmp
-        }]
-      });
-
-      assertSpyCall(strub, 4, {
-        args: [{
-          cmd: [
-            "git",
-            "pull",
-            "--rebase"
-          ],
-          cwd: tmp
-        }]
-      });
-
-      assertSpyCall(strub, 5, {
-        args: [{
-          cmd: [
-            "git",
-            "stash",
-            "pop"
-          ],
-          cwd: tmp
-        }]
-      });
-
-      assertSpyCalls(strub, 6);      
-      strub.restore();      
+      stub.restore();      
     })
 );
 
 Deno.test(
   "do not push if the repository is not initialized",
   async () =>
-    await withTempDir(async (tmp) => {
+    await withTempDir(async (dir) => {
 
-      const strub = createMockedGit([
+      const stub = createMockedGit([
         failedResult()
       ]);
 
-      await commandPush(new Repository(tmp), {});
+      await commandPush(new Repository(dir), {});
 
-      assertSpyCall(strub, 0, {
-        args: [{
-          cmd: [
-            "git",
-            "add",
-            "."
-          ],
-          cwd: tmp
-        }]
-      });
+      assertGit(dir, stub, 0, [ "git", "add", "." ]);
+      assertSpyCalls(stub, 1);
 
-      assertSpyCalls(strub, 1);
-      strub.restore();
+      stub.restore();
     })
 );
 
 Deno.test(
   "do not commit if there are no changes while pushing",
   async () =>
-    await withTempDir(async (tmp) => {
+    await withTempDir(async (dir) => {
 
-      const strub = createMockedGit([
+      const stub = createMockedGit([
         successfulResult(),
         successfulResult()
       ]);
 
-      await commandPush(new Repository(tmp), {});
+      await commandPush(new Repository(dir), {});
 
-      assertSpyCall(strub, 0, {
-        args: [{
-          cmd: [
-            "git",
-            "add",
-            "."
-          ],
-          cwd: tmp
-        }]
-      });
+      assertGit(dir, stub, 0, [ "git", "add", "." ]);
+      assertGit(dir, stub, 1, [ "git", "diff-index", "--quiet", "HEAD", "--" ]);
+      assertSpyCalls(stub, 2);
 
-      assertSpyCall(strub, 1, {
-        args: [{
-          cmd: [
-            "git",
-            "diff-index",
-            "--quiet",
-            "HEAD",
-            "--"
-          ],
-          cwd: tmp
-        }]
-      });
-
-      assertSpyCalls(strub, 2);
-      strub.restore();
+      stub.restore();
     })
 );
 
 Deno.test(
   "can commit and push changes without upstream conflicts",
   async () =>
-    await withTempDir(async (tmp) => {
+    await withTempDir(async (dir) => {
 
-      const strub = createMockedGit([
+      const stub = createMockedGit([
         successfulResult(),
         failedResult(),
         successfulResult(),        
         successfulResult()
       ]);
 
-      await commandPush(new Repository(tmp), {});
+      await commandPush(new Repository(dir), {});
 
-      assertSpyCall(strub, 0, {
-        args: [{
-          cmd: [
-            "git",
-            "add",
-            "."
-          ],
-          cwd: tmp
-        }]
-      });
+      assertGit(dir, stub, 0, [ "git", "add", "." ]);
+      assertGit(dir, stub, 1, [ "git", "diff-index", "--quiet", "HEAD", "--" ]);
+      assertGit(dir, stub, 2, [ "git", "commit", "-a", "-m", "Unipipe CLI: Commit changes", "--author", "Uncoipipe CLI <unipipe-cli@meshcloud.io>"]);
+      assertGit(dir, stub, 3, [ "git", "push" ]);
+      assertSpyCalls(stub, 4);
 
-      assertSpyCall(strub, 1, {
-        args: [{
-          cmd: [
-            "git",
-            "diff-index",
-            "--quiet",
-            "HEAD",
-            "--"
-          ],
-          cwd: tmp
-        }]
-      });
-
-      assertSpyCall(strub, 2, {
-        args: [{
-          cmd: [
-            "git",
-            "commit",
-            "-a",
-            "-m",
-            "Unipipe CLI: Commit changes",
-            "--author",
-            "Uncoipipe CLI <unipipe-cli@meshcloud.io>",
-          ],
-          cwd: tmp
-        }]
-      });
-
-      assertSpyCall(strub, 3, {
-        args: [{
-          cmd: [
-            "git",
-            "push"
-          ],
-          cwd: tmp
-        }]
-      });
-
-      assertSpyCalls(strub, 4);
-      strub.restore();
+      stub.restore();
     })
 );
 
 Deno.test(
   "can commit and push changes with upstream conflicts (fast-forward)",
   async () =>
-    await withTempDir(async (tmp) => {
+    await withTempDir(async (dir) => {
 
-      const strub = createMockedGit([
+      const stub = createMockedGit([
         successfulResult(),
         failedResult(),
         successfulResult(), 
@@ -437,89 +181,26 @@ Deno.test(
         successfulResult()
       ]);
 
-      await commandPush(new Repository(tmp), {});
+      await commandPush(new Repository(dir), {});
 
-      assertSpyCall(strub, 0, {
-        args: [{
-          cmd: [
-            "git",
-            "add",
-            "."
-          ],
-          cwd: tmp
-        }]
-      });
+      assertGit(dir, stub, 0, [ "git", "add", "." ]);
+      assertGit(dir, stub, 1, [ "git", "diff-index", "--quiet", "HEAD", "--" ]);
+      assertGit(dir, stub, 2, [ "git", "commit", "-a", "-m", "Unipipe CLI: Commit changes", "--author", "Uncoipipe CLI <unipipe-cli@meshcloud.io>"]);
+      assertGit(dir, stub, 3, [ "git", "push" ]);
+      assertGit(dir, stub, 4, [ "git", "pull", "--ff-only" ]);
+      assertGit(dir, stub, 5, [ "git", "push" ]);
+      assertSpyCalls(stub, 6);
 
-      assertSpyCall(strub, 1, {
-        args: [{
-          cmd: [
-            "git",
-            "diff-index",
-            "--quiet",
-            "HEAD",
-            "--"
-          ],
-          cwd: tmp
-        }]
-      });
-
-      assertSpyCall(strub, 2, {
-        args: [{
-          cmd: [
-            "git",
-            "commit",
-            "-a",
-            "-m",
-            "Unipipe CLI: Commit changes",
-            "--author",
-            "Uncoipipe CLI <unipipe-cli@meshcloud.io>",
-          ],
-          cwd: tmp
-        }]
-      });
-
-      assertSpyCall(strub, 3, {
-        args: [{
-          cmd: [
-            "git",
-            "push"
-          ],
-          cwd: tmp
-        }]
-      });
-
-      assertSpyCall(strub, 4, {
-        args: [{
-          cmd: [
-            "git",
-            "pull",
-            "--ff-only"
-          ],
-          cwd: tmp
-        }]
-      });
-
-      assertSpyCall(strub, 5, {
-        args: [{
-          cmd: [
-            "git",
-            "push"
-          ],
-          cwd: tmp
-        }]
-      });
-
-      assertSpyCalls(strub, 6);
-      strub.restore();
+      stub.restore();
     })
 );
 
 Deno.test(
   "can commit and push changes with upstream conflicts (rebase)",
   async () =>
-    await withTempDir(async (tmp) => {
+    await withTempDir(async (dir) => {
 
-      const strub = createMockedGit([
+      const stub = createMockedGit([
         successfulResult(),
         failedResult(),
         successfulResult(), 
@@ -529,91 +210,18 @@ Deno.test(
         successfulResult()
       ]);
 
-      await commandPush(new Repository(tmp), {});
+      await commandPush(new Repository(dir), {});
 
-      assertSpyCall(strub, 0, {
-        args: [{
-          cmd: [
-            "git",
-            "add",
-            "."
-          ],
-          cwd: tmp
-        }]
-      });
+      assertGit(dir, stub, 0, [ "git", "add", "." ]);
+      assertGit(dir, stub, 1, [ "git", "diff-index", "--quiet", "HEAD", "--" ]);
+      assertGit(dir, stub, 2, [ "git", "commit", "-a", "-m", "Unipipe CLI: Commit changes", "--author", "Uncoipipe CLI <unipipe-cli@meshcloud.io>", ]);
+      assertGit(dir, stub, 3, [ "git", "push" ]);
+      assertGit(dir, stub, 4, [ "git", "pull", "--ff-only" ]);
+      assertGit(dir, stub, 5, [ "git", "pull", "--rebase" ]);
+      assertGit(dir, stub, 6, [ "git", "push" ]);
+      assertSpyCalls(stub, 7);
 
-      assertSpyCall(strub, 1, {
-        args: [{
-          cmd: [
-            "git",
-            "diff-index",
-            "--quiet",
-            "HEAD",
-            "--"
-          ],
-          cwd: tmp
-        }]
-      });
-
-      assertSpyCall(strub, 2, {
-        args: [{
-          cmd: [
-            "git",
-            "commit",
-            "-a",
-            "-m",
-            "Unipipe CLI: Commit changes",
-            "--author",
-            "Uncoipipe CLI <unipipe-cli@meshcloud.io>",
-          ],
-          cwd: tmp
-        }]
-      });
-
-      assertSpyCall(strub, 3, {
-        args: [{
-          cmd: [
-            "git",
-            "push"
-          ],
-          cwd: tmp
-        }]
-      });
-
-      assertSpyCall(strub, 4, {
-        args: [{
-          cmd: [
-            "git",
-            "pull",
-            "--ff-only"
-          ],
-          cwd: tmp
-        }]
-      });
-
-      assertSpyCall(strub, 5, {
-        args: [{
-          cmd: [
-            "git",
-            "pull",
-            "--rebase"
-          ],
-          cwd: tmp
-        }]
-      });
-
-      assertSpyCall(strub, 6, {
-        args: [{
-          cmd: [
-            "git",
-            "push"
-          ],
-          cwd: tmp
-        }]
-      });
-
-      assertSpyCalls(strub, 7);
-      strub.restore();
+      stub.restore();
     })
 );
 
@@ -643,4 +251,13 @@ function createMockedResult(success: boolean) {
       }
     }
   };
+}
+
+function assertGit(dir: string, stub: Stub, callIndex: number, args: string[]) {
+  assertSpyCall(stub, callIndex, {
+    args: [{
+      cmd: args,
+      cwd: dir
+    }]
+  });
 }
