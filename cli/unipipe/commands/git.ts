@@ -41,10 +41,24 @@ export function registerGitCmd(program: Command) {
 }
 
 export async function commandPull(repo: Repository) {
+  const add = await gitAdd(repo.path);
+  if (!add) return;
+
+  const hasChanges = await gitHasChanges(repo.path);
+
+  if(hasChanges) {
+    const stash = await gitStash(repo.path);
+    if (!stash) return;
+  }
+
   const pullFastForward = await gitPullFastForward(repo.path);
 
   if (!pullFastForward) {
     await gitPullRebase(repo.path);
+  }
+
+  if(hasChanges) {
+    await gitStashPop(repo.path);
   }
 }
 
@@ -56,9 +70,9 @@ export async function commandPush(repo: Repository, opts: GitOpts) {
   const add = await gitAdd(repo.path);
   if (!add) return;
 
-  const hasChanges = await gitDiffIndex(repo.path);
+  const hasChanges = await gitHasChanges(repo.path);
 
-  if (!hasChanges) {
+  if (hasChanges) {
     const commit = await gitCommit(repo.path, name, email, message);
     if (!commit) return;
 
@@ -89,8 +103,17 @@ async function gitAdd(repoPath: string): Promise<boolean> {
   return await executeGit(repoPath, ["add", "."]);
 }
 
-async function gitDiffIndex(repoPath: string): Promise<boolean> {
-  return await executeGit(repoPath, ["diff-index", "--quiet", "HEAD"], false);
+async function gitHasChanges(repoPath: string): Promise<boolean> {  
+  const diffIndex = await executeGit(repoPath, ["diff-index", "--quiet", "HEAD", "--"], false);
+  return !diffIndex;
+}
+
+async function gitStash(repoPath: string): Promise<boolean> {
+  return await executeGit(repoPath, ["stash"]);
+}
+
+async function gitStashPop(repoPath: string): Promise<boolean> {
+  return await executeGit(repoPath, ["stash", "pop"]);
 }
 
 async function gitCommit(repoPath: string, name: string, email: string, message: string): Promise<boolean> {
