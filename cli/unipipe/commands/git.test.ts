@@ -103,7 +103,6 @@ Deno.test(
 
       const strub = createMockedGit([
         successfulResult(),
-        successfulResult(),
         successfulResult()
       ]);
 
@@ -132,17 +131,7 @@ Deno.test(
         }]
       });
 
-      assertSpyCall(strub, 2, {
-        args: [{
-          cmd: [
-            "git",
-            "push"
-          ],
-          cwd: tmp
-        }]
-      });
-
-      assertSpyCalls(strub, 3);
+      assertSpyCalls(strub, 2);
       strub.restore();
     })
 );

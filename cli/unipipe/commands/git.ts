@@ -61,13 +61,16 @@ export async function commandPush(repo: Repository, opts: GitOpts) {
   if (!hasChanges) {
     const commit = await gitCommit(repo.path, name, email, message);
     if (!commit) return;
-  }
 
-  const push = await gitPush(repo.path);
-  if (!push) {
-    await commandPull(repo);
-    await gitPush(repo.path);
+    const push = await gitPush(repo.path);
+    if (!push) {
+      await commandPull(repo);
+      await gitPush(repo.path);
+    }
   }
+  else {
+    console.log("No chnages to commit")
+  }  
 }
 
 async function gitPullFastForward(repoPath: string): Promise<boolean> {
@@ -87,7 +90,7 @@ async function gitAdd(repoPath: string): Promise<boolean> {
 }
 
 async function gitDiffIndex(repoPath: string): Promise<boolean> {
-  return await executeGit(repoPath, ["diff-index", "--quiet", "HEAD"]);
+  return await executeGit(repoPath, ["diff-index", "--quiet", "HEAD"], false);
 }
 
 async function gitCommit(repoPath: string, name: string, email: string, message: string): Promise<boolean> {
@@ -95,10 +98,11 @@ async function gitCommit(repoPath: string, name: string, email: string, message:
     "commit", "-a", "-m", `Unipipe CLI: ${message}`, "--author", `${name} <${email}>`]);
 }
 
-async function executeGit(dir: string, args: string[]): Promise<boolean> {
+async function executeGit(dir: string, args: string[], displayStatus = true): Promise<boolean> {
   const cmd = ["git", ...args];
+  const cmdLine = cmd.join(' ');
 
-  console.log(`Running ${cmd.join(' ')}`);
+  console.log(`Running ${cmdLine}`);
 
   const process = Deno.run({
     cmd: cmd,
@@ -106,7 +110,10 @@ async function executeGit(dir: string, args: string[]): Promise<boolean> {
   });
 
   const status = await process.status();
-  console.log(status.success ? "Command succeeded" : "Command failed");
+
+  if(displayStatus) {
+    console.log(status.success ? `Command ${cmdLine} succeeded` : `Command ${cmdLine} failed`);
+  } 
 
   return status.success;
 }
