@@ -1,7 +1,7 @@
 import { Command } from "../deps.ts";
 import { Repository } from "../repository.ts";
 
-interface GitOpts {
+export interface GitOpts {
   name?: string;
   email?: string;
   message?: string;
