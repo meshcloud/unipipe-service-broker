@@ -168,36 +168,6 @@ Deno.test(
 );
 
 Deno.test(
-  "can commit with custom author and commit message",
-  async () =>
-    await withTempDir(async (dir) => {
-
-      const stub = createMockedGit([
-        successfulResult(),
-        failedResult(),
-        successfulResult(),        
-        successfulResult()
-      ]);
-
-      const opts: GitOpts = {
-        name: "John Doe",
-        email: "john@doe.loc",
-        message: "Some changes"
-
-      }
-      await commandPush(new Repository(dir), opts);
-
-      assertGit(dir, stub, 0, [ "git", "add", "." ]);
-      assertGit(dir, stub, 1, [ "git", "diff-index", "--quiet", "HEAD", "--" ]);
-      assertGit(dir, stub, 2, [ "git", "commit", "-a", "-m", "Unipipe CLI: Some changes", "--author", "John Doe <john@doe.loc>"]);
-      assertGit(dir, stub, 3, [ "git", "push" ]);
-      assertSpyCalls(stub, 4);
-
-      stub.restore();
-    })
-);
-
-Deno.test(
   "can commit and push changes with upstream conflicts (fast-forward)",
   async () =>
     await withTempDir(async (dir) => {
@@ -250,6 +220,36 @@ Deno.test(
       assertGit(dir, stub, 5, [ "git", "pull", "--rebase" ]);
       assertGit(dir, stub, 6, [ "git", "push" ]);
       assertSpyCalls(stub, 7);
+
+      stub.restore();
+    })
+);
+
+Deno.test(
+  "can commit with custom author and commit message",
+  async () =>
+    await withTempDir(async (dir) => {
+
+      const stub = createMockedGit([
+        successfulResult(),
+        failedResult(),
+        successfulResult(),        
+        successfulResult()
+      ]);
+
+      const opts: GitOpts = {
+        name: "John Doe",
+        email: "john@doe.loc",
+        message: "Some changes"
+      }
+      
+      await commandPush(new Repository(dir), opts);
+
+      assertGit(dir, stub, 0, [ "git", "add", "." ]);
+      assertGit(dir, stub, 1, [ "git", "diff-index", "--quiet", "HEAD", "--" ]);
+      assertGit(dir, stub, 2, [ "git", "commit", "-a", "-m", "Unipipe CLI: Some changes", "--author", "John Doe <john@doe.loc>"]);
+      assertGit(dir, stub, 3, [ "git", "push" ]);
+      assertSpyCalls(stub, 4);
 
       stub.restore();
     })
