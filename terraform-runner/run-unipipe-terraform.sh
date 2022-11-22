@@ -18,10 +18,7 @@ if [[ ! -d "$REPO_DIR" ]]; then
 fi
 
 cd $REPO_DIR
-git pull
 
+/usr/local/bin/unipipe git pull $REPO_DIR
 /usr/local/bin/unipipe terraform $REPO_DIR
-
-git add .
-git commit -m "processed instances via unipipe terraform"
-git push origin
+/usr/local/bin/unipipe git push $REPO_DIR
