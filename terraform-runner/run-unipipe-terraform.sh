@@ -21,4 +21,4 @@ cd $REPO_DIR
 
 /usr/local/bin/unipipe git pull $REPO_DIR
 /usr/local/bin/unipipe terraform $REPO_DIR
-/usr/local/bin/unipipe git push $REPO_DIR
+/usr/local/bin/unipipe git push $REPO_DIR -m "processed instances via unipipe terraform"
