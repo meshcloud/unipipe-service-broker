@@ -52,7 +52,7 @@ Deno.test(
 );
 
 Deno.test(
-  "can pull with rebase with no local chnages",
+  "can pull with rebase with no local changes",
   async () =>
     await withTempDir(async (dir) => {
 
@@ -77,7 +77,7 @@ Deno.test(
 );
 
 Deno.test(
-  "can pull with rebase with local chnages",
+  "can pull with rebase with local changes",
   async () =>
     await withTempDir(async (dir) => {
 
@@ -159,7 +159,7 @@ Deno.test(
 
       assertSpyGit(dir, stub, 0, [ "git", "add", "." ]);
       assertSpyGit(dir, stub, 1, [ "git", "diff-index", "--quiet", "HEAD", "--" ]);
-      assertSpyGit(dir, stub, 2, [ "git", "commit", "-a", "-m", "Unipipe CLI: Commit changes", "--author", "Uncoipipe CLI <unipipe-cli@meshcloud.io>"]);
+      assertSpyGit(dir, stub, 2, [ "git", "commit", "-a", "-m", "Unipipe CLI: Commit changes", "--author", "Unipipe CLI <unipipe-cli@meshcloud.io>"]);
       assertSpyGit(dir, stub, 3, [ "git", "push" ]);
       assertSpyCalls(stub, 4);
 
@@ -185,7 +185,7 @@ Deno.test(
 
       assertSpyGit(dir, stub, 0, [ "git", "add", "." ]);
       assertSpyGit(dir, stub, 1, [ "git", "diff-index", "--quiet", "HEAD", "--" ]);
-      assertSpyGit(dir, stub, 2, [ "git", "commit", "-a", "-m", "Unipipe CLI: Commit changes", "--author", "Uncoipipe CLI <unipipe-cli@meshcloud.io>"]);
+      assertSpyGit(dir, stub, 2, [ "git", "commit", "-a", "-m", "Unipipe CLI: Commit changes", "--author", "Unipipe CLI <unipipe-cli@meshcloud.io>"]);
       assertSpyGit(dir, stub, 3, [ "git", "push" ]);
       assertSpyGit(dir, stub, 4, [ "git", "pull", "--ff-only" ]);
       assertSpyGit(dir, stub, 5, [ "git", "push" ]);
@@ -214,7 +214,7 @@ Deno.test(
 
       assertSpyGit(dir, stub, 0, [ "git", "add", "." ]);
       assertSpyGit(dir, stub, 1, [ "git", "diff-index", "--quiet", "HEAD", "--" ]);
-      assertSpyGit(dir, stub, 2, [ "git", "commit", "-a", "-m", "Unipipe CLI: Commit changes", "--author", "Uncoipipe CLI <unipipe-cli@meshcloud.io>", ]);
+      assertSpyGit(dir, stub, 2, [ "git", "commit", "-a", "-m", "Unipipe CLI: Commit changes", "--author", "Unipipe CLI <unipipe-cli@meshcloud.io>", ]);
       assertSpyGit(dir, stub, 3, [ "git", "push" ]);
       assertSpyGit(dir, stub, 4, [ "git", "pull", "--ff-only" ]);
       assertSpyGit(dir, stub, 5, [ "git", "pull", "--rebase" ]);

@@ -41,19 +41,19 @@ export function registerGitCmd(program: Command) {
 }
 
 export async function commandPull(repo: Repository) {
-  const add = await gitAdd(repo.path);
-  if (!add) return;
+  const addSuccessful = await gitAdd(repo.path);
+  if (!addSuccessful) return;
 
   const hasChanges = await gitHasChanges(repo.path);
 
   if(hasChanges) {
-    const stash = await gitStash(repo.path);
-    if (!stash) return;
+    const stashSuccessful = await gitStash(repo.path);
+    if (!stashSuccessful) return;
   }
 
-  const pullFastForward = await gitPullFastForward(repo.path);
+  const pullSuccessful = await gitPullFastForward(repo.path);
 
-  if (!pullFastForward) {
+  if (!pullSuccessful) {
     await gitPullRebase(repo.path);
   }
 
@@ -63,24 +63,24 @@ export async function commandPull(repo: Repository) {
 }
 
 export async function commandPush(repo: Repository, opts: GitOpts) {
-  const name = opts.name || "Uncoipipe CLI";
+  const name = opts.name || "Unipipe CLI";
   const email = opts.email || "unipipe-cli@meshcloud.io";
   const message = opts.message || "Commit changes";
   
-  const add = await gitAdd(repo.path);
-  if (!add) return;
+  const addSuccessful = await gitAdd(repo.path);
+  if (!addSuccessful) return;
 
   const hasChanges = await gitHasChanges(repo.path);
 
   if (hasChanges) {
-    const commit = await gitCommit(repo.path, name, email, message);
-    if (!commit) return;
+    const commitSuccessful = await gitCommit(repo.path, name, email, message);
+    if (!commitSuccessful) return;
 
-    const push = await gitPush(repo.path);
-    if (!push) {
-      const pullFastForward = await gitPullFastForward(repo.path);
+    const pushSuccessful = await gitPush(repo.path);
+    if (!pushSuccessful) {
+      const pullSuccessful = await gitPullFastForward(repo.path);
 
-      if (!pullFastForward) {
+      if (!pullSuccessful) {
         await gitPullRebase(repo.path);
       }
       
@@ -88,7 +88,7 @@ export async function commandPush(repo: Repository, opts: GitOpts) {
     }
   }
   else {
-    console.log("No chnages to commit")
+    console.log("No changes to commit")
   }  
 }
 
