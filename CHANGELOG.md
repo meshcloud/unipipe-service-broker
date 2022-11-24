@@ -3,13 +3,24 @@
 ## vNext
 
 ### CLI
-- New command `unipipe git` runs Git pull/push commands resiliently. It takes care of retrying and rebasing if needed to make sure a push will be successful.
+- no changes
 
 ### OSB
 - no changes
 
 ### Terraform Runner
 - no changes
+
+## v1.7.3
+
+### CLI
+- New command `unipipe git` runs Git pull/push commands resiliently. It takes care of retrying and rebasing if needed to make sure a push will be successful.
+
+### OSB
+- no changes
+
+### Terraform Runner
+- Improve terraform-runner to use the new `unipipe git` command for Git operations.
 
 ## v1.7.2
 
