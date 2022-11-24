@@ -3,7 +3,7 @@
 ## vNext
 
 ### CLI
-- no changes
+- New command `unipipe git` runs Git pull/push commands resiliently. It takes care of retrying and rebasing if needed to make sure a push will be successful.
 
 ### OSB
 - no changes
