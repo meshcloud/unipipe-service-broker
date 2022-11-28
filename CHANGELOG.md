@@ -11,6 +11,11 @@
 ### Terraform Runner
 - Configure known hosts via environment variable
 
+## v1.7.4
+
+### Terraform Runner
+- Configure known hosts via environment variable
+
 ## v1.7.3
 
 ### CLI
