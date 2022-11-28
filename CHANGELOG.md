@@ -9,7 +9,7 @@
 - no changes
 
 ### Terraform Runner
-- no changes
+- Configure known hosts via environment variable
 
 ## v1.7.3
 

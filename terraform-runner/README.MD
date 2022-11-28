@@ -33,3 +33,14 @@ as you can see in the following:
 docker pull ghcr.io/meshcloud/unipipe-terraform-runner:latest
 docker run -t -i -e GIT_SSH_KEY="$(<my-ssh-key-file)" --env-file env.list ghcr.io/meshcloud/unipipe-terraform-runner:latest
 ```
+
+By default terraform-runner trusts GitHub's public SSH keys.
+If you work with a remote repo that is not hosted on GitHub, you need to set the KNOWN_HOSTS environment variable.
+
+```
+docker run -it \
+-e GIT_SSH_KEY="$(<my-ssh-key-file)" \
+-e KNOWN_HOSTS="$(<my-known-hosts-file)" \
+--env-file env.list \
+ghcr.io/meshcloud/unipipe-terraform-runner:latest
+```

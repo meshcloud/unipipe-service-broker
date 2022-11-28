@@ -5,6 +5,10 @@ set -o errtrace
 set -o pipefail
 set -o nounset
 
+if [[ -n $KNOWN_HOSTS ]]; then
+   echo "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+fi
+
 REPO_NAME=instances-repo
 REPO_DIR=~/unipipe/$REPO_NAME
 if [[ ! -d "$REPO_DIR" ]]; then

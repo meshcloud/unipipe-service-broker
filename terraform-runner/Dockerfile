@@ -23,6 +23,8 @@ RUN mkdir ~/unipipe
 COPY run-unipipe-terraform.sh /root/unipipe/run-unipipe-terraform.sh
 RUN chmod 0755 ~/unipipe/run-unipipe-terraform.sh
 
+# We add known_hosts entries for GitHub because they can be queried safely and we use them for development
+# For other git servers, set the KNOWN_HOSTS environment variable of the container
 RUN mkdir ~/.ssh
 RUN curl --silent https://api.github.com/meta \
   | jq --raw-output '"github.com "+.ssh_keys[]' >> ~/.ssh/known_hosts
