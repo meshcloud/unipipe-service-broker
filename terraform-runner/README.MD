@@ -33,3 +33,9 @@ as you can see in the following:
 docker pull ghcr.io/meshcloud/unipipe-terraform-runner:latest
 docker run -t -i -e GIT_SSH_KEY="$(<my-ssh-key-file)" --env-file env.list ghcr.io/meshcloud/unipipe-terraform-runner:latest
 ```
+
+# Configuration Reference
+
+## Environment variables
+
+`KNOWN_HOSTS` (optional): The content of this environment variable is written to ~/.ssh/known_hosts in the container. If not set, fingerprints for GitHub servers are added.
