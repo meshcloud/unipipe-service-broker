@@ -29,6 +29,8 @@ UniPipe service broker is a tool for offering services on [OSB API](https://www.
 - **GitOps workflow:** Don't have all the automation yet? Just read out service requests via `unipipe list` and `unipipe show` from the git repository and provision the service manually, then update the status via `unipipe update`.
 - **Built for automation:** The interface for integrating automation is the git repository and `unipipe` CLI makes working with it easy. Use whatever automation tooling you are most productive with!
 
+![A marketplace that integrates with a Service Broker](https://github.com/meshcloud/unipipe-service-broker/blob/master/.github/unipipe-overview.png "Service Broker interactions")
+
 # 🎬 Getting Started
 
 Pretty much everything in the UniPipe universe can be done with unipipe cli. [🕹️ How to install unipipe cli](https://github.com/meshcloud/unipipe-service-broker/wiki/How-To-Guides#%EF%B8%8F-how-to-install-unipipe-cli).
