@@ -3,15 +3,12 @@ package io.meshcloud.dockerosb.service
 import io.meshcloud.dockerosb.ServiceBrokerFixture
 import io.meshcloud.dockerosb.model.ServiceBinding
 import io.meshcloud.dockerosb.model.Status
-import org.apache.commons.io.FileUtils
 import org.junit.After
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 import org.springframework.cloud.servicebroker.exception.ServiceBrokerAsyncRequiredException
 import org.springframework.cloud.servicebroker.model.binding.GetLastServiceBindingOperationRequest
-import org.springframework.cloud.servicebroker.model.instance.DeleteServiceInstanceRequest
-import org.springframework.cloud.servicebroker.model.instance.GetLastServiceOperationRequest
 import org.springframework.cloud.servicebroker.model.instance.OperationState
 import java.io.File
 

@@ -42,10 +42,12 @@ class GenericServiceInstanceService(
     }
 
     gitContextFactory.acquireContext().use { context ->
-      val serviceInstance = ServiceInstance(request)
-
       val repository = context.buildServiceInstanceRepository()
-      repository.updateServiceInstance(serviceInstance)
+      val existingInstance = repository.tryGetServiceInstance(request.serviceInstanceId)
+          ?: throw ServiceInstanceDoesNotExistException(request.serviceInstanceId)
+
+      val updatedInstance = existingInstance.update(request)
+      repository.updateServiceInstance(updatedInstance)
 
       return Mono.just(
           UpdateServiceInstanceResponse.builder()

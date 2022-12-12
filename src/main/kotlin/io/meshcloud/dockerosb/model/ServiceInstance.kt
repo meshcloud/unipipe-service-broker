@@ -34,14 +34,17 @@ data class ServiceInstance(
       serviceDefinitionId = request.serviceDefinitionId
   )
 
-    constructor(request: UpdateServiceInstanceRequest) : this(
-        serviceInstanceId = request.serviceInstanceId,
+  fun update(request: UpdateServiceInstanceRequest): ServiceInstance {
+    require(serviceInstanceId == request.serviceInstanceId)
+
+    return copy(
         asyncAccepted = request.isAsyncAccepted,
-        context = request.context,
-        originatingIdentity = request.originatingIdentity,
-        parameters = request.parameters ?: mutableMapOf(),
-        planId = request.planId,
-        serviceDefinition = ServiceDefinition(request.serviceDefinition),
-        serviceDefinitionId = request.serviceDefinitionId
+        context = request.context ?: context,
+        originatingIdentity = request.originatingIdentity ?: originatingIdentity,
+        parameters = request.parameters ?: request.parameters,
+        planId = request.planId ?: planId,
+        serviceDefinition = request.serviceDefinition?.let { ServiceDefinition(it) } ?: serviceDefinition,
+        serviceDefinitionId = request.serviceDefinitionId ?: serviceDefinitionId
     )
+  }
 }
