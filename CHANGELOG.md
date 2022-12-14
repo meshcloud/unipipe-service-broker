@@ -9,6 +9,17 @@
 - no changes
 
 ### Terraform Runner
+- no changes
+
+## v1.7.5
+
+### CLI
+- no changes
+
+### OSB
+- Fixed a bug that prevented a ServiceInstance update request to get executed if planId was null
+
+### Terraform Runner
 - Configure known hosts via environment variable
 
 ## v1.7.4
@@ -55,17 +66,17 @@
 
 - Fixed zsh completions
 - `unipipe terraform` updates status.yml to succeeded for service instances without any binding
-- A `UniPipe Terraform Runner` docker container is now available. You can find the versioned containers 
+- A `UniPipe Terraform Runner` docker container is now available. You can find the versioned containers
 [here](https://github.com/meshcloud/unipipe-service-broker/pkgs/container/unipipe-terraform-runner).
-It can be configured via a few environment variables and executes `unipipe terraform` every minute 
-for the configured git repository. It also pulls changes from and pushes updated status.yml files, 
+It can be configured via a few environment variables and executes `unipipe terraform` every minute
+for the configured git repository. It also pulls changes from and pushes updated status.yml files,
 etc to the configured git repository. Using this `UniPipe Terraform Runner` together with the
 `UniPipe Service Broker` results in a fully functional service broker.
-- Fixed mixed up plan and service column in `unipipe list` command. Service names are now shown 
+- Fixed mixed up plan and service column in `unipipe list` command. Service names are now shown
 in the Service column and plans are shown in the Plan column.
 - Added manual parameter input to `unipipe terraform` processing. This can be used if before executing
-Terraform for a Service Instance, an operator needs to take some manual action and provide additional 
-input to the Terraform module. This can be used to e.g. provide an IP range for a service instance of a 
+Terraform for a Service Instance, an operator needs to take some manual action and provide additional
+input to the Terraform module. This can be used to e.g. provide an IP range for a service instance of a
 networking service, if no IPAM solution is in place. The operator just needs to put a `params.yml` in
 the according instance folder. Once this file is available the `unipipe terraform` command will apply Terraform.
 Whether a service requires this manual input can be defined in the metadata of a Service Plan in the service catalog.
@@ -88,9 +99,9 @@ No status.yml is updated in this case.
 ## v1.6.0
 ### CLI
 
-- Added a new `unipipe terraform` command to execute Terraform modules easily. For several service brokers execution 
+- Added a new `unipipe terraform` command to execute Terraform modules easily. For several service brokers execution
 of a Terraform Module is the central task they have to execute. The Terraform module must exist in the git repository
-that also contains the instances in a terraform/<serviceId> folder. It must be compatible with a specific set of variables 
+that also contains the instances in a terraform/<serviceId> folder. It must be compatible with a specific set of variables
 that will be provided to it via the unipipe terraform command. These variables are determined dynamically via the parameters
 and bindResource information provided by the UniPipe Service Broker.
 
@@ -111,7 +122,7 @@ and bindResource information provided by the UniPipe Service Broker.
 - you can now search for service instances and bindings in `unipipe browse`. This greatly enhances the usability of
   the browse mode for large repositories. Also the list now shows a summary info at the bottom how many instances
   where found vs. how many exist in total.
-- generate ECDSA key instead of RSA key in templated deployment 
+- generate ECDSA key instead of RSA key in templated deployment
 
 ## v1.4.0
 
@@ -141,7 +152,7 @@ This release comes with quite a bunch of new features
 - add a new `unipipe browse` command to interactively explore and update service instances. This is very useful for "semi-automated" services where operators want to manually update service instance status.
 - add a new `unipipe upgrade` command that allows upgrading unipipe-cli versions when unipipe was installed via `deno install`. See [installation instructions](https://github.com/meshcloud/unipipe-service-broker/wiki/How-To-Guides#deno-install)
 - Add an official windows installation script for unipipe cli
-  
+
 ## v1.2.2
 
 - integrate cli into unipipe-service-broker repository
