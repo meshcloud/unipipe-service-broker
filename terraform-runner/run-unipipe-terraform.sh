@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
-# Exit on all errors and undefined vars
 set -o errexit
 set -o errtrace
 set -o pipefail
-set -o nounset
 
+echo "T"
+
+# KNOWN_HOSTS already contains an entry for github, so we do not want to exit if it's not set
 if [[ -n $KNOWN_HOSTS ]]; then
    echo "$KNOWN_HOSTS" > ~/.ssh/known_hosts
 fi
