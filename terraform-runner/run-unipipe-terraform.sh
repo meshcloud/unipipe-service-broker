@@ -1,9 +1,7 @@
 #!/usr/bin/env bash
-# Exit on all errors and undefined vars
 set -o errexit
 set -o errtrace
 set -o pipefail
-set -o nounset
 
 if [[ -n $KNOWN_HOSTS ]]; then
    echo "$KNOWN_HOSTS" > ~/.ssh/known_hosts
