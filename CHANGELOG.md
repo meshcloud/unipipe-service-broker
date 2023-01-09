@@ -9,7 +9,8 @@
 - no changes
 
 ### Terraform Runner
-- no changes
+- update terraform to v1.3.7
+- env variable KNWON_HOSTS now supports empty values
 
 ## v1.7.5
 
