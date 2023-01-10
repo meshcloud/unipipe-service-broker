@@ -1,20 +1,16 @@
-FROM hashicorp/terraform:1.3.3
+FROM frolvlad/alpine-glibc:alpine-3.13
 
-ENV GLIBC_REPO=https://github.com/sgerrand/alpine-pkg-glibc
-ENV GLIBC_VERSION=2.30-r0
+RUN apk update
+RUN apk add curl bash sudo jq git openssh
 
-# we need glibc for unipipe cli
-RUN set -ex && \
-    apk --update add libstdc++ curl ca-certificates && \
-    for pkg in glibc-${GLIBC_VERSION} glibc-bin-${GLIBC_VERSION}; \
-        do curl -sSL ${GLIBC_REPO}/releases/download/${GLIBC_VERSION}/${pkg}.apk -o /tmp/${pkg}.apk; done && \
-    apk add --allow-untrusted /tmp/*.apk && \
-    rm -v /tmp/*.apk && \
-    /usr/glibc-compat/sbin/ldconfig /lib /usr/glibc-compat/lib
+# terraform
+ARG tfversion=1.3.7
+RUN apk add terraform=${tfversion}-r0 --repository=https://dl-cdn.alpinelinux.org/alpine/edge/community
 
-RUN apk add --no-cache curl bash sudo jq
-RUN curl -sf -L https://raw.githubusercontent.com/meshcloud/unipipe-service-broker/master/cli/install.sh | sudo bash
+# unipipe cli
+RUN curl --silent --fail https://raw.githubusercontent.com/meshcloud/unipipe-service-broker/master/cli/install.sh | sudo bash
 
+# unipipe terraform cron
 COPY unipipe-terraform-cron /etc/cron.d/unipipe-terraform-cron
 RUN chmod 0644 /etc/cron.d/unipipe-terraform-cron
 RUN crontab /etc/cron.d/unipipe-terraform-cron
