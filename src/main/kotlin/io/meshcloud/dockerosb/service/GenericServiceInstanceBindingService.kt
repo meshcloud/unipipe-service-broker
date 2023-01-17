@@ -3,6 +3,7 @@ package io.meshcloud.dockerosb.service
 import io.meshcloud.dockerosb.model.ServiceBinding
 import io.meshcloud.dockerosb.persistence.GitOperationContextFactory
 import org.springframework.cloud.servicebroker.exception.ServiceBrokerAsyncRequiredException
+import org.springframework.cloud.servicebroker.exception.ServiceInstanceBindingDoesNotExistException
 import org.springframework.cloud.servicebroker.model.binding.*
 import org.springframework.cloud.servicebroker.service.ServiceInstanceBindingService
 import org.springframework.stereotype.Service
@@ -15,7 +16,7 @@ class GenericServiceInstanceBindingService(
 
 
   override fun createServiceInstanceBinding(request: CreateServiceInstanceBindingRequest): Mono<CreateServiceInstanceBindingResponse> {
-    if (!request.isAsyncAccepted){
+    if (!request.isAsyncAccepted) {
       throw ServiceBrokerAsyncRequiredException("UniPipe service broker invokes async CI/CD pipelines")
     }
 
@@ -47,7 +48,7 @@ class GenericServiceInstanceBindingService(
                 .build()
         )
 
-      if (!request.isAsyncAccepted){
+      if (!request.isAsyncAccepted) {
         throw ServiceBrokerAsyncRequiredException("UniPipe service broker invokes async CI/CD pipelines")
       }
 
@@ -84,6 +85,9 @@ class GenericServiceInstanceBindingService(
       context.attemptToRefreshRemoteChanges()
 
       val repository = context.buildServiceInstanceBindingRepository()
+
+      repository.tryGetServiceBinding(request.serviceInstanceId, request.bindingId)
+          ?: throw ServiceInstanceBindingDoesNotExistException(request.bindingId)
 
       val credentials = repository.getServiceBindingCredentials(request.serviceInstanceId, request.bindingId)
 

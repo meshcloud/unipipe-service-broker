@@ -8,7 +8,9 @@ import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 import org.springframework.cloud.servicebroker.exception.ServiceBrokerAsyncRequiredException
+import org.springframework.cloud.servicebroker.exception.ServiceInstanceBindingDoesNotExistException
 import org.springframework.cloud.servicebroker.model.binding.GetLastServiceBindingOperationRequest
+import org.springframework.cloud.servicebroker.model.binding.GetServiceInstanceAppBindingResponse
 import org.springframework.cloud.servicebroker.model.instance.OperationState
 import java.io.File
 
@@ -150,5 +152,55 @@ internal class GenericServiceInstanceBindingServiceTest {
     Assert.assertEquals("in progress", status.status)
     Assert.assertEquals("preparing binding deletion", status.description)
 
+  }
+
+  @Test
+  fun `getServiceInstanceBinding throws BindingDoesNotExist exception, if no binding exists`() {
+    val sut = makeSut()
+
+    val getRequest = fixture.builder.getServiceInstanceBindingRequest("instanceId", "bindingId")
+
+    Assert.assertThrows(ServiceInstanceBindingDoesNotExistException::class.java) {
+      sut.getServiceInstanceBinding(getRequest).block()
+    }
+  }
+
+  @Test
+  fun `getServiceInstanceBinding returns credentials, if they exist`() {
+    val sut = makeSut()
+
+    val serviceInstanceId = "getBinding-test"
+    val bindingId = "bindingId"
+
+    val statusYml = File("${fixture.localGitPath}/instances/${serviceInstanceId}/bindings/${bindingId}/binding.yml")
+    val binding = ServiceBinding(fixture.builder.createServiceInstanceBindingRequest(serviceInstanceId, bindingId))
+    fixture.yamlHandler.writeObject(binding, statusYml)
+
+    val credentialsYml = File("${fixture.localGitPath}/instances/${serviceInstanceId}/bindings/${bindingId}/credentials.yml")
+    fixture.yamlHandler.writeObject(mapOf("test" to "123"), credentialsYml)
+
+    val getRequest = fixture.builder.getServiceInstanceBindingRequest(serviceInstanceId, bindingId)
+
+    val response = sut.getServiceInstanceBinding(getRequest).block() as GetServiceInstanceAppBindingResponse
+
+    Assert.assertEquals("123", response.credentials["test"])
+  }
+
+  @Test
+  fun `getServiceInstanceBinding returns empty, but valid response, if no credentials exist`() {
+    val sut = makeSut()
+
+    val serviceInstanceId = "getBinding-test"
+    val bindingId = "bindingId"
+
+    val statusYml = File("${fixture.localGitPath}/instances/${serviceInstanceId}/bindings/${bindingId}/binding.yml")
+    val binding = ServiceBinding(fixture.builder.createServiceInstanceBindingRequest(serviceInstanceId, bindingId))
+    fixture.yamlHandler.writeObject(binding, statusYml)
+
+    val getRequest = fixture.builder.getServiceInstanceBindingRequest(serviceInstanceId, bindingId)
+
+    val response = sut.getServiceInstanceBinding(getRequest).block() as GetServiceInstanceAppBindingResponse
+
+    Assert.assertEquals(emptyMap<String, Any>(), response.credentials)
   }
 }

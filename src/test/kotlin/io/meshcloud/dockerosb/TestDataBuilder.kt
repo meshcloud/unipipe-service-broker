@@ -5,6 +5,8 @@ import io.meshcloud.dockerosb.persistence.YamlHandler
 import org.springframework.cloud.servicebroker.model.PlatformContext
 import org.springframework.cloud.servicebroker.model.binding.CreateServiceInstanceBindingRequest
 import org.springframework.cloud.servicebroker.model.binding.DeleteServiceInstanceBindingRequest
+import org.springframework.cloud.servicebroker.model.binding.GetServiceInstanceBindingRequest
+import org.springframework.cloud.servicebroker.model.binding.GetServiceInstanceBindingRequest.GetServiceInstanceBindingRequestBuilder
 import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceRequest
 import org.springframework.cloud.servicebroker.model.instance.UpdateServiceInstanceRequest
 import java.io.File
@@ -96,6 +98,21 @@ class TestDataBuilder(catalogPath: String, yamlHandler: YamlHandler) {
         .originatingIdentity(originatingIdentity)
         .asyncAccepted(true)
         .bindingId(bindingId)
+        .also {
+          customize?.invoke(it)
+        }
+        .build()
+  }
+
+  fun getServiceInstanceBindingRequest(
+      instanceId: String,
+      bindingId: String,
+      customize: (GetServiceInstanceBindingRequestBuilder.() -> Unit)? = null
+  ): GetServiceInstanceBindingRequest {
+    return GetServiceInstanceBindingRequest.builder()
+        .serviceInstanceId(instanceId)
+        .bindingId(bindingId)
+        .originatingIdentity(originatingIdentity)
         .also {
           customize?.invoke(it)
         }
