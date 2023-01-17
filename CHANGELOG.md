@@ -6,7 +6,7 @@
 - no changes
 
 ### OSB
-- no changes
+- fix getServiceInstanceBinding endpoint to return a 404, if binding does not exist
 
 ### Terraform Runner
 - update terraform to v1.3.7
