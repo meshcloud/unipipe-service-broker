@@ -14,9 +14,9 @@ name: "CodeQL"
 on:
   push:
     branches: [ "master", auto-merging ]
-  pull_request:
+  # pull_request:
     # The branches below must be a subset of the branches above
-    branches: [ "master" ]
+    # branches: [ "master" ]
   schedule:
     - cron: '34 19 * * 6'
 
