@@ -1,15 +1,16 @@
 # Changelog
 
-## vNext
+## v1.7.7
 
 ### CLI
 - no changes
 
 ### OSB
-- no changes
+- update base docker image
 
 ### Terraform Runner
-- no changes
+- update base docker image
+- update terraform to v1.3.10
 
 ## v1.7.6
 
