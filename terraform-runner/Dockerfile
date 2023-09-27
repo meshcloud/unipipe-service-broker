@@ -30,5 +30,5 @@ RUN curl --silent https://api.github.com/meta \
 COPY entry.sh /root/unipipe/entry.sh
 RUN chmod 0755 /root/unipipe/entry.sh
 
-CMD ["/usr/sbin/crond", "-f", "-l", "8"]
+CMD ["cron", "-f", "-l", "8"]
 ENTRYPOINT ["/root/unipipe/entry.sh"]

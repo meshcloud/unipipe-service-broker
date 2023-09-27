@@ -1,5 +1,16 @@
 # Changelog
 
+## v1.7.8
+
+### CLI
+- no changes
+
+### OSB
+- no changes
+
+### Terraform Runner
+- fix issue with cron invocation
+
 ## v1.7.7
 
 ### CLI
