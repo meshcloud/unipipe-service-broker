@@ -1,14 +1,16 @@
-FROM frolvlad/alpine-glibc:alpine-3.13
+FROM ubuntu:jammy
 
-RUN apk update
-RUN apk add curl bash sudo jq git openssh
+# RUN apt-get
+# RUN apk add curl bash sudo jq git openssh
+RUN apt-get update && \
+  apt-get install -y --no-install-recommends curl jq cron ca-certificates && \
+  rm -rf /var/lib/apt/lists/*
 
 # terraform
-ARG tfversion=1.3.7
-RUN apk add terraform=${tfversion}-r0 --repository=https://dl-cdn.alpinelinux.org/alpine/edge/community
+COPY --from=hashicorp/terraform:1.3.10 /bin/terraform /usr/local/bin/terraform
 
 # unipipe cli
-RUN curl --silent --fail https://raw.githubusercontent.com/meshcloud/unipipe-service-broker/master/cli/install.sh | sudo bash
+RUN curl https://raw.githubusercontent.com/meshcloud/unipipe-service-broker/master/cli/install.sh | bash
 
 # unipipe terraform cron
 COPY unipipe-terraform-cron /etc/cron.d/unipipe-terraform-cron
