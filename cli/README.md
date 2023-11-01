@@ -66,7 +66,7 @@ unipipe transform ./osb-repo ./my-handlers.ts
 #
 
 git -C osb-repo commit
-git -C osb-repo push origin master
+git -C osb-repo push origin main
 ```
 
 A more sophisticated example for using unipipe cli in a pipeline can be found in ../example/pipeline/github-actions.

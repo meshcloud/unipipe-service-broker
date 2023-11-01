@@ -9,10 +9,10 @@ env:
   ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
 
 on:
-  # run on any push to master
+  # run on any push to main
   push:
     branches:
-      - "master"
+      - "main"
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -23,7 +23,7 @@ jobs:
       - name: Setup unipipe
         uses: meshcloud/setup-unipipe@v1 
       - name: checkout # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-        uses: actions/checkout@master
+        uses: actions/checkout@v4
       ### Doing actual VNet Stuff
       - name: transform-vnets
         run: |
@@ -38,7 +38,7 @@ jobs:
         uses: hashicorp/setup-terraform@v1
       - name: create-vnets
         run: |
-          git checkout master
+          git checkout main
           chmod +x network/create-vnets.sh
           network/create-vnets.sh
           git add .

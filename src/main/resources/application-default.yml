@@ -4,7 +4,7 @@ server:
 
 git:
   local: /tmp/git
-  remote-branch: master
+  remote-branch: main
 
 app:
   basic-auth-username: user

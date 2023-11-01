@@ -18,7 +18,7 @@ To configure the pipeline for your environment, you have to create a yaml file, 
 ci-repo-uri: https://github.com/Meshcloud/example-osb-ci.git # url to git repo that contains the tasks and scripts for the pipeline.
 ci-repo-username: # if you need credentials for HTTPS access to your ci-repo, configure the username here
 ci-repo-password: # if you need credentials for HTTPS access to your ci-repo, configure the password here
-ci-repo-branch: master # if you are working with branches and want to run the pipeline on another branch, you can configure it here
+ci-repo-branch: main # if you are working with branches and want to run the pipeline on another branch, you can configure it here
 private-key-ci-repo: # if you are using SSH to access your ci-repo, configure your key here, i.e. like this:
     -----BEGIN RSA PRIVATE KEY-----
     Hgiud8z89ijiojdobdikdosaa+hnjk789hdsanlklmladlsagasHOHAo7869+bcG
@@ -29,7 +29,7 @@ private-key-ci-repo: # if you are using SSH to access your ci-repo, configure yo
 instances-repo-uri: # url to git repo that is used for exchange of instance information with the UniPipe Service Broker
 instances-repo-username: # if you need credentials for HTTPS access to your instances-repo, configure the username here
 instances-repo-password: # if you need credentials for HTTPS access to your instances-repo, configure the password here
-instances-repo-branch: master # if you are working with branches and want to use another branch, you can configure it here
+instances-repo-branch: main # if you are working with branches and want to use another branch, you can configure it here
 private-key-instances-repo: # if you are using SSH to access your ci-repo, configure your key here, i.e. like this:
     -----BEGIN RSA PRIVATE KEY-----
     Hgiud8z89ijiojdobdikdosaa+hnjk789hdsanlklmladlsagasHOHAo7869+bcG

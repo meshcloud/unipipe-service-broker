@@ -53,8 +53,8 @@ init_repo() {
       -c user.email='test@example.com' \
       commit -q --allow-empty -m "commit on other branch"
 
-    # back to master
-    git checkout -q master
+    # back to main
+    git checkout -q main
 
     # print resulting repo
     pwd

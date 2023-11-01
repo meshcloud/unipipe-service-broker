@@ -1,6 +1,6 @@
 # Introduction
 
-This docker container contains the [UniPipe CLI](https://github.com/meshcloud/unipipe-service-broker/tree/master/cli) 
+This docker container contains the [UniPipe CLI](https://github.com/meshcloud/unipipe-service-broker/tree/main/cli) 
 and schedules `unipipe terraform` every minute via a cron job. It can be used in combination with the 
 [UniPipe Service Broker](https://github.com/meshcloud/unipipe-service-broker) to actually process the service instances 
 that were written by the UniPipe Service Broker.
