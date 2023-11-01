@@ -37,7 +37,7 @@ init_repo() {
 
     cd $(mktemp -d $TMPDIR/repo.XXXXXX)
 
-    git init -q
+    git init -q -b main
 
     # start with an initial commit
     git \
