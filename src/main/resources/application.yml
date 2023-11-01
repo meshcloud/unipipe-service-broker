@@ -5,4 +5,4 @@ server:
   forward-headers-strategy: framework
 git:
   local-path: /tmp/git
-  remote-branch: master
+  remote-branch: main

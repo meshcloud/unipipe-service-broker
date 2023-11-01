@@ -7,10 +7,10 @@ env:
   MY_SECRET_KEY: \${{ secrets.MY_SECRET_KEY }}
 
 on:
-  # run on any push to master
+  # run on any push to main
   push:
     branches:
-      - "master"
+      - "main"
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -21,7 +21,7 @@ jobs:
       - name: install unipipe cli
         uses: meshcloud/setup-unipipe@v1
       - name: checkout # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-        uses: actions/checkout@master
+        uses: actions/checkout@main
       ### Transform your example instances
       - name: transform-example
         run: |

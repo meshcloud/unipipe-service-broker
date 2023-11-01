@@ -1,5 +1,17 @@
 # Changelog
 
+## vNEXT
+
+### OSB
+
+Breaking Changes:
+
+- unipipe service broker now uses `main` as the default branch instead of `master` to better align with defaults set up 
+  by most git hosting platforms. Please make sure you explicitly configure `GIT_REMOTE_BRANCH` 
+  (see [configuration reference](https://github.com/meshcloud/unipipe-service-broker/wiki/Reference#configuration-reference))
+  to avoid any unexpected change in branch.
+
+
 ## v1.7.8
 
 ### CLI

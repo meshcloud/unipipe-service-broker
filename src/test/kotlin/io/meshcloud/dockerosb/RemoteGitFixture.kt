@@ -7,7 +7,7 @@ import java.nio.file.Path
 
 class RemoteGitFixture(
     private val repositoryRootPath: String,
-    branch: String = "master"
+    branch: String = "main"
 ) {
   // init remote git
   private val git = Git.init()

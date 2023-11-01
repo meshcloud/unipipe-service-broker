@@ -10,7 +10,7 @@ RUN apt-get update && \
 COPY --from=hashicorp/terraform:1.3.10 /bin/terraform /usr/local/bin/terraform
 
 # unipipe cli
-RUN curl https://raw.githubusercontent.com/meshcloud/unipipe-service-broker/master/cli/install.sh | bash
+RUN curl https://raw.githubusercontent.com/meshcloud/unipipe-service-broker/main/cli/install.sh | bash
 
 # unipipe terraform cron
 COPY unipipe-terraform-cron /etc/cron.d/unipipe-terraform-cron
