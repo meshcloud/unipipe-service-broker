@@ -1,4 +1,12 @@
-import { colors, Command, Input, List, prompt, Select, SelectValueOptions } from "../deps.ts";
+import {
+  colors,
+  Command,
+  Input,
+  List,
+  prompt,
+  Select,
+  SelectValueOptions,
+} from "../deps.ts";
 import { OsbStatusValue } from "../osb.ts";
 import { Repository } from "../repository.ts";
 import { stringify } from "../yaml.ts";
@@ -9,7 +17,7 @@ export function registerBrowseCmd(program: Command) {
   program
     .command("browse [repo]")
     .description("Interactively browse and manipulate a UniPipe OSB git repo.")
-    .action(async (_opts: Record<never, never>, repo: string|undefined) => {
+    .action(async (_opts: Record<never, never>, repo: string | undefined) => {
       const repository = new Repository(repo ? repo : ".");
       await browseInstances(repository);
     });
@@ -32,19 +40,23 @@ async function browseInstances(repo: Repository) {
         colors.dim("service: ") + colors.green(i.serviceDefinition.name),
         colors.dim("plan: ") + colors.yellow(plan.name),
         colors.dim("bindings: ") +
-          colors.brightMagenta(x.bindings.length.toString()),
+        colors.brightMagenta(x.bindings.length.toString()),
         colors.dim("status: ") +
-          colors.blue(x.status?.status || "new") +
-          colors.red(i.deleted ? " deleted" : ""),
+        colors.blue(x.status?.status || "new") +
+        colors.red(i.deleted ? " deleted" : ""),
       ];
 
       // In contrast to the list command, we do not require user input for determining which profile to use.
       if (i.context.platform === "meshmarketplace") {
-        instanceDetails.unshift(colors.dim("project: ") + colors.white(i.context.project_id))
-        instanceDetails.unshift(colors.dim("customer: ") + colors.white(i.context.customer_id))
+        instanceDetails.unshift(
+          colors.dim("project: ") + colors.white(i.context.project_id),
+        );
+        instanceDetails.unshift(
+          colors.dim("customer: ") + colors.white(i.context.customer_id),
+        );
       }
 
-      const name = instanceDetails.join(" ")
+      const name = instanceDetails.join(" ");
 
       return { name, value: i.serviceInstanceId };
     });
@@ -61,10 +73,10 @@ async function browseInstances(repo: Repository) {
         colors.dim("id: ") + colors.gray(x.binding.bindingId),
         // we could add binding parameters in here,
         colors.dim("params: ") +
-          colors.green(JSON.stringify(x.binding.parameters)),
+        colors.green(JSON.stringify(x.binding.parameters)),
         colors.dim("status: ") +
-          colors.blue(x.status?.status || "new") +
-          colors.red(x.deleted ? " deleted" : ""),
+        colors.blue(x.status?.status || "new") +
+        colors.red(x.deleted ? " deleted" : ""),
       ].join(" ");
 
       return { name, value: x.binding.bindingId };
@@ -83,7 +95,7 @@ async function browseInstances(repo: Repository) {
       message: "Pick a service instance",
       options: instanceOptions,
       search: true,
-      info: true
+      info: true,
     },
     {
       name: "instanceCmd",
@@ -102,9 +114,8 @@ async function browseInstances(repo: Repository) {
             await refreshBindingList(instanceId);
             if (bindingOptions.length > 0) {
               next("selectBinding");
-            }
-            else {
-              console.log("No bindings found for this instance!")
+            } else {
+              console.log("No bindings found for this instance!");
               next("instanceCmd");
             }
             break;
@@ -127,7 +138,7 @@ async function browseInstances(repo: Repository) {
       message: "Pick a service binding",
       options: bindingOptions,
       search: true,
-      info: true
+      info: true,
     },
     {
       name: "bindingCmd",
@@ -198,7 +209,7 @@ async function updateInstance(repo: Repository, instanceId: string) {
 async function updateBinding(
   repo: Repository,
   instanceId: string,
-  bindingId: string
+  bindingId: string,
 ) {
   const { status, description } = await prompt([
     {
@@ -215,8 +226,9 @@ async function updateBinding(
   ]);
   const credentials: string[] = await List.prompt(
     {
-      message: "Add credential `key:value` pairs. Use comma `,` to separate credentials. If you don't want to update, leave it blank.",
-    }
+      message:
+        "Add credential `key:value` pairs. Use comma `,` to separate credentials. If you don't want to update, leave it blank.",
+    },
   );
 
   // cliffy does not support whitespace in list prompt input.
@@ -225,12 +237,15 @@ async function updateBinding(
   credentials.forEach((credential) => {
     const colonIndex = credential.indexOf(":");
     if (colonIndex === -1) {
-      throw new Error("Could not find colon `:` in credential `key:value` pair: " + credential);
+      throw new Error(
+        "Could not find colon `:` in credential `key:value` pair: " +
+          credential,
+      );
     }
     const key = credential.substring(0, colonIndex);
     const value = credential.substring(colonIndex + 1);
     fixedCredentials.push(key + ": " + value);
-  })
+  });
 
   await update(repo, {
     instanceId,
@@ -241,18 +256,20 @@ async function updateBinding(
   });
 
   console.log(
-    `Updated status of instance ${instanceId} binding ${bindingId} to '${status}' and credentials are '${fixedCredentials.length > 0 ? 'overwritten' : 'not updated'}'`
+    `Updated status of instance ${instanceId} binding ${bindingId} to '${status}' and credentials are '${
+      fixedCredentials.length > 0 ? "overwritten" : "not updated"
+    }'`,
   );
 }
 
 async function showBinding(
   repo: Repository,
   instanceId: string,
-  bindingId: string
+  bindingId: string,
 ) {
   const instance = await repo.loadInstance(instanceId);
   const binding = instance.bindings.find(
-    (x) => x.binding.bindingId === bindingId
+    (x) => x.binding.bindingId === bindingId,
   );
 
   if (!binding) {

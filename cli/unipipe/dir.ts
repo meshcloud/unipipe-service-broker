@@ -1,4 +1,4 @@
-import { path } from './deps.ts';
+import { path } from "./deps.ts";
 
 export interface Dir {
   name: string;
@@ -21,11 +21,15 @@ function isDir(x: File | Dir): x is Dir {
 /**
  * Writes a directory tree to the filesystem. beginning at the specified path.
  * Note: maybe consider using Promise.all for speed
- * 
- * @param currentDir 
- * @param basePath 
+ *
+ * @param currentDir
+ * @param basePath
  */
-export async function write(currentDir: Dir, basePath: string, progress?: (path: string) => void) {
+export async function write(
+  currentDir: Dir,
+  basePath: string,
+  progress?: (path: string) => void,
+) {
   const currentPath = path.join(basePath, currentDir.name);
 
   // ensure dir exists, mkdir -p
@@ -35,7 +39,7 @@ export async function write(currentDir: Dir, basePath: string, progress?: (path:
   const files = currentDir.entries.filter(isFile);
   for await (const file of files) {
     const fp = path.join(currentPath, file.name);
-    
+
     progress && progress(fp);
     await Deno.writeTextFile(fp, file.content);
   }

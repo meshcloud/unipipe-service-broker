@@ -1,7 +1,6 @@
-import { uuid } from '../deps.ts';
+import { uuid } from "../deps.ts";
 
-export const catalog =
-`services:
+export const catalog = `services:
   # define a simple service offering
   # for field documentation see https://github.com/openservicebrokerapi/servicebroker/blob/v2.15/spec.md#service-offering-object
   - id: ${uuid.generate()} # this uuid was randomly generated using "unipipe generate uuid"

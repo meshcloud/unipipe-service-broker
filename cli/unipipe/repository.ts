@@ -1,6 +1,9 @@
 import { path } from "./deps.ts";
 import {
-    OsbServiceBindingStatus, OsbServiceInstanceStatus, readInstance, ServiceInstance
+  OsbServiceBindingStatus,
+  OsbServiceInstanceStatus,
+  readInstance,
+  ServiceInstance,
 } from "./osb.ts";
 import { stringify } from "./yaml.ts";
 
@@ -27,10 +30,10 @@ export class Repository {
   async mapInstances<T>(
     mapFn: (serviceInstance: ServiceInstance) => Promise<T>,
     filterFn: (serviceInstance: ServiceInstance) => boolean = (
-      _: ServiceInstance
+      _: ServiceInstance,
     ) => {
       return true;
-    }
+    },
   ): Promise<T[]> {
     const instancesPath = path.join(this.path, "instances");
     const results: T[] = [];
@@ -42,7 +45,7 @@ export class Repository {
         console.log(
           `Instances directory does not exist in repository. Therefore no instances can be found!`,
         );
-  
+
         return [];
       }
     }
@@ -71,14 +74,14 @@ export class Repository {
           } catch (error) {
             console.error(
               `Failed to process service instance "${ip}".\n`,
-              error
+              error,
             );
             Deno.exit(1);
           }
         } catch (error) {
           console.error(
             `Failed to apply filter to service instance "${ip}".\n`,
-            error
+            error,
           );
           Deno.exit(1);
         }
@@ -86,7 +89,7 @@ export class Repository {
     } catch (error) {
       console.error(
         `Failed to read instances directory "${instancesPath}".\n`,
-        error
+        error,
       );
       Deno.exit(1);
     }
@@ -96,13 +99,13 @@ export class Repository {
 
   async updateInstanceStatus(
     instanceId: string,
-    status: OsbServiceInstanceStatus
+    status: OsbServiceInstanceStatus,
   ) {
     const statusYmlPath = path.join(
       this.path,
       "instances",
       instanceId,
-      "status.yml"
+      "status.yml",
     );
 
     const yaml = stringify(status);
@@ -112,7 +115,7 @@ export class Repository {
   async updateBindingStatus(
     instanceId: string,
     bindingId: string,
-    status: OsbServiceBindingStatus
+    status: OsbServiceBindingStatus,
   ) {
     const statusYmlPath = path.join(
       this.path,
@@ -120,7 +123,7 @@ export class Repository {
       instanceId,
       "bindings",
       bindingId,
-      "status.yml"
+      "status.yml",
     );
 
     const yaml = stringify(status);
@@ -130,7 +133,7 @@ export class Repository {
   async updateBindingCredentials(
     instanceId: string,
     bindingId: string,
-    credentials: string
+    credentials: string,
   ) {
     const credentialsYmlPath = path.join(
       this.path,
@@ -138,7 +141,7 @@ export class Repository {
       instanceId,
       "bindings",
       bindingId,
-      "credentials.yml"
+      "credentials.yml",
     );
     await Deno.writeTextFile(credentialsYmlPath, credentials);
   }

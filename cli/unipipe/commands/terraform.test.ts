@@ -1,5 +1,11 @@
 import { path } from "../deps.ts";
-import { assertEquals, assertSpyCall, returnsNext, Stub, stub } from "../dev_deps.ts";
+import {
+  assertEquals,
+  assertSpyCall,
+  returnsNext,
+  Stub,
+  stub,
+} from "../dev_deps.ts";
 import { Repository } from "../repository.ts";
 import { withTempDir } from "../test-util.ts";
 import { run } from "./terraform.ts";
@@ -12,7 +18,6 @@ const SERVICE_BINDING_ID = "456";
 
 const CUSTOMER_IDENTIFIER = "my-customer";
 const PROJECT_IDENTIFIER = "my-project";
-
 
 const TF_MODULE = {
   variable: {
@@ -431,7 +436,7 @@ Deno.test(
           cmd: [
             "terraform",
             "plan",
-            "-destroy"
+            "-destroy",
           ],
           cwd:
             `${tmp}/instances/${SERVICE_INSTANCE_ID}/bindings/${SERVICE_BINDING_ID}`,

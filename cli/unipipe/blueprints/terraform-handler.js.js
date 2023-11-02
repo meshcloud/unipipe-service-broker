@@ -1,4 +1,4 @@
-import { uuid } from '../deps.ts';
+import { uuid } from "../deps.ts";
 
 export const terraformTransformHandler = `
 /**
@@ -116,4 +116,4 @@ const handlers = {
 };
 
 handlers;
-`
+`;

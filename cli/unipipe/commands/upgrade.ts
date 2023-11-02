@@ -1,5 +1,11 @@
-import { Command, GithubProvider, GithubProviderOptions, path, UpgradeCommand } from '../deps.ts';
-import { FLAGS, GITHUB_REPO, VERSION } from '../info.ts';
+import {
+  Command,
+  GithubProvider,
+  GithubProviderOptions,
+  path,
+  UpgradeCommand,
+} from "../deps.ts";
+import { FLAGS, GITHUB_REPO, VERSION } from "../info.ts";
 
 export function registerUpgradeCmd(program: Command) {
   const denoExecutable = Deno.execPath();
@@ -27,7 +33,10 @@ export function registerUpgradeCmd(program: Command) {
         args: FLAGS.split(" "),
         main: "main.ts",
         provider: [
-          new UnipipeGitHubProvider({ repository: GITHUB_REPO, branches: false }),
+          new UnipipeGitHubProvider({
+            repository: GITHUB_REPO,
+            branches: false,
+          }),
         ],
       }),
     );
@@ -36,7 +45,7 @@ export function registerUpgradeCmd(program: Command) {
 
 class UnipipeGitHubProvider extends GithubProvider {
   constructor(options: GithubProviderOptions) {
-    super({...options, });
+    super({ ...options });
   }
 
   override getRegistryUrl(_name: string, version: string): string {

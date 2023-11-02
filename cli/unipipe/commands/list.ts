@@ -1,6 +1,10 @@
 import { Command, EnumType, Table } from "../deps.ts";
 import { MeshMarketplaceContext } from "../mesh.ts";
-import { CloudFoundryContext, OsbServiceInstance, ServiceInstance } from "../osb.ts";
+import {
+  CloudFoundryContext,
+  OsbServiceInstance,
+  ServiceInstance,
+} from "../osb.ts";
 import { Repository } from "../repository.ts";
 
 // see https://stackoverflow.com/questions/44480644/string-union-to-string-array for the trick used here
@@ -38,27 +42,27 @@ export function registerListCmd(program: Command) {
     .type("status", statusesType)
     .option(
       "-p, --profile [profile:profile]",
-      "include columns of context information according to the specified OSB API profile. Supported values are 'meshmarketplace' and 'cloudfoundry'. Ignored when '-o json' is set."
+      "include columns of context information according to the specified OSB API profile. Supported values are 'meshmarketplace' and 'cloudfoundry'. Ignored when '-o json' is set.",
     )
     .option(
       "-o, --output-format [format:format]",
       "Output format. Supported formats are json and text.",
       {
         default: "text",
-      }
+      },
     )
     .option(
       "--status [status:status]",
-      "Filters instances by status. Allowed values are 'in progress', 'succeeded', 'failed' and 'EMPTY' (no status file present for this instance)."
+      "Filters instances by status. Allowed values are 'in progress', 'succeeded', 'failed' and 'EMPTY' (no status file present for this instance).",
     )
     .option(
       "--deleted [deleted:boolean]",
-      "Filters instances by deleted. Allowed values are 'true' and 'false'"
+      "Filters instances by deleted. Allowed values are 'true' and 'false'",
     )
     .description(
-      "Lists service instances status stored in a UniPipe OSB git repo."
+      "Lists service instances status stored in a UniPipe OSB git repo.",
     )
-    .action(async (options: ListOpts, repo: string|undefined) => {
+    .action(async (options: ListOpts, repo: string | undefined) => {
       const repository = new Repository(repo ? repo : ".");
       const out = await list(repository, options);
       console.log(out);
@@ -67,11 +71,10 @@ export function registerListCmd(program: Command) {
 
 export async function list(
   repo: Repository,
-  opts: ListOpts
+  opts: ListOpts,
 ): Promise<string> {
   const filterFn = buildFilterFn(opts);
 
-  
   switch (opts.outputFormat) {
     case "json":
       return await listJson(repo, filterFn);
@@ -82,11 +85,11 @@ export async function list(
 
 async function listJson(
   repository: Repository,
-  filterFn: (instance: ServiceInstance) => boolean
+  filterFn: (instance: ServiceInstance) => boolean,
 ): Promise<string> {
   const results = await repository.mapInstances(
     async (instance) => await instance,
-    filterFn
+    filterFn,
   );
 
   return JSON.stringify(results);
@@ -95,7 +98,7 @@ async function listJson(
 async function listTable(
   repository: Repository,
   filterFn: (instance: ServiceInstance) => boolean,
-  profile?: Profile
+  profile?: Profile,
 ): Promise<string> {
   const results = await repository.mapInstances(async (instance) => {
     const i = instance.instance;
@@ -148,13 +151,11 @@ function profileColValues(i: OsbServiceInstance, profile?: Profile): string[] {
 
 function buildFilterFn(opts: ListOpts): (instance: ServiceInstance) => boolean {
   return (instance: ServiceInstance) => {
-    const statusFilterMatches =
-      !opts.status ||
+    const statusFilterMatches = !opts.status ||
       opts.status === instance.status?.status ||
       (opts.status === "EMPTY" && instance.status === null);
 
-    const deletedFilterMatches =
-      (!opts.deleted && opts.deleted !== false) ||
+    const deletedFilterMatches = (!opts.deleted && opts.deleted !== false) ||
       opts.deleted === instance.instance.deleted;
 
     return deletedFilterMatches && statusFilterMatches;

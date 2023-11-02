@@ -33,8 +33,8 @@ export interface OsbServicePlan {
   id: string;
   name: string;
   metadata: {
-    manualInstanceInputNeeded?: boolean
-  }
+    manualInstanceInputNeeded?: boolean;
+  };
 }
 
 export interface OsbServiceBinding extends Record<string, unknown> {
@@ -80,7 +80,8 @@ export interface ServiceBinding extends Record<string, unknown> {
 // In this case an empty interface makes sense as the name of it provides semantic meaning.
 // Using Record<string, unknown> directly instead would be too generic and therefore harder to understand.
 // deno-lint-ignore no-empty-interface
-export interface ManualServiceInstanceParameters extends Record<string, unknown> {
+export interface ManualServiceInstanceParameters
+  extends Record<string, unknown> {
 }
 
 /**
@@ -114,25 +115,27 @@ export async function tryParseYamlFile(path: string) {
  */
 export async function readInstance(path: string): Promise<ServiceInstance> {
   const instance = (await parseYamlFile(
-    `${path}/instance.yml`
+    `${path}/instance.yml`,
   )) as OsbServiceInstance;
 
   const status = (await tryParseYamlFile(
-    `${path}/status.yml`
+    `${path}/status.yml`,
   )) as OsbServiceInstanceStatus | null;
 
   const manualParams = (await tryParseYamlFile(
-    `${path}/params.yml`
-  )) as ManualServiceInstanceParameters  | null;
+    `${path}/params.yml`,
+  )) as ManualServiceInstanceParameters | null;
 
   const bindings = await mapBindings(path, async (binding) => await binding);
 
   const plan = instance.serviceDefinition.plans.find(
-    (x) => x.id === instance.planId
-  )
-  
+    (x) => x.id === instance.planId,
+  );
+
   if (!plan) {
-    throw Error(`Service Plan with id ${instance.planId} for instance ${instance.serviceInstanceId} not found in attached service definition!`)
+    throw Error(
+      `Service Plan with id ${instance.planId} for instance ${instance.serviceInstanceId} not found in attached service definition!`,
+    );
   }
 
   return {
@@ -140,7 +143,7 @@ export async function readInstance(path: string): Promise<ServiceInstance> {
     bindings: bindings,
     status: status,
     servicePlan: plan,
-    manualParameters: manualParams
+    manualParameters: manualParams,
   };
 }
 
@@ -151,20 +154,20 @@ export async function readInstance(path: string): Promise<ServiceInstance> {
  */
 export async function readBinding(path: string): Promise<ServiceBinding> {
   const binding = (await parseYamlFile(
-    `${path}/binding.yml`
+    `${path}/binding.yml`,
   )) as OsbServiceBinding;
 
   const status = (await tryParseYamlFile(
-    `${path}/status.yml`
+    `${path}/status.yml`,
   )) as OsbServiceInstanceStatus | null;
 
   const credentials = (await tryParseYamlFile(
-    `${path}/credentials.yml`
+    `${path}/credentials.yml`,
   )) as Record<string, unknown> | null;
 
   return {
     binding: binding,
     status: status,
-    credentials: credentials
+    credentials: credentials,
   };
 }
