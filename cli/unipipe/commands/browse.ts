@@ -10,14 +10,14 @@ import {
 import { OsbStatusValue } from "../osb.ts";
 import { Repository } from "../repository.ts";
 import { stringify } from "../yaml.ts";
-import { show } from "./show.ts";
+import { OutputFormat, show } from "./show.ts";
 import { STATUSES, update } from "./update.ts";
 
 export function registerBrowseCmd(program: Command) {
   program
     .command("browse [repo]")
     .description("Interactively browse and manipulate a UniPipe OSB git repo.")
-    .action(async (_opts: Record<never, never>, repo: string | undefined) => {
+    .action(async (_, repo: string | undefined) => {
       const repository = new Repository(repo ? repo : ".");
       await browseInstances(repository);
     });
@@ -177,7 +177,7 @@ async function browseInstances(repo: Repository) {
 async function showInstance(repository: Repository, instanceId: string) {
   await show(repository, {
     instanceId: instanceId,
-    outputFormat: "yaml",
+    outputFormat: OutputFormat.YAML,
     pretty: true,
   });
 }
