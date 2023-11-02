@@ -60,4 +60,4 @@ output "unipipe_git_ssh_key" {
   value       = module.unipipe.unipipe_git_ssh_key
   description = "UniPipe will use this key to access the git repository. You have to give read+write access on the target repository for this key."
 }
-`
+`;

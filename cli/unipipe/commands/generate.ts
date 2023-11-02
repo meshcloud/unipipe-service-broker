@@ -10,18 +10,18 @@ import { Dir, write } from "../dir.ts";
 import {
   helloWorldBackendTf,
   helloWorldCatalog,
+  helloWorldGitignore,
   helloWorldMainTf,
   helloWorldVariablesTf,
-  helloWorldGitignore,
 } from "../blueprints/terraform-runner-hello-world-service.ts";
 
-const ALL_HANDLER_TYPES = [ "handler_b", "handler_tf" ] as const;
+const ALL_HANDLER_TYPES = ["handler_b", "handler_tf"] as const;
 type HandlersTuple = typeof ALL_HANDLER_TYPES;
 type Handler = HandlersTuple[number];
 
 const handlersType = new EnumType(ALL_HANDLER_TYPES);
 
-const ALL_DEPLOYMENT_TYPES = [ "aci_tf", "aci_az", "gcp_cloudrun_tf" ] as const;
+const ALL_DEPLOYMENT_TYPES = ["aci_tf", "aci_az", "gcp_cloudrun_tf"] as const;
 type DeploymentsTuple = typeof ALL_DEPLOYMENT_TYPES;
 type Deployment = DeploymentsTuple[number];
 
@@ -31,7 +31,7 @@ export interface CatalogOpts {
   destination?: string;
   handler?: Handler;
   deployment?: Deployment;
-  uuid?: string
+  uuid?: string;
 }
 
 export function registerGenerateCmd(program: Command) {
@@ -40,7 +40,10 @@ export function registerGenerateCmd(program: Command) {
     //
     .command("catalog")
     .description("Generate a sample OSB catalog for use by unipipe-broker.")
-    .option("--destination <destination>", "Pick a destination directory for the generated catalog file.")
+    .option(
+      "--destination <destination>",
+      "Pick a destination directory for the generated catalog file.",
+    )
     .action(async (options: CatalogOpts) => await generateCatalog(options))
     //
     .command("terraform-runner-hello-world")
@@ -60,33 +63,61 @@ export function registerGenerateCmd(program: Command) {
     .description(
       "Generate a javascript transform-handler for `unipipe transform`.",
     )
-    .option("--destination <destination>", "Pick a destination directory for the generated transform-handler file.")
-    .option("--handler <handler_b|handler_tf>", "Pick a handler type for the generated transform-handler file.")
-    .option("-u, --uuid <uuid>", "Pick an UUID for the generated transform-handler file.")
-    .action(async (options: CatalogOpts) => await generateTransformHandler(options))
+    .option(
+      "--destination <destination>",
+      "Pick a destination directory for the generated transform-handler file.",
+    )
+    .option(
+      "--handler <handler_b|handler_tf>",
+      "Pick a handler type for the generated transform-handler file.",
+    )
+    .option(
+      "-u, --uuid <uuid>",
+      "Pick an UUID for the generated transform-handler file.",
+    )
+    .action(async (options: CatalogOpts) =>
+      await generateTransformHandler(options)
+    )
     //
     .command("github-workflow")
     .description(
       "Generate a github workflow for `Github Actions`.",
     )
-    .option("--destination <destination>", "Pick a destination directory for the generated github-workflow file.")
-    .action(async (options: CatalogOpts) => await generateGithubWorkflow(options))
+    .option(
+      "--destination <destination>",
+      "Pick a destination directory for the generated github-workflow file.",
+    )
+    .action(async (options: CatalogOpts) =>
+      await generateGithubWorkflow(options)
+    )
     //
     .command("execution-script")
     .description(
       "Generate an execution shell script to apply your terraform templates.",
     )
-    .option("--destination <destination>", "Pick a destination directory for the generated execution-script file.")
-    .action(async (options: CatalogOpts) => await generateExecutionScript(options))
-
+    .option(
+      "--destination <destination>",
+      "Pick a destination directory for the generated execution-script file.",
+    )
+    .action(async (options: CatalogOpts) =>
+      await generateExecutionScript(options)
+    )
     .command("unipipe-service-broker-deployment")
     .type("deployment", deploymentsType)
     .description(
       "Generate infrastructure-as-code deployments for the UniPipe Service broker.",
     )
-    .option("--destination <destination>", "Pick a destination directory for the generated unipipe-service-broker-deployment file.")
-    .option("--deployment <aci_tf|aci_az|gcp_cloudrun_tf>", "Pick a deployment type for the generated unipipe-service-broker-deployment file.")
-    .action(async (options: CatalogOpts) => await generateUniPipeDeployment(options));
+    .option(
+      "--destination <destination>",
+      "Pick a destination directory for the generated unipipe-service-broker-deployment file.",
+    )
+    .option(
+      "--deployment <aci_tf|aci_az|gcp_cloudrun_tf>",
+      "Pick a deployment type for the generated unipipe-service-broker-deployment file.",
+    )
+    .action(async (options: CatalogOpts) =>
+      await generateUniPipeDeployment(options)
+    );
 
   program
     .command("generate", blueprints)
@@ -124,72 +155,113 @@ async function generateService() {
   writeDirectory(terraform);
 }
 async function generateCatalog(options: CatalogOpts) {
-  await writeDirectoryWithUserInput("catalog.yml", catalog, "Pick a destination directory for the generated catalog file:", (options.destination?options.destination:undefined))
+  await writeDirectoryWithUserInput(
+    "catalog.yml",
+    catalog,
+    "Pick a destination directory for the generated catalog file:",
+    options.destination ? options.destination : undefined,
+  );
 }
 
 async function generateExecutionScript(options: CatalogOpts) {
-  await writeDirectoryWithUserInput("execute-terraform-templates.sh", executionScript, "Pick a destination directory for the generated execution script file:", (options.destination?options.destination:undefined))
+  await writeDirectoryWithUserInput(
+    "execute-terraform-templates.sh",
+    executionScript,
+    "Pick a destination directory for the generated execution script file:",
+    options.destination ? options.destination : undefined,
+  );
 }
 
 async function generateGithubWorkflow(options: CatalogOpts) {
-  await writeDirectoryWithUserInput("github-workflow.yml", githubWorkflow, "Pick a destination directory for the generated github-workflow file:", (options.destination?options.destination:undefined))
+  await writeDirectoryWithUserInput(
+    "github-workflow.yml",
+    githubWorkflow,
+    "Pick a destination directory for the generated github-workflow file:",
+    options.destination ? options.destination : undefined,
+  );
 }
 
 async function generateTransformHandler(options: CatalogOpts) {
-  if (options.handler == undefined){
-      options.handler = await Select.prompt({
-        message: "Pick the handler type:",
-        options: [
-          { name: "Basic Handler | handler_b", value: "handler_b" },
-          { name: "Terraform Handler | handler_tf", value: "handler_tf" },
-        ],
-      }) as Handler;
+  if (options.handler == undefined) {
+    options.handler = await Select.prompt({
+      message: "Pick the handler type:",
+      options: [
+        { name: "Basic Handler | handler_b", value: "handler_b" },
+        { name: "Terraform Handler | handler_tf", value: "handler_tf" },
+      ],
+    }) as Handler;
   }
 
-  if (options.uuid == undefined){
-      options.uuid = await Input.prompt({
-        message: "Write the Service Id that will be controlled by the handler. Press enter to continue.",
-        default: "Default: Auto-generated UUID",
-      });
+  if (options.uuid == undefined) {
+    options.uuid = await Input.prompt({
+      message:
+        "Write the Service Id that will be controlled by the handler. Press enter to continue.",
+      default: "Default: Auto-generated UUID",
+    });
   }
 
   let outputContent = "";
   switch (options.handler) {
     case "handler_b": {
-      if (options.uuid == "Default: Auto-generated UUID"){
-        outputContent = basicTransformHandler.replaceAll('$SERVICEID', `${uuid.generate()}` )
-      }
-      else {
-        outputContent = basicTransformHandler.replaceAll('$SERVICEID', options.uuid )
+      if (options.uuid == "Default: Auto-generated UUID") {
+        outputContent = basicTransformHandler.replaceAll(
+          "$SERVICEID",
+          `${uuid.generate()}`,
+        );
+      } else {
+        outputContent = basicTransformHandler.replaceAll(
+          "$SERVICEID",
+          options.uuid,
+        );
       }
       console.log(outputContent);
-      writeDirectoryWithUserInput("handlers.js", outputContent, "Pick a destination directory for the generated transform file:", (options.destination?options.destination:undefined))
+      writeDirectoryWithUserInput(
+        "handlers.js",
+        outputContent,
+        "Pick a destination directory for the generated transform file:",
+        options.destination ? options.destination : undefined,
+      );
       break;
     }
     case "handler_tf": {
-      if (options.uuid == "Default: Auto-generated UUID"){
-        outputContent = terraformTransformHandler.replaceAll('$SERVICEID', `${uuid.generate()}` )
-      }
-      else {
-        outputContent = terraformTransformHandler.replaceAll('$SERVICEID', options.uuid )
+      if (options.uuid == "Default: Auto-generated UUID") {
+        outputContent = terraformTransformHandler.replaceAll(
+          "$SERVICEID",
+          `${uuid.generate()}`,
+        );
+      } else {
+        outputContent = terraformTransformHandler.replaceAll(
+          "$SERVICEID",
+          options.uuid,
+        );
       }
       console.log(outputContent);
-      writeDirectoryWithUserInput("handlers.js", outputContent, "Pick a destination directory for the generated transform file:", (options.destination?options.destination:undefined))
+      writeDirectoryWithUserInput(
+        "handlers.js",
+        outputContent,
+        "Pick a destination directory for the generated transform file:",
+        options.destination ? options.destination : undefined,
+      );
       break;
     }
     default:
-      throw new Error(`Received unexpected target ${options.handler} from input.`);
+      throw new Error(
+        `Received unexpected target ${options.handler} from input.`,
+      );
   }
 }
 
 async function generateUniPipeDeployment(options: CatalogOpts) {
-  if (options.deployment == undefined){
+  if (options.deployment == undefined) {
     options.deployment = await Select.prompt({
       message: "Pick the target deployment environment:",
       options: [
         { name: "Azure ACI (terraform) | aci_tf", value: "aci_tf" },
         { name: "Azure ACI (azure-cli) | aci_az", value: "aci_az" },
-        { name: "GCP CloudRun (terraform) | gcp_cloudrun_tf", value: "gcp_cloudrun_tf" },
+        {
+          name: "GCP CloudRun (terraform) | gcp_cloudrun_tf",
+          value: "gcp_cloudrun_tf",
+        },
       ],
     }) as Deployment;
   }
@@ -202,26 +274,43 @@ async function generateUniPipeDeployment(options: CatalogOpts) {
       break;
     case "aci_tf": {
       console.log(unipipeOsbAciTerraform);
-      writeDirectoryWithUserInput("unipipe-service-broker-deployment-azure.tf", unipipeOsbAciTerraform, "Pick a destination directory for the generated terraform file:", (options.destination?options.destination:undefined))
+      writeDirectoryWithUserInput(
+        "unipipe-service-broker-deployment-azure.tf",
+        unipipeOsbAciTerraform,
+        "Pick a destination directory for the generated terraform file:",
+        options.destination ? options.destination : undefined,
+      );
       writeTerraformInstructions(unipipeOsbAciTerraform);
       break;
     }
     case "gcp_cloudrun_tf": {
       console.log(unipipeOsbGCloudCloudRunTerraform);
-      writeDirectoryWithUserInput("unipipe-service-broker-deployment-gcp.tf", unipipeOsbGCloudCloudRunTerraform, "Pick a destination directory for the generated terraform file:", (options.destination?options.destination:undefined))
+      writeDirectoryWithUserInput(
+        "unipipe-service-broker-deployment-gcp.tf",
+        unipipeOsbGCloudCloudRunTerraform,
+        "Pick a destination directory for the generated terraform file:",
+        options.destination ? options.destination : undefined,
+      );
       writeTerraformInstructions(unipipeOsbGCloudCloudRunTerraform);
       break;
     }
     default:
-      throw new Error(`Received unexpected target ${options.deployment} from input.`);
+      throw new Error(
+        `Received unexpected target ${options.deployment} from input.`,
+      );
   }
 }
 
-async function writeDirectoryWithUserInput(fileName: string, content: string, message: string, destination: string|undefined=undefined) {
-  if (destination == undefined){
+async function writeDirectoryWithUserInput(
+  fileName: string,
+  content: string,
+  message: string,
+  destination: string | undefined = undefined,
+) {
+  if (destination == undefined) {
     destination = await Input.prompt({
       message: message,
-      default: './',
+      default: "./",
     });
   }
 
@@ -234,7 +323,7 @@ async function writeDirectoryWithUserInput(fileName: string, content: string, me
   writeDirectory(dir);
 }
 
-async function writeDirectory(dir: Dir){
+async function writeDirectory(dir: Dir) {
   await write(
     dir,
     "./",
@@ -242,7 +331,10 @@ async function writeDirectory(dir: Dir){
   );
 }
 
-function writeTerraformInstructions(terraform: string, initialText = 'Instructions:') {
+function writeTerraformInstructions(
+  terraform: string,
+  initialText = "Instructions:",
+) {
   // KISS, just find where the actual terraform code starts and log the file header above it
   const instructions = terraform.substring(
     0,

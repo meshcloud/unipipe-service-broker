@@ -1,14 +1,14 @@
-import { path } from '../deps.ts';
-import { readBinding, ServiceBinding } from '../osb.ts';
- 
+import { path } from "../deps.ts";
+import { readBinding, ServiceBinding } from "../osb.ts";
+
 /**
  * A helper function to implement commands that need to perform a map operation on bindings.
  * If no bindings directory is found, an empty result is returned.
- * 
+ *
  * NOTE: includes error handling, and will exit the process with an appropriate error message if an error occurs (e.g. failed to process etc.)
  * @param instancePath path to the osb repository
- * @param mapFn 
- * @returns 
+ * @param mapFn
+ * @returns
  */
 export async function mapBindings<T>(
   instancePath: string,

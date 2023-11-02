@@ -1,4 +1,6 @@
-export async function withTempDir(f: (tmp: string) => Promise<void>): Promise<void> {
+export async function withTempDir(
+  f: (tmp: string) => Promise<void>,
+): Promise<void> {
   const tmp = await Deno.makeTempDir();
 
   try {

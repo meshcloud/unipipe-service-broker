@@ -1,7 +1,7 @@
-import { Command } from '../deps.ts';
-import { write } from '../dir.ts';
-import { InstanceHandler } from '../handler.ts';
-import { ServiceInstance } from '../osb.ts';
+import { Command } from "../deps.ts";
+import { write } from "../dir.ts";
+import { InstanceHandler } from "../handler.ts";
+import { ServiceInstance } from "../osb.ts";
 import { Repository } from "../repository.ts";
 
 interface TransformOpts {
@@ -25,9 +25,9 @@ export function registerTransformCmd(program: Command) {
       "-x, --xport-repo [path:string]",
       "Path to the target git repository. If not specified the transform runs in place on the OSB git repo.",
     )
-    .action(async (options: TransformOpts, repo: string|undefined) => {
+    .action(async (options: TransformOpts, repo: string | undefined) => {
       const repository = new Repository(repo ? repo : ".");
-      
+
       await transform(repository, options);
     });
 }
@@ -74,7 +74,6 @@ async function loadHandlers(
     );
 
     return await loadJavaScriptHandlers(handlerSrc);
-
   } else {
     throw Error(
       "could not land handlers, unsupport handler type (needs to be a '.ts' or '.js' file).",
@@ -83,7 +82,7 @@ async function loadHandlers(
 }
 
 /**
- * This is currently a "hidden" feature of unipipe-cli. 
+ * This is currently a "hidden" feature of unipipe-cli.
  * Loading a typescript registry only works when running via `deno run` with the `--allow-net` permission set and is
  * therefore not available in compiled builds of unipipe-cli.
  */
@@ -104,6 +103,6 @@ async function loadJavaScriptHandlers(
   const handlersModule = eval(js);
 
   console.debug(`loaded handler modules`, handlersModule);
-  
+
   return handlersModule;
 }

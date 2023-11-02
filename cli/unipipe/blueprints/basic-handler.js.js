@@ -1,4 +1,4 @@
-import { uuid } from '../deps.ts';
+import { uuid } from "../deps.ts";
 
 export const basicTransformHandler = `
 /**
@@ -45,4 +45,4 @@ const handlers = {
 };
 
 handlers;
-`
+`;

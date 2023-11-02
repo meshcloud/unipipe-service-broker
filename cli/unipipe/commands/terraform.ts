@@ -13,7 +13,10 @@ type TerraformCommand = "apply" | "plan" | "destroy";
 export function registerTerraformCmd(program: Command) {
   program
     .command("terraform [repo]")
-    .option("-p, --plan", "With this option only a terraform plan instead of an apply will be executed.")
+    .option(
+      "-p, --plan",
+      "With this option only a terraform plan instead of an apply will be executed.",
+    )
     .description(
       "Runs Terraform modules located in the repository’s terraform/<service_id> folder for all tenant service bindings. A " +
         "TF_VAR_platform_secret env variable must be set to provide the secret of the service principal that will be used for applying " +
@@ -138,21 +141,25 @@ async function processBinding(
   const isDeleted = instance.instance.deleted || binding.binding.deleted;
   let terraformCommand: TerraformCommand = "plan";
   if (!opts.plan) {
-    terraformCommand = isDeleted ? "destroy" : "apply"
+    terraformCommand = isDeleted ? "destroy" : "apply";
   }
 
   const tfResult = await executeTerraform(
     terraformCommand,
     bindingDir,
     binding.binding.bindingId,
-    isDeleted
+    isDeleted,
   );
 
   if (!opts.plan) {
     updateStatusAfterTfApply(tfResult, repo, instance, binding, isDeleted);
   }
 
-  const successMessage = opts.plan ? "planned" : isDeleted ? "deleted" : "successful"
+  const successMessage = opts.plan
+    ? "planned"
+    : isDeleted
+    ? "deleted"
+    : "successful";
 
   return tfResult.success
     ? `${bindingIdentifier}: ${successMessage}`
@@ -262,12 +269,14 @@ function updateStatusAfterTfApply(
   repo: Repository,
   instance: ServiceInstance,
   binding: ServiceBinding,
-  isDeleted = false
+  isDeleted = false,
 ) {
   const status: OsbServiceInstanceStatus = tfResult.success
     ? {
       status: "succeeded",
-      description: isDeleted ? "Service Instance successfully deleted!" : "Terraform applied successfully",
+      description: isDeleted
+        ? "Service Instance successfully deleted!"
+        : "Terraform applied successfully",
     }
     : {
       status: "failed",
@@ -291,7 +300,7 @@ async function executeTerraform(
   terraformCommand: TerraformCommand,
   bindingDir: string,
   bindingId: string,
-  isDeleted: boolean
+  isDeleted: boolean,
 ): Promise<Deno.ProcessStatus> {
   console.log("Running Terraform Init for " + bindingDir);
 
@@ -308,7 +317,7 @@ async function executeTerraform(
 
   const planCommand = ["terraform", "plan"];
   if (isDeleted) {
-    planCommand.push("-destroy")
+    planCommand.push("-destroy");
   }
 
   const cmd = terraformCommand == "plan"

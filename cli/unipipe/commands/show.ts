@@ -20,16 +20,16 @@ export function registerShowCmd(program: Command) {
     .command("show [repo]")
     .type("format", formatsType)
     .description(
-      "Shows the state stored service instance stored in a UniPipe OSB git repo."
+      "Shows the state stored service instance stored in a UniPipe OSB git repo.",
     )
     .option("-i, --instance-id <id>", "Service instance id.")
     .option(
       "-o, --output-format <output-format>",
       "Output format. Supported formats are yaml and json.",
-      { default: "yaml" }
+      { default: "yaml" },
     )
     .option("--pretty", "Pretty print")
-    .action(async (options: ShowOpts, repo: string|undefined) => {
+    .action(async (options: ShowOpts, repo: string | undefined) => {
       const repository = new Repository(repo ? repo : ".");
       await show(repository, options);
     });
