@@ -21,7 +21,7 @@ jobs:
       - name: install unipipe cli
         uses: meshcloud/setup-unipipe@v1
       - name: checkout # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-        uses: actions/checkout@main
+        uses: actions/checkout@v4
       ### Transform your example instances
       - name: transform-example
         run: |
