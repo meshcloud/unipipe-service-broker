@@ -100,7 +100,7 @@ jobs:
     needs: create-release
     steps:
       - uses: actions/checkout@v4
-      - uses: denoland/setup-deno@main
+      - uses: denoland/setup-deno@v1
         with:
           deno-version: "~1.21"
       - uses: actions/cache@v3
