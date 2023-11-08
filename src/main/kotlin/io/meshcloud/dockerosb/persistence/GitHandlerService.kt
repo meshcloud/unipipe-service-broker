@@ -31,7 +31,10 @@ class GitHandlerService(
    * This prevents commits "laying around" at start time until a new
    * commit would set this flag.
    */
-  private val hasLocalCommits = AtomicBoolean(true)
+  private val _hasLocalCommits = AtomicBoolean(true)
+  fun hasLocalCommits(): Boolean {
+    return _hasLocalCommits.get()
+  }
 
   private val git = initGit(gitConfig)
 
@@ -103,7 +106,7 @@ class GitHandlerService(
     addAllChanges()
     commitAsOsbApi(commitMessage)
 
-    hasLocalCommits.set(true)
+    _hasLocalCommits.set(true)
   }
 
   override fun synchronizeWithRemoteRepository() {
@@ -112,7 +115,7 @@ class GitHandlerService(
       return
     }
 
-    if (!hasLocalCommits.get()) {
+    if (!_hasLocalCommits.get()) {
       // note: we do also not execute a fetch in this case because if the unipipe-osb is just idling
       // there's no sense in us fetching from the remote all the time. Consumers can explicitly call
       // pullFastForwardOnly if they want an up to date copy
@@ -125,7 +128,7 @@ class GitHandlerService(
     try {
       val pushedSuccessfully = fetchMergePush()
       if (pushedSuccessfully) {
-        hasLocalCommits.set(false)
+        _hasLocalCommits.set(false)
       }
 
       log.info { "Completed synchronizeWithRemoteRepository" }
@@ -245,7 +248,7 @@ class GitHandlerService(
         .call()
   }
 
-  private fun push() {
+  protected fun push() {
     val pushCommand = git.push()
 
     gitConfig.username?.let {
