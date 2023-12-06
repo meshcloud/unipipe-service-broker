@@ -3,6 +3,8 @@ set -o errexit
 set -o errtrace
 set -o pipefail
 
+source ~/unipipe/terraform-runner-env.sh
+
 if [[ -n $KNOWN_HOSTS ]]; then
    echo "$KNOWN_HOSTS" > ~/.ssh/known_hosts
 fi
@@ -16,7 +18,7 @@ if [[ ! -d "$REPO_DIR" ]]; then
     cd ~/unipipe
     git config --global user.email "$GIT_USER_EMAIL"
     git config --global user.name "$GIT_USER_NAME"
-    git clone "$GIT_REMOTE" "$REPO_NAME"
+    git clone "$GIT_REMOTE" "$REPO_NAME" -b "$GIT_REMOTE_BRANCH"
 fi
 
 cd $REPO_DIR

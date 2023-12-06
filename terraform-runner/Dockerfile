@@ -1,9 +1,7 @@
 FROM ubuntu:jammy
 
-# RUN apt-get
-# RUN apk add curl bash sudo jq git openssh
 RUN apt-get update && \
-  apt-get install -y --no-install-recommends curl jq cron ca-certificates && \
+  apt-get install -y --no-install-recommends curl jq cron ca-certificates git ssh && \
   rm -rf /var/lib/apt/lists/*
 
 # terraform
@@ -11,11 +9,6 @@ COPY --from=hashicorp/terraform:1.3.10 /bin/terraform /usr/local/bin/terraform
 
 # unipipe cli
 RUN curl https://raw.githubusercontent.com/meshcloud/unipipe-service-broker/main/cli/install.sh | bash
-
-# unipipe terraform cron
-COPY unipipe-terraform-cron /etc/cron.d/unipipe-terraform-cron
-RUN chmod 0644 /etc/cron.d/unipipe-terraform-cron
-RUN crontab /etc/cron.d/unipipe-terraform-cron
 
 RUN mkdir ~/unipipe
 COPY run-unipipe-terraform.sh /root/unipipe/run-unipipe-terraform.sh
