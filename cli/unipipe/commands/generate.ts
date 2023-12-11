@@ -68,7 +68,7 @@ export function registerGenerateCmd(program: Command) {
       "Pick a destination directory for the generated transform-handler file.",
     )
     .option(
-      "--handler <handler_b|handler_tf>",
+      "--handler <handler:handler>",
       "Pick a handler type for the generated transform-handler file.",
     )
     .option(
@@ -112,7 +112,7 @@ export function registerGenerateCmd(program: Command) {
       "Pick a destination directory for the generated unipipe-service-broker-deployment file.",
     )
     .option(
-      "--deployment <aci_tf|aci_az|gcp_cloudrun_tf>",
+      "--deployment <deployment:deployment>",
       "Pick a deployment type for the generated unipipe-service-broker-deployment file.",
     )
     .action(async (options: CatalogOpts) =>
@@ -131,7 +131,7 @@ function generateUuid() {
 }
 
 async function generateService() {
-  const serviceDefinitionId = uuid.generate();
+  const serviceDefinitionId = uuid.generate() as string;
 
   // repository root
   const catalog: Dir = {
