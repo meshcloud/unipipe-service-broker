@@ -1,6 +1,8 @@
 package io.meshcloud.dockerosb.service
 
 import io.meshcloud.dockerosb.ServiceBrokerFixture
+import io.meshcloud.dockerosb.config.GitConfig
+import io.meshcloud.dockerosb.persistence.GitHandlerService
 import io.meshcloud.dockerosb.persistence.ScheduledPushHandler
 import org.hamcrest.MatcherAssert
 import org.hamcrest.Matchers.greaterThan
@@ -231,7 +233,66 @@ class ConcurrentGitInteractionsTest {
     assertTrue(fixture.gitHandler.fileInRepo(statusFilePath).exists())
   }
 
+  @Test
+  fun `can synchronize without race conditions for tracking local changes`() {
+    val sut = makeSut()
+
+    val createRequest = createServiceInstanceRequest("00000000-7e05-4d5a-97b8-f8c5d1c710ab")
+
+    val statusFilePath = "instances/${createRequest.serviceInstanceId}/status.yml"
+
+    var firstCommitDone = false
+    var secondCommitDone = false
+
+    val postPushHook = { gitHandler: GitHandlerService ->
+        if (firstCommitDone) {
+            // Simulate some OSB request that occurs just after the first
+            // commit was pushed to the remote and before
+            // synchronizeWithRemoteRepository has completed. This tests for
+            // race conditions if any shared state is manipulated by
+            // commitAllChanges but undone by the rest of the
+            // synchronizeWithRemoteRepository call.
+            gitHandler.fileInRepo(statusFilePath).delete()
+            gitHandler.commitAllChanges("second commit")
+
+            secondCommitDone = true
+        }
+    }
+
+    val gitHandler = HookedGitHandlerService(fixture.gitConfig, postPushHook)
+
+    // this will create a local service instance request
+    sut.createServiceInstance(createRequest).block()
+    gitHandler.synchronizeWithRemoteRepository()
+
+    // Create a commit so that synchronizeWithRemoteRepository needs to push
+    // something to the remote and ends up calling `postPushHook`
+    fixture.remote.writeFile(statusFilePath, "status: in progress\ndescription: deploying")
+    gitHandler.commitAllChanges("first commit")
+    firstCommitDone = true
+
+    // This should push the first commit then immediately `postPushHook` will
+    // create a second commit. If there's any shared book keeping between
+    // `commitAllChanges` and `synchronizeWithRemoteRepository` that's
+    // vulnerable to a race condition then this should expose it.
+    assertEquals(false, secondCommitDone)
+    gitHandler.synchronizeWithRemoteRepository()
+    assertEquals(true, secondCommitDone)
+
+    assertEquals(true, gitHandler.hasLocalCommits())
+  }
+
   private fun createServiceInstanceRequest(instanceId: String): CreateServiceInstanceRequest {
     return fixture.builder.createServiceInstanceRequest(instanceId)
+  }
+}
+
+class HookedGitHandlerService(
+    private val gitConfig: GitConfig,
+    private val postPushHook: ((GitHandlerService) -> Unit) = {}
+): GitHandlerService(gitConfig) {
+  override fun push() {
+    super.push()
+    postPushHook(this)
   }
 }

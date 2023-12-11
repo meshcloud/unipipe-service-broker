@@ -12,7 +12,6 @@ import org.eclipse.jgit.transport.URIish
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
 import org.springframework.stereotype.Service
 import java.io.File
-import java.util.concurrent.atomic.AtomicBoolean
 
 private val log = KotlinLogging.logger {}
 
@@ -23,15 +22,6 @@ private val log = KotlinLogging.logger {}
 class GitHandlerService(
     private val gitConfig: GitConfig
 ) : GitHandler {
-
-  /**
-   * Signal if we have local commits that we want to sync or not.
-   *
-   * At startup we just assume there are new commits in git.
-   * This prevents commits "laying around" at start time until a new
-   * commit would set this flag.
-   */
-  private val hasLocalCommits = AtomicBoolean(true)
 
   private val git = initGit(gitConfig)
 
@@ -102,8 +92,6 @@ class GitHandlerService(
   override fun commitAllChanges(commitMessage: String) {
     addAllChanges()
     commitAsOsbApi(commitMessage)
-
-    hasLocalCommits.set(true)
   }
 
   override fun synchronizeWithRemoteRepository() {
@@ -112,7 +100,7 @@ class GitHandlerService(
       return
     }
 
-    if (!hasLocalCommits.get()) {
+    if (!hasLocalCommits()) {
       // note: we do also not execute a fetch in this case because if the unipipe-osb is just idling
       // there's no sense in us fetching from the remote all the time. Consumers can explicitly call
       // pullFastForwardOnly if they want an up to date copy
@@ -123,10 +111,7 @@ class GitHandlerService(
     log.info { "Starting synchronizeWithRemoteRepository" }
 
     try {
-      val pushedSuccessfully = fetchMergePush()
-      if (pushedSuccessfully) {
-        hasLocalCommits.set(false)
-      }
+      fetchMergePush()
 
       log.info { "Completed synchronizeWithRemoteRepository" }
     } catch (ex: Exception) {
@@ -204,6 +189,22 @@ class GitHandlerService(
     return false
   }
 
+  fun hasLocalCommits(): Boolean {
+    val origin = git.repository.resolve("origin/${gitConfig.remoteBranch}")
+    val head = git.getRepository().resolve("HEAD")
+
+    var count = 0
+    for (entry in git.log().addRange(origin, head).call()) {
+      ++count
+    }
+
+    if (count > 0) {
+      log.info { "Your branch is ahead of 'origin/${gitConfig.remoteBranch}' by $count commit(s)." }
+    }
+
+    return count > 0
+  }
+
   private fun resolveMergeConflictsUsingOurs(files: List<String>) {
     log.warn { "Encountered conflicts in files $files. Will attempt to auto-resolve conflicts, preferring local changes." }
 
@@ -245,7 +246,7 @@ class GitHandlerService(
         .call()
   }
 
-  private fun push() {
+  protected fun push() {
     val pushCommand = git.push()
 
     gitConfig.username?.let {
