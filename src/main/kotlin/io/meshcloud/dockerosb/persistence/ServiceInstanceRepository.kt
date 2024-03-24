@@ -44,6 +44,14 @@ class ServiceInstanceRepository(private val yamlHandler: YamlHandler, private va
       objectToWrite = serviceInstance,
       file = instanceYml
     )
+
+    val statusYml = serviceInstanceStatusYmlFile(serviceInstanceId)
+    val status = Status("in progress", "service update")
+    yamlHandler.writeObject(
+        objectToWrite = status,
+        file = statusYml
+    )
+
     gitHandler.commitAllChanges(
       commitMessage = "Updated Service instance $serviceInstanceId"
     )
