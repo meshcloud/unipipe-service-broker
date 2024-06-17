@@ -29,8 +29,8 @@ dependencies {
   implementation("org.jetbrains.kotlin:kotlin-reflect")
   implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
 
-  implementation("org.eclipse.jgit:org.eclipse.jgit:5.11.0.202103091610-r")
-  implementation("org.eclipse.jgit:org.eclipse.jgit.ssh.jsch:5.11.0.202103091610-r")
+  implementation("org.eclipse.jgit:org.eclipse.jgit:6.10.0.202406032230-r")
+  implementation("org.eclipse.jgit:org.eclipse.jgit.ssh.jsch:6.10.0.202406032230-r")
 
   implementation("commons-io:commons-io:2.4")
   implementation("io.github.microutils:kotlin-logging:1.4.9")
