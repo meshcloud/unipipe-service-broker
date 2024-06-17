@@ -29,8 +29,11 @@ dependencies {
   implementation("org.jetbrains.kotlin:kotlin-reflect")
   implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
 
+  implementation("com.github.mwiede:jsch:0.2.18")
   implementation("org.eclipse.jgit:org.eclipse.jgit:6.10.0.202406032230-r")
-  implementation("org.eclipse.jgit:org.eclipse.jgit.ssh.jsch:6.10.0.202406032230-r")
+  implementation("org.eclipse.jgit:org.eclipse.jgit.ssh.jsch:6.10.0.202406032230-r"){
+    exclude(group = "com.jcraft", module = "jsch")
+  }
 
   implementation("commons-io:commons-io:2.4")
   implementation("io.github.microutils:kotlin-logging:1.4.9")
