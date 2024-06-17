@@ -4,14 +4,15 @@ import com.jcraft.jsch.JSch
 import com.jcraft.jsch.JSchException
 import com.jcraft.jsch.Session
 import org.apache.commons.io.FileUtils
-import org.eclipse.jgit.transport.JschConfigSessionFactory
-import org.eclipse.jgit.transport.OpenSshConfig
+import org.eclipse.jgit.transport.ssh.jsch.JschConfigSessionFactory
+import org.eclipse.jgit.transport.ssh.jsch.OpenSshConfig
 import org.eclipse.jgit.util.FS
 import java.io.File
 
 class CustomSshSessionFactory(
     private val sshKey: String
 ) : JschConfigSessionFactory() {
+
 
   override fun configure(hc: OpenSshConfig.Host, session: Session) {
     session.setConfig("StrictHostKeyChecking", "no")
