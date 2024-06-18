@@ -13,9 +13,17 @@ class CustomSshSessionFactory(
     private val sshKey: String
 ) : JschConfigSessionFactory() {
 
-
   override fun configure(hc: OpenSshConfig.Host, session: Session) {
     session.setConfig("StrictHostKeyChecking", "no")
+
+    /*
+      Because of End of SSH-RSA support for Azure Repos (https://devblogs.microsoft.com/devops/ssh-rsa-deprecation/)
+      we need to explicitly put "ssh-rsa" last in the list in server_host_key so that it is not picked up first.
+    */
+    session.setConfig("server_host_key",
+        session.getConfig("server_host_key").
+        split(",").partition { it == "ssh-rsa" }
+            .let { it.second + it.first }.joinToString(","))
   }
 
   @Throws(JSchException::class)
