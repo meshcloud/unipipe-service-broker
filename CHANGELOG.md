@@ -1,5 +1,19 @@
 # Changelog
 
+## v1.8.1
+
+### CLI
+
+- no changes
+
+### OSB
+
+- Maintain usability with Azure repositories after "End of SSH-RSA support" https://devblogs.microsoft.com/devops/ssh-rsa-deprecation/
+
+### Terraform Runner
+
+- no changes
+
 ## v1.8.0
 
 ### OSB
