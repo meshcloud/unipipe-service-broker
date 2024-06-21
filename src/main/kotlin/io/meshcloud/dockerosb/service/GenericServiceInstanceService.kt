@@ -47,12 +47,12 @@ class GenericServiceInstanceService(
           ?: throw ServiceInstanceDoesNotExistException(request.serviceInstanceId)
 
       val updatedInstance = existingInstance.update(request)
-      repository.updateServiceInstance(updatedInstance)
+      val status = repository.updateServiceInstance(updatedInstance)
 
       return Mono.just(
           UpdateServiceInstanceResponse.builder()
               .async(true)
-              .operation("updating service")
+              .operation(status.description)
               .build()
       )
     }

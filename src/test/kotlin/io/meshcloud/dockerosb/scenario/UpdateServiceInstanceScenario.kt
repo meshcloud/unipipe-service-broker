@@ -35,7 +35,30 @@ class UpdateServiceInstanceScenario : DockerOsbApplicationTests() {
       val instance = repository.tryGetServiceInstance(instanceId)
       instance!!.planId
     }
-    
+
     assertEquals(createdPlanId, updatedPlanId)
+  }
+
+  @Test
+  fun `update request sets status to in progress`() {
+    val instanceId = "e4bd6a78-7e05-4d5a-97b8-f8c5d1c710db"
+    val createRequest = fixture.builder.createServiceInstanceRequest(instanceId)
+    serviceInstanceService.createServiceInstance(createRequest)
+
+    val updateRequest = fixture.builder.updateServiceInstanceRequest(instanceId) {
+      parameters("foo", "bar")
+    }
+
+    val response = serviceInstanceService.updateServiceInstance(updateRequest)
+
+    response.subscribe {
+      assertEquals("updating service", it.operation)
+    }
+
+    useServiceInstanceRepository { repository ->
+      val instance = repository.getServiceInstanceStatus(instanceId)
+      assertEquals("in progress", instance.status)
+      assertEquals("updating service", instance.description)
+    }
   }
 }
