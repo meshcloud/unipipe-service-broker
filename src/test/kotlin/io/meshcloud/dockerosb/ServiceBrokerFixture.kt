@@ -36,9 +36,12 @@ class ServiceBrokerFixture(catalogPath: String) : Closeable {
 
   val yamlHandler = YamlHandler()
 
+  /**
+   * an unsafe git handler
+   */
   val gitHandler = GitHandlerService(gitConfig)
 
-  val contextFactory = GitOperationContextFactory(gitHandler, yamlHandler)
+  val contextFactory = GitOperationContextFactory(gitConfig, yamlHandler)
 
   val builder = TestDataBuilder(catalogPath, yamlHandler)
 

@@ -1,5 +1,6 @@
 package io.meshcloud.dockerosb.persistence
 
+import io.meshcloud.dockerosb.config.GitConfig
 import org.springframework.stereotype.Service
 import java.util.concurrent.locks.ReentrantLock
 
@@ -14,9 +15,10 @@ import java.util.concurrent.locks.ReentrantLock
  */
 @Service
 class GitOperationContextFactory(
-    private val gitHandler: GitHandler,
+    gitConfig: GitConfig,
     private val yamlHandler: YamlHandler
 ) {
+  private val gitHandler = GitHandlerService(gitConfig)
 
   // we have exactly one git operation that may be active at any time
   private val lock = ReentrantLock(true)

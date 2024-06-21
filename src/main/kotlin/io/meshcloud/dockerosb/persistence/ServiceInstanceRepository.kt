@@ -3,12 +3,9 @@ package io.meshcloud.dockerosb.persistence
 import io.meshcloud.dockerosb.model.ServiceInstance
 import io.meshcloud.dockerosb.model.Status
 import org.springframework.cloud.servicebroker.model.instance.OperationState
-import org.springframework.jmx.support.MetricType
-import org.springframework.stereotype.Component
 import java.io.File
-import java.time.Instant
 
-@Component
+
 class ServiceInstanceRepository(private val yamlHandler: YamlHandler, private val gitHandler: GitHandler) {
 
   fun createServiceInstance(serviceInstance: ServiceInstance) {

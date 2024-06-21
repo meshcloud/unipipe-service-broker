@@ -16,10 +16,9 @@ import java.io.File
 private val log = KotlinLogging.logger {}
 
 /**
- * Note: consumers should use this only via a [GitOperationContext]
+ * Note: consumers should use this only via a [GitOperationContext] to manage concurrent access to the git repo
  */
-@Service
-class GitHandlerService(
+open class GitHandlerService(
     private val gitConfig: GitConfig
 ) : GitHandler {
 
@@ -246,7 +245,7 @@ class GitHandlerService(
         .call()
   }
 
-  protected fun push() {
+  protected open fun push() {
     val pushCommand = git.push()
 
     gitConfig.username?.let {
