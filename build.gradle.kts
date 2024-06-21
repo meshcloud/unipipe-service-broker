@@ -1,18 +1,14 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
 plugins {
+  id("org.jetbrains.kotlin.jvm") version "1.7.10"
+  id("org.jetbrains.kotlin.plugin.spring") version "1.7.10"
+
   id("org.springframework.boot") version "2.4.6"
   id("io.spring.dependency-management") version "1.0.11.RELEASE"
-
-  kotlin("jvm") version "1.5.0"
-  kotlin("plugin.spring") version "1.5.0"
-
-  id("eclipse")
 }
 
 group = "io.meshcloud"
 version = "1.0.0"
-java.sourceCompatibility = JavaVersion.VERSION_11
+java.sourceCompatibility = JavaVersion.VERSION_17
 
 repositories {
   mavenCentral()
@@ -46,10 +42,9 @@ dependencies {
   testImplementation("org.springframework.security:spring-security-test")
 }
 
-tasks.withType<KotlinCompile> {
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
   kotlinOptions {
-    freeCompilerArgs = listOf("-Xjsr305=strict")
-    jvmTarget = "11"
+    jvmTarget = "17"
   }
 }
 
