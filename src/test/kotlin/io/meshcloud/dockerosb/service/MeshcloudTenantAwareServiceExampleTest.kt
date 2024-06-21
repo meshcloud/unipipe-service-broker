@@ -10,6 +10,7 @@ import org.junit.Test
 import org.springframework.cloud.servicebroker.model.binding.BindResource
 import java.io.File
 import java.nio.file.Paths
+import kotlin.math.exp
 
 /**
  * This test simulates interaction of a tenant-aware service broker that supports the meshcloud "platform tenant"
@@ -90,8 +91,8 @@ class MeshcloudTenantAwareServiceExampleTest {
     assertTrue("expected file does not exist in ${expected.path}", expected.exists())
     assertTrue("actual file does not exist in ${actual.path}", actual.exists())
 
-    val expectedContent = FileUtils.readFileToString(expected)
-    val actualContent = FileUtils.readFileToString(actual)
+    val expectedContent = expected.readText()
+    val actualContent = actual.readText()
 
     assertEquals(expectedContent, actualContent)
   }

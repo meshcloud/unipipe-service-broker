@@ -1,6 +1,5 @@
 package io.meshcloud.dockerosb
 
-import org.apache.commons.io.FileUtils
 import org.eclipse.jgit.api.Git
 import java.io.File
 import java.nio.file.Path
@@ -17,7 +16,7 @@ class RemoteGitFixture(
 
 
   fun initWithCatalog(catalogPath: String) {
-    FileUtils.copyFile(File(catalogPath), File("${repositoryRootPath}/catalog.yml"))
+    File(catalogPath).copyTo( File("${repositoryRootPath}/catalog.yml"))
     commit("initial commit on remote")
   }
 

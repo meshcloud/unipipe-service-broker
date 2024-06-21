@@ -171,7 +171,7 @@ class ConcurrentGitInteractionsTest {
     assertEquals(expected, log)
 
     // verify that our local changes have won over the remote changes by reading back the instance
-    val getRequest = GetServiceInstanceRequest(createRequest.serviceInstanceId, null, null, null, null)
+    val getRequest = GetServiceInstanceRequest(createRequest.serviceInstanceId, null, null, null, null, null, null)
     val instance = sut.getServiceInstance(getRequest).block()!!
     assertEquals(createRequest.serviceDefinitionId, instance.serviceDefinitionId)
   }
