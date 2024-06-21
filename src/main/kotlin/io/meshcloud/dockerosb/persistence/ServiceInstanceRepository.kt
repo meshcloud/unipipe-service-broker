@@ -30,23 +30,23 @@ class ServiceInstanceRepository(private val yamlHandler: YamlHandler, private va
   }
 
   // TODO Check if an update request is allowed. See https://github.com/meshcloud/unipipe-service-broker/pull/35/files#r651527916
+  // Right now we don't apply any validation and trust the marketplace to know what it's doing.
   //
   //  There are several actions that can be [triggered via an update request](https://github.com/openservicebrokerapi/servicebroker/blob/master/spec.md#updating-a-service-instance):
   //- updating the plan a service instance is using, if `plan_updateable` is true
   //- updating the context object of a service instance, if `allow_context_updates` is true
   //- applying a maintenance update, if the service broker previously provided `maintenance_info` to the platform.
-  fun updateServiceInstance(serviceInstance: ServiceInstance) {
+  fun updateServiceInstance(serviceInstance: ServiceInstance): Status {
     val serviceInstanceId = serviceInstance.serviceInstanceId
 
     val instanceYml = serviceInstanceYmlFile(serviceInstanceId)
-
     yamlHandler.writeObject(
       objectToWrite = serviceInstance,
       file = instanceYml
     )
 
     val statusYml = serviceInstanceStatusYmlFile(serviceInstanceId)
-    val status = Status("in progress", "service update")
+    val status = Status("in progress", "updating service")
     yamlHandler.writeObject(
         objectToWrite = status,
         file = statusYml
@@ -55,6 +55,8 @@ class ServiceInstanceRepository(private val yamlHandler: YamlHandler, private va
     gitHandler.commitAllChanges(
       commitMessage = "Updated Service instance $serviceInstanceId"
     )
+
+    return status
   }
 
   fun deleteServiceInstance(serviceInstance: ServiceInstance) {
@@ -86,7 +88,6 @@ class ServiceInstanceRepository(private val yamlHandler: YamlHandler, private va
 
     return yamlHandler.readObject(instanceYml, ServiceInstance::class.java)
   }
-
 
   fun tryGetServiceInstanceGaugeMetrics(serviceInstanceId: String, from: Instant, to: Instant): List<ServiceInstanceDatapoints<GaugeMetricModel>> {
     val instanceMetricsYmlFiles = serviceInstanceMetricsYmlFiles(serviceInstanceId, MetricType.GAUGE)
