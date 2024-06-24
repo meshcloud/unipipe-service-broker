@@ -1,8 +1,8 @@
 package io.meshcloud.dockerosb.persistence
 
-import io.meshcloud.dockerosb.config.MeshServiceDefinition
 import mu.KotlinLogging
 import org.springframework.cloud.servicebroker.model.catalog.Catalog
+import org.springframework.cloud.servicebroker.model.catalog.ServiceDefinition
 
 private val log = KotlinLogging.logger { }
 
@@ -30,6 +30,6 @@ class CatalogRepository(
   }
 
   class YamlCatalog(
-      val services: List<MeshServiceDefinition>
+      val services: List<ServiceDefinition>
   )
 }
