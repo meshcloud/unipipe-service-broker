@@ -16,10 +16,9 @@ import java.io.File
 private val log = KotlinLogging.logger {}
 
 /**
- * Note: consumers should use this only via a [GitOperationContext]
+ * Note: consumers should use this only via a [GitOperationContext] to manage concurrent access to the git repo
  */
-@Service
-class GitHandlerService(
+open class GitHandlerService(
     private val gitConfig: GitConfig
 ) : GitHandler {
 
@@ -191,12 +190,10 @@ class GitHandlerService(
 
   fun hasLocalCommits(): Boolean {
     val origin = git.repository.resolve("origin/${gitConfig.remoteBranch}")
-    val head = git.getRepository().resolve("HEAD")
+    val head = git.repository.resolve("HEAD")
 
-    var count = 0
-    for (entry in git.log().addRange(origin, head).call()) {
-      ++count
-    }
+    val range = git.log().addRange(origin, head).call()
+    val count = range.count()
 
     if (count > 0) {
       log.info { "Your branch is ahead of 'origin/${gitConfig.remoteBranch}' by $count commit(s)." }
@@ -246,7 +243,7 @@ class GitHandlerService(
         .call()
   }
 
-  protected fun push() {
+  protected open fun push() {
     val pushCommand = git.push()
 
     gitConfig.username?.let {
