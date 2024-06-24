@@ -1,5 +1,43 @@
 # Changelog
 
+## v2.0.0beta-1
+
+This release contains two breaking changes to the OSB:
+
+- removed support for emitting consumption metrics for billing
+- we will no longer publish terraform-runner images
+
+As an OSS project it's important that we focus our resources on
+maintaining widely used functionality and keeping up with the
+terraform/opentofu ecosystem requires constant maintenance which we are
+not able to offer at this point. Users that still want to leverage
+the docker image are welcome to fork the Dockerfile and maintain their
+own build. The "unipipe terraform" command in unipipe cli continues
+to be supported at this point. 
+
+### CLI
+
+- no changes
+
+### OSB
+
+- Added status update for to be updated instances by @spetzold in https://github.com/meshcloud/unipipe-service-broker/pull/129
+- feat: remove support for metrics extensions by @JohannesRudolph in https://github.com/meshcloud/unipipe-service-broker/pull/133
+- fix: local commit detection not thread safe by @tracemeyers in https://github.com/meshcloud/unipipe-service-broker/pull/120
+- update to JDK 17 and Spring 2.7.16 by @JohannesRudolph in https://github.com/meshcloud/unipipe-service-broker/pull/135
+- feature/ensure git operations locked by @JohannesRudolph in https://github.com/meshcloud/unipipe-service-broker/pull/134
+
+### New Contributors
+* @spetzold made their first contribution in https://github.com/meshcloud/unipipe-service-broker/pull/129
+* @tracemeyers made their first contribution in https://github.com/meshcloud/unipipe-service-broker/pull/120
+
+**Full Changelog**: https://github.com/meshcloud/unipipe-service-broker/compare/v1.8.1...v2.0.0-beta.1
+
+### Terraform Runner
+
+- no changes
+
+
 ## v1.8.1
 
 ### CLI
