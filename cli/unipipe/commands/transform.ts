@@ -5,7 +5,7 @@ import { ServiceInstance } from "../osb.ts";
 import { Repository } from "../repository.ts";
 
 interface TransformOpts {
-  xportRepo: string;
+  xportRepo?: string;
   registryOfHandlers: string;
 }
 
@@ -20,9 +20,10 @@ export function registerTransformCmd(program: Command) {
     .option(
       "-r, --registry-of-handlers <file>",
       "A registry of handlers for processing service instance transformation. These can be defined in javascript, see `unipipe generate transform-handler` for an example.",
+      { required: true },
     )
     .option(
-      "-x, --xport-repo [path:string]",
+      "-x, --xport-repo <path:string>",
       "Path to the target git repository. If not specified the transform runs in place on the OSB git repo.",
     )
     .action(async (options: TransformOpts, repo: string | undefined) => {

@@ -41,22 +41,22 @@ export function registerListCmd(program: Command) {
     .type("profile", profilesType)
     .type("status", statusesType)
     .option(
-      "-p, --profile [profile:profile]",
+      "-p, --profile <profile:profile>",
       "include columns of context information according to the specified OSB API profile. Supported values are 'meshmarketplace' and 'cloudfoundry'. Ignored when '-o json' is set.",
     )
     .option(
-      "-o, --output-format [format:format]",
+      "-o, --output-format <format:format>",
       "Output format. Supported formats are json and text.",
       {
-        default: "text",
+        default: "text" as Format,
       },
     )
     .option(
-      "--status [status:status]",
+      "--status <status:status>",
       "Filters instances by status. Allowed values are 'in progress', 'succeeded', 'failed' and 'EMPTY' (no status file present for this instance).",
     )
     .option(
-      "--deleted [deleted:boolean]",
+      "--deleted <deleted:boolean>",
       "Filters instances by deleted. Allowed values are 'true' and 'false'",
     )
     .description(
