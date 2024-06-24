@@ -6,7 +6,7 @@
 #   - at least docker 19.03
 #   - docker buildkit enabled (export DOCKER_BUILDKIT=1)
 
-FROM eclipse-temurin:11-jdk-jammy as builder
+FROM eclipse-temurin:17-jdk as builder
 
 COPY ./ /build
 
@@ -14,7 +14,7 @@ WORKDIR /build
 
 RUN ./gradlew :bootJar -x test
 
-FROM eclipse-temurin:11-jre-jammy
+FROM eclipse-temurin:17-jre
 
 COPY --from=builder /build/build/libs/unipipe-service-broker-1.0.0.jar /app/
 

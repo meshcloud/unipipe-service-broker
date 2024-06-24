@@ -3,10 +3,10 @@ package io.meshcloud.dockerosb.config
 import com.jcraft.jsch.JSch
 import com.jcraft.jsch.JSchException
 import com.jcraft.jsch.Session
-import org.apache.commons.io.FileUtils
 import org.eclipse.jgit.transport.ssh.jsch.JschConfigSessionFactory
 import org.eclipse.jgit.transport.ssh.jsch.OpenSshConfig
 import org.eclipse.jgit.util.FS
+import org.eclipse.jgit.util.FileUtils
 import java.io.File
 
 class CustomSshSessionFactory(
@@ -33,7 +33,9 @@ class CustomSshSessionFactory(
     val contentEndIndex = sshKey.indexOf("-----", 50) + 5 // use an offset, that is somewhere within the content of the key
     val content = sshKey.substring(contentStartIndex, contentEndIndex).replace(" ", "\n")
     val formattedKey = sshKey.substring(0, contentStartIndex) + content + sshKey.substring(contentEndIndex, sshKey.length - 1)
-    FileUtils.writeStringToFile(File(keyPath), formattedKey)
+
+    File(keyPath).writeText(formattedKey)
+
     val jsch = super.getJSch(hc, fs)
     jsch.removeAllIdentity()
     jsch.addIdentity(keyPath)
