@@ -11,15 +11,15 @@ export function registerGitCmd(program: Command) {
   program
     .command("git <cmd> [repo]")
     .option(
-      "-n, --name [name:string]",
+      "-n, --name <name:string>",
       "Git author username. Default is `Unipipe CLI`.",
     )
     .option(
-      "-e, --email [email:string]",
+      "-e, --email <email:string>",
       "Git author email. Default is `unipipe-cli@meshcloud.io`.",
     )
     .option(
-      "-m, --message [message:string]",
+      "-m, --message <message:string>",
       "Commit message. Default is `Commit changes`.",
     )
     .description(
