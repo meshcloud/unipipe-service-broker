@@ -26,7 +26,7 @@ encounter.
 
 ```text
 Usage:   unipipe
-Version: v0.6.4
+Version: 1.8.1
 
 Description:
 
@@ -39,12 +39,22 @@ Options:
 
 Commands:
 
-  completions          - Generate shell completions.
-  list         [repo]  - Lists service instances status stored in a UniPipe OSB git repo.
-  show         [repo]  - Shows the state stored service instance stored in a UniPipe OSB git repo.
-  transform    [repo]  - Transform service instances stored in a UniPipe OSB git repo using the specified handlers.
-  update       [repo]  - Update status of a service instance or binding stored in a UniPipe OSB git repo.
-  generate             - Generate useful artifacts for working with UniPipe OSB such as catalogs, transform handlers, CI pipelines and more.
+  completions                - Generate shell completions.
+  list         [repo]        - Lists service instances status stored in a UniPipe OSB git repo.
+  show         [repo]        - Shows the state stored service instance stored in a UniPipe OSB git repo.
+  transform    [repo]        - Transform service instances stored in a UniPipe OSB git repo using the specified
+                                handlers. 
+  update       [repo]        - Update status of a service instance or binding stored in a UniPipe OSB git repo.
+  generate                   - Generate useful artifacts for working with UniPipe OSB such as catalogs,
+                                transform handlers, CI pipelines and more.
+  upgrade                    - Upgrade is only supported when unipipe cli was installed via "deno install".    
+  browse       [repo]        - Interactively browse and manipulate a UniPipe OSB git repo.
+  terraform    [repo]        - Runs Terraform modules located in the repository’s terraform/<service_id> folder
+                                for all tenant service bindings. A TF_VAR_platform_secret env variable must be  
+                                set to provide the secret of the service principal that will be used for
+                                applying Terraform.
+  git          <cmd> [repo]  - Runs Git pull/push commands resiliently. It takes care of retrying and rebasing 
+                                if needed to make sure a push will be successful.
 ```
 
 ## Using unipipe cli in a CI/CD pipeline
