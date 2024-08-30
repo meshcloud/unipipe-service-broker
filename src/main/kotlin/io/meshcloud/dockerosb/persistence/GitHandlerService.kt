@@ -121,7 +121,13 @@ open class GitHandlerService(
   private fun fetchMergePush(): Boolean {
     // fetch from the remote
     git.fetch()
-        .apply { remote = "origin" }
+        .apply {              
+          remote = "origin" 
+
+          gitConfig.username?.let {
+            setCredentialsProvider(UsernamePasswordCredentialsProvider(gitConfig.username, gitConfig.password))
+          }
+        }
         .call()
 
     // merge changes - this happens locally in our repository
