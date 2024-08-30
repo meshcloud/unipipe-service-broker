@@ -8,6 +8,8 @@ import org.eclipse.jgit.transport.ssh.jsch.OpenSshConfig
 import org.eclipse.jgit.util.FS
 import org.eclipse.jgit.util.FileUtils
 import java.io.File
+import java.nio.file.Files
+import java.nio.file.Paths
 
 class CustomSshSessionFactory(
     private val sshKey: String
@@ -34,7 +36,9 @@ class CustomSshSessionFactory(
     val content = sshKey.substring(contentStartIndex, contentEndIndex).replace(" ", "\n")
     val formattedKey = sshKey.substring(0, contentStartIndex) + content + sshKey.substring(contentEndIndex, sshKey.length - 1)
 
-    File(keyPath).writeText(formattedKey)
+    val keyFile = File(keyPath)
+    Files.createDirectories(Paths.get(keyFile.parent))
+    keyFile.writeText(formattedKey)
 
     val jsch = super.getJSch(hc, fs)
     jsch.removeAllIdentity()
