@@ -102,7 +102,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: denoland/setup-deno@v1
         with:
-          deno-version: "~1.21"
+          deno-version: "~1.37"
       - uses: actions/cache@v3
         with:
           path: ~/.cache/deno # see https://deno.land/manual/linking_to_external_code

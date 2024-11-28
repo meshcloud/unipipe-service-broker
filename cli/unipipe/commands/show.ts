@@ -2,31 +2,34 @@ import { Command, EnumType } from "../deps.ts";
 import { Repository } from "../repository.ts";
 import { stringify } from "../yaml.ts";
 
-const ALL_FORMATS = ["json", "yaml"] as const;
-type FormatsTuple = typeof ALL_FORMATS;
-type Format = FormatsTuple[number];
+export enum OutputFormat {
+  JSON = "json",
+  YAML = "yaml",
+}
 
-const formatsType = new EnumType(ALL_FORMATS);
+export const OutputFormatType = new EnumType(Object.values(OutputFormat));
 
 export interface ShowOpts {
   instanceId: string;
-  outputFormat: Format;
-  pretty: boolean;
+  outputFormat?: OutputFormat;
+  pretty?: boolean;
 }
 
 export function registerShowCmd(program: Command) {
   // show
   program
     .command("show [repo]")
-    .type("format", formatsType)
+    .type("format", OutputFormatType)
     .description(
       "Shows the state stored service instance stored in a UniPipe OSB git repo.",
     )
-    .option("-i, --instance-id <id>", "Service instance id.")
+    .option("-i, --instance-id <id>", "Service instance id.", {
+      required: true,
+    })
     .option(
-      "-o, --output-format <output-format>",
+      "-o, --output-format <output-format:format>",
       "Output format. Supported formats are yaml and json.",
-      { default: "yaml" },
+      { default: OutputFormat.YAML },
     )
     .option("--pretty", "Pretty print")
     .action(async (options: ShowOpts, repo: string | undefined) => {

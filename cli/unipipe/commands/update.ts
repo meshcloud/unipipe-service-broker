@@ -24,7 +24,9 @@ export function registerUpdateCmd(program: Command) {
     .description(
       "Update status of a service instance or binding stored in a UniPipe OSB git repo.",
     )
-    .option("-i --instance-id <instance-id>", "Service instance id.", {})
+    .option("-i --instance-id <instance-id>", "Service instance id.", {
+      required: true,
+    })
     .option("-b --binding-id <binding-id>", "Service binding id.", {
       depends: ["instance-id"],
     })
@@ -39,9 +41,11 @@ export function registerUpdateCmd(program: Command) {
     .option(
       "--status <status:status>",
       "The status. Allowed values are 'in progress', 'succeeded' and 'failed'.",
+      { required: true },
     ) // todo use choices instead
-    .option("--description [description]", "Status description text.", {
+    .option("--description <description>", "Status description text.", {
       default: "",
+      required: true,
     })
     .action(async (options: UpdateOpts, repo: string | undefined) => {
       const repository = new Repository(repo ? repo : ".");
