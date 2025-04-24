@@ -14,6 +14,7 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+      
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
@@ -24,6 +25,7 @@ jobs:
           release_name: Release ${{ github.ref }}
           draft: false
           prerelease: false
+      
       - name: Set upload-url
         run: echo "::set-output name=upload-url::${{ steps.create_release.outputs.upload_url }}"
 
@@ -55,20 +57,24 @@ jobs:
           push: ${{ startsWith(github.ref, 'refs/tags/') }}
           labels: ${{ steps.meta.outputs.labels }}
           tags: ${{ steps.meta.outputs.tags }}
+  
   release-service-broker-jar: # build self executable jar (another gradle build, this time locally)
     runs-on: ubuntu-latest
     needs: create-release
     steps:
       - uses: actions/checkout@v4
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
+  
+      - uses: actions/setup-java@v4
         with:
-          java-version: 11
+          java-version: 17
           distribution: temurin
-      - name: Build with Gradle
-        uses: gradle/gradle-build-action@v3
-        with:
-          arguments: build
+      
+      - uses: gradle/actions/setup-gradle@v4
+
+
+      - name: build
+        run: ./gradlew build
+
       - name: Upload Service Broker Release Asset
         id: upload-release-asset
         uses: actions/upload-release-asset@v1
@@ -79,6 +85,7 @@ jobs:
           asset_path: ./build/libs/unipipe-service-broker-1.0.0.jar
           asset_name: unipipe-service-broker.jar
           asset_content_type: application/zip
+  
   release-cli:
     # sadly, triggering on a successful build workflow and then downloading the artifacts from there is not yet
     # possible with github actions, see https://github.com/actions/download-artifact/issues/3
@@ -100,10 +107,12 @@ jobs:
     needs: create-release
     steps:
       - uses: actions/checkout@v4
+      
       - uses: denoland/setup-deno@v1
         with:
           deno-version: "~1.21"
-      - uses: actions/cache@v3
+      
+      - uses: actions/cache@v4
         with:
           path: ~/.cache/deno # see https://deno.land/manual/linking_to_external_code
           key: ${{ runner.os }}-deno # it seems there's no particular cache keying required
@@ -119,6 +128,7 @@ jobs:
 
           cd test
           ./all.sh ../bin/unipipe
+      
       # upload steps
       - name: Upload unipipe-cli-x86_64-apple-darwin
         uses: actions/upload-release-asset@v1
