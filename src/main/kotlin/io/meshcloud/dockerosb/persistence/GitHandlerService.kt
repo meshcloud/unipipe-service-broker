@@ -16,6 +16,17 @@ import java.io.File
 private val log = KotlinLogging.logger {}
 
 /**
+ * Extension function to add username/password credentials to a JGit TransportCommand.
+ * This is required for Git operations that interact with remote repositories requiring authentication.
+ */
+private fun <T : TransportCommand<*, *>> T.withCredentials(gitConfig: GitConfig): T {
+  gitConfig.username?.let {
+    this.setCredentialsProvider(UsernamePasswordCredentialsProvider(gitConfig.username, gitConfig.password))
+  }
+  return this
+}
+
+/**
  * Note: consumers should use this only via a [GitOperationContext] to manage concurrent access to the git repo
  */
 open class GitHandlerService(
@@ -72,11 +83,8 @@ open class GitHandlerService(
           remote = "origin"
           remoteBranchName = gitConfig.remoteBranch
           setFastForward(MergeCommand.FastForwardMode.FF_ONLY)
-
-          gitConfig.username?.let {
-            setCredentialsProvider(UsernamePasswordCredentialsProvider(gitConfig.username, gitConfig.password))
-          }
         }
+        .withCredentials(gitConfig)
         .call()
 
     if (!pullResult.isSuccessful) {
@@ -123,11 +131,8 @@ open class GitHandlerService(
     git.fetch()
         .apply {              
           remote = "origin" 
-
-          gitConfig.username?.let {
-            setCredentialsProvider(UsernamePasswordCredentialsProvider(gitConfig.username, gitConfig.password))
-          }
         }
+        .withCredentials(gitConfig)
         .call()
 
     // merge changes - this happens locally in our repository
@@ -251,12 +256,7 @@ open class GitHandlerService(
 
   protected open fun push() {
     val pushCommand = git.push()
-
-    gitConfig.username?.let {
-      pushCommand.setCredentialsProvider(UsernamePasswordCredentialsProvider(gitConfig.username, gitConfig.password))
-    }
-
-    pushCommand.call()
+    pushCommand.withCredentials(gitConfig).call()
   }
 
   private fun recoverFromFailedMerge() {
@@ -302,11 +302,8 @@ open class GitHandlerService(
                 refSpecs = listOf(
                     RefSpec("refs/heads/${gitConfig.remoteBranch}:refs/remotes/origin/${gitConfig.remoteBranch}")
                 )
-
-                gitConfig.username?.let {
-                  setCredentialsProvider(UsernamePasswordCredentialsProvider(gitConfig.username, gitConfig.password))
-                }
               }
+              .withCredentials(gitConfig)
               .call()
 
           // checkout a branch
